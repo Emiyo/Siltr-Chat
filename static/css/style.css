@@ -119,3 +119,30 @@ html, body {
     50% { opacity: 1; }
     100% { opacity: 0; }
 }
+
+.voice-message {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.voice-message audio {
+    background-color: var(--bs-dark);
+    border-radius: 4px;
+    border: 1px solid var(--bs-secondary);
+}
+
+.voice-message audio::-webkit-media-controls-panel {
+    background-color: var(--bs-dark);
+}
+
+.voice-message audio::-webkit-media-controls-current-time-display,
+.voice-message audio::-webkit-media-controls-time-remaining-display {
+    color: var(--bs-light);
+}
+
+.voice-duration {
+    color: var(--bs-secondary);
+    font-size: 12px;
+}
