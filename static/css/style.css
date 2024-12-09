@@ -498,34 +498,3 @@ body {
 .user-status {
     color: #27c93f;
 }
-
-/* Message threading styles */
-.reply-button {
-    color: #4a9eff;
-    padding: 0.25rem;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.reply-button:hover {
-    opacity: 1;
-}
-
-.thread-count {
-    font-size: 0.8rem;
-    margin-left: 0.25rem;
-    color: #888;
-}
-
-.message-footer {
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.message.message-reply {
-    margin-left: 2rem;
-    border-left: 2px solid #4a9eff;
-    background-color: rgba(74, 158, 255, 0.1);
-}

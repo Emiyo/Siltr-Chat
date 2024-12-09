@@ -131,10 +131,6 @@ class Message(db.Model):
     voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
     reactions = db.Column(db.JSON, default=dict)
 
-    parent = db.relationship('Message', remote_side=[id], backref='replies')
-    parent_id = db.Column(db.Integer, db.ForeignKey('message.id'))
-    thread_count = db.Column(db.Integer, default=0)
-
     def to_dict(self):
         return {
             'id': self.id,
@@ -147,9 +143,7 @@ class Message(db.Model):
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': {} if self.reactions is None else self.reactions,
-            'parent_id': self.parent_id,
-            'thread_count': self.thread_count
+            'reactions': {} if self.reactions is None else self.reactions
         }
 
 # Routes (Mostly from modified)
@@ -288,54 +282,6 @@ def handle_message(data):
     message_dict = message.to_dict()
     message_dict['sender_username'] = user_data['username']
     
-@socketio.on('reply_message')
-def handle_reply(data):
-    if request.sid not in active_users:
-        return
-    
-    user_data = active_users[request.sid]
-    parent_id = data.get('parent_id')
-    text = data.get('text', '').strip()
-    channel_id = data.get('channel_id')
-    file_url = data.get('file_url')
-    voice_url = data.get('voice_url')
-    voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
-    
-    if not all([parent_id, text]):
-        return
-    
-    # Get parent message and increment thread count
-    parent_message = Message.query.get(parent_id)
-    if not parent_message:
-        return
-    
-    parent_message.thread_count += 1
-    
-    # Create reply message
-    reply = Message(
-        type='reply',
-        sender_id=user_data['id'],
-        channel_id=channel_id,
-        text=text,
-        file_url=file_url,
-        voice_url=voice_url,
-        voice_duration=voice_duration,
-        parent_id=parent_id,
-        reactions={}
-    )
-    
-    db.session.add(reply)
-    db.session.commit()
-    
-    # Prepare message for broadcast
-    reply_dict = reply.to_dict()
-    reply_dict['sender_username'] = user_data['username']
-    
-    # Broadcast to channel if specified, otherwise broadcast to all
-    if channel_id:
-        emit('new_reply', reply_dict, room=f'channel_{channel_id}')
-    else:
-        emit('new_reply', reply_dict, broadcast=True)
     # Broadcast to channel if specified, otherwise broadcast to all
     if channel_id:
         emit('new_message', message_dict, room=f'channel_{channel_id}')
