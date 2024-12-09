@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     let username = '';
+    let messageHistory = [];
+    let historyIndex = -1;
     
     // DOM Elements
     const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'));
@@ -20,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (username) {
             socket.emit('join', { username });
             usernameModal.hide();
+            addMessage({
+                type: 'system',
+                text: 'Type /help for available commands',
+                timestamp: new Date().toISOString()
+            });
         }
     });
 
@@ -28,18 +35,51 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
+            messageHistory.push(message);
+            historyIndex = messageHistory.length;
             socket.emit('message', { text: message });
             messageInput.value = '';
         }
     });
 
+    // Handle command history with up/down arrows
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                historyIndex--;
+                messageInput.value = messageHistory[historyIndex];
+            }
+        } else if (e.key === 'Tab') {
+            e.preventDefault();
+            // Add tab completion here if needed
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex < messageHistory.length - 1) {
+                historyIndex++;
+                messageInput.value = messageHistory[historyIndex];
+            } else {
+                historyIndex = messageHistory.length;
+                messageInput.value = '';
+            }
+        }
+    });
+
     // Socket event handlers
     socket.on('connect', () => {
-        console.log('Connected to server');
+        addMessage({
+            type: 'system',
+            text: 'Connected to server',
+            timestamp: new Date().toISOString()
+        });
     });
 
     socket.on('disconnect', () => {
-        console.log('Disconnected from server');
+        addMessage({
+            type: 'system',
+            text: 'Disconnected from server',
+            timestamp: new Date().toISOString()
+        });
     });
 
     socket.on('message_history', (data) => {
@@ -58,6 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('clear_chat', () => {
         messageContainer.innerHTML = '';
+        addMessage({
+            type: 'system',
+            text: 'Terminal cleared',
+            timestamp: new Date().toISOString()
+        });
     });
 
     // Helper functions
@@ -67,23 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (message.type === 'system') {
             messageDiv.className = 'message message-system';
-            messageDiv.innerHTML = `
-                <div>${message.text}</div>
-                <div class="timestamp">${timestamp}</div>
-            `;
+            messageDiv.innerHTML = `[${timestamp}] ${message.text}`;
         } else {
             const isOwnMessage = message.username === username;
-            messageDiv.className = `message ${isOwnMessage ? 'message-own' : 'message-other'} 
-                                  ${isOwnMessage ? 'text-end' : 'text-start'}`;
-            messageDiv.innerHTML = `
-                <div>
-                    ${!isOwnMessage ? `<small class="text-muted">${message.username}</small>` : ''}
-                    <div class="message-bubble">
-                        ${message.text}
-                    </div>
-                    <div class="timestamp">${timestamp}</div>
-                </div>
-            `;
+            messageDiv.className = `message ${isOwnMessage ? 'message-own' : 'message-other'}`;
+            messageDiv.innerHTML = `[${timestamp}] ${isOwnMessage ? '' : message.username + ': '}${message.text}`;
         }
 
         messageContainer.appendChild(messageDiv);
@@ -91,12 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUserList(users) {
         userList.innerHTML = users.map(user => `
-            <li class="list-group-item">
-                <div class="user-item">
-                    <span class="user-status"></span>
-                    ${user.username}
-                </div>
-            </li>
+            <div class="user-item">
+                <span class="user-status">></span>
+                ${user.username}
+            </div>
         `).join('');
     }
 
