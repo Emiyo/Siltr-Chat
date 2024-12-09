@@ -235,18 +235,24 @@ def upload_file():
         file_url = url_for('static', filename=f'uploads/{filename}')
         
         # Process audio file if it's a voice message
-        if file.filename.endswith(('.wav', '.mp3', '.ogg', '.webm')):
+        if file.filename.lower().endswith(('.wav', '.mp3', '.ogg', '.webm')):
             try:
                 from pydub import AudioSegment
+                logger.info(f"Processing audio file: {file_path}")
+                
+                # Load and process audio file
                 audio = AudioSegment.from_file(file_path)
                 duration = len(audio) / 1000.0  # Convert to seconds
+                
+                logger.info(f"Successfully processed audio file. Duration: {duration}s")
                 return jsonify({
                     'voice_url': file_url,
-                    'voice_duration': duration
+                    'voice_duration': round(duration, 2)  # Round to 2 decimal places
                 })
             except Exception as e:
-                logger.error(f"Error processing audio file: {str(e)}")
-                return jsonify({'error': 'Error processing audio file'}), 500
+                error_msg = f"Error processing audio file: {str(e)}"
+                logger.error(error_msg)
+                return jsonify({'error': error_msg}), 500
         
         return jsonify({'file_url': file_url})
 
@@ -267,10 +273,11 @@ def handle_message(data):
     text = data.get('text', '').strip()
     file_url = data.get('file_url')
     voice_url = data.get('voice_url')
-    voice_duration = data.get('voice_duration')
+    voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
     
     # Set message type based on content
     msg_type = 'voice' if voice_url else 'public'
+    logger.info(f"Processing {msg_type} message. Voice URL: {voice_url}, Duration: {voice_duration}")
     
     # Check if user is muted
     db_user = User.query.get(user_data['id'])
