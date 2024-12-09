@@ -152,14 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
         messageContainer.innerHTML = '';
         if (data.user_id) {
             user_id = data.user_id;
+            // Request categories when user_id is received
+            socket.emit('get_categories');
         }
         data.messages.forEach(message => addMessage(message));
         scrollToBottom();
     });
 
-    socket.on('join', ({ username }) => {
-        // Get categories after successful join
-        socket.emit('get_categories');
+    socket.on('join', (data) => {
+        if (data.username) {
+            // Also request categories on successful join
+            socket.emit('get_categories');
+        }
     });
 
     socket.on('disconnect', () => {
