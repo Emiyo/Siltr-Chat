@@ -11,21 +11,21 @@
     <div class="container py-4">
         <!-- Username Modal -->
         <div class="modal fade" id="usernameModal" data-bs-backdrop="static" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
                 <div class="modal-content terminal">
-                    <div class="terminal-header">
+                    <div class="terminal-header py-1">
                         <div class="terminal-buttons">
                             <span class="terminal-button terminal-button-red"></span>
                             <span class="terminal-button terminal-button-yellow"></span>
                             <span class="terminal-button terminal-button-green"></span>
                         </div>
-                        <span>login.sh</span>
+                        <span class="small">login.sh</span>
                         <span></span>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-2">
                         <form id="usernameForm">
-                            <div class="mb-3">
-                                <span class="prompt">$</span>
+                            <div class="d-flex align-items-center">
+                                <span class="prompt me-2">$</span>
                                 <input type="text" class="terminal-input" id="usernameInput" 
                                     placeholder="enter username" required minlength="2" maxlength="20">
                             </div>
