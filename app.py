@@ -1,7 +1,7 @@
 import os
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, session, jsonify, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_migrate import Migrate
@@ -202,6 +202,14 @@ def handle_message(data):
     
     # Check if user is muted
     db_user = User.query.get(user['id'])
+    if not db_user:
+        emit('new_message', {
+            'type': 'system',
+            'text': 'Error: User not found',
+            'timestamp': datetime.now().isoformat()
+        })
+        return
+        
     if db_user.muted_until and db_user.muted_until > datetime.utcnow():
         emit('new_message', {
             'type': 'system',
@@ -212,7 +220,7 @@ def handle_message(data):
     
     # Handle commands
     if text.startswith('/'):
-        handle_command(text, db_user)
+        handle_command(text, user, db_user)
         return
     
     message = Message(
@@ -326,7 +334,7 @@ def handle_disconnect():
         emit('user_list', {'users': list(active_users.values())}, broadcast=True)
         emit('new_message', leave_message.to_dict(), broadcast=True)
 
-def handle_command(text, user):
+def handle_command(text, user_data, db_user):
     command_parts = text.lower().split()
     command = command_parts[0]
     
@@ -335,7 +343,7 @@ def handle_command(text, user):
                    '/help - Show this message\n' + \
                    '/clear - Clear your chat history\n' + \
                    '/status <message> - Update your status\n'
-        if user.is_moderator:
+        if user_data['is_moderator']:
             help_text += 'Moderator commands:\n' + \
                         '/mute @user <minutes> - Mute a user\n' + \
                         '/unmute @user - Unmute a user\n' + \
@@ -351,16 +359,16 @@ def handle_command(text, user):
         emit('clear_chat')
     elif command == '/status' and len(command_parts) > 1:
         status = ' '.join(command_parts[1:])
-        db_user = User.query.get(user['id'])
-        if db_user:
-            result = db_user.update_profile(status=status)
-            emit('new_message', {
-                'type': 'system',
-                'text': result,
-                'timestamp': datetime.now().isoformat()
-            })
-            emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-    elif user['is_moderator']:
+        result = db_user.update_profile(status=status)
+        emit('new_message', {
+            'type': 'system',
+            'text': result,
+            'timestamp': datetime.now().isoformat()
+        })
+        # Update active users with new status
+        active_users[request.sid]['status'] = status
+        emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+    elif user_data['is_moderator']:
         if command in ['/mute', '/unmute', '/promote', '/demote'] and len(command_parts) > 1:
             target_username = command_parts[1].lstrip('@')
             target_user = User.query.filter_by(username=target_username).first()
