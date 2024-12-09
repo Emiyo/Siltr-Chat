@@ -1,0 +1,61 @@
+html, body {
+    height: 100%;
+}
+
+.chat-messages {
+    height: 60vh;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.message {
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.message-bubble {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    max-width: 80%;
+}
+
+.message-own .message-bubble {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.message-other .message-bubble {
+    background-color: var(--bs-secondary);
+}
+
+.message-system {
+    text-align: center;
+    color: var(--bs-info);
+    font-style: italic;
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    color: var(--bs-secondary);
+    margin-top: 0.25rem;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+}
+
+.user-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--bs-success);
+    margin-right: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
