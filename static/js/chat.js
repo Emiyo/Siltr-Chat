@@ -30,15 +30,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // File input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
     // Handle message submission
     messageForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
+            // Check if it's a private message
+            if (message.startsWith('@')) {
+                const spaceIndex = message.indexOf(' ');
+                if (spaceIndex > 1) {
+                    const recipient = message.substring(1, spaceIndex);
+                    const privateMessage = message.substring(spaceIndex + 1);
+                    messageHistory.push(message);
+                    historyIndex = messageHistory.length;
+                    socket.emit('private_message', {
+                        recipient: recipient,
+                        text: privateMessage
+                    });
+                    messageInput.value = '';
+                    return;
+                }
+            }
+            
+            // Regular message
             messageHistory.push(message);
             historyIndex = messageHistory.length;
             socket.emit('message', { text: message });
             messageInput.value = '';
+        }
+    });
+
+    // Handle file attachment
+    document.getElementById('attachButton').addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    socket.emit('message', {
+                        text: `Shared a file: ${file.name}`,
+                        file_url: data.file_url
+                    });
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+            }
+            
+            fileInput.value = ''; // Reset file input
         }
     });
 
@@ -109,17 +165,83 @@ document.addEventListener('DOMContentLoaded', () => {
     function addMessage(message) {
         const messageDiv = document.createElement('div');
         const timestamp = new Date(message.timestamp).toLocaleTimeString();
+        let messageContent = message.text;
+
+        // Add file attachment if present
+        if (message.file_url) {
+            messageContent += `<br><a href="${message.file_url}" target="_blank" class="file-attachment">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
+                    <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+                </svg>
+                Download Attachment
+            </a>`;
+        }
 
         if (message.type === 'system') {
             messageDiv.className = 'message message-system';
-            messageDiv.innerHTML = `[${timestamp}] ${message.text}`;
+            messageDiv.innerHTML = `[${timestamp}] ${messageContent}`;
+        } else if (message.type === 'private') {
+            messageDiv.className = 'message message-private';
+            const isOwnMessage = message.sender_id === user_id;
+            const otherUser = isOwnMessage ? message.receiver_username : message.sender_username;
+            messageDiv.innerHTML = `[${timestamp}] 🔒 Private message ${isOwnMessage ? 'to' : 'from'} ${otherUser}: ${messageContent}`;
         } else {
-            const isOwnMessage = message.username === username;
+            const isOwnMessage = message.sender_id === user_id;
             messageDiv.className = `message ${isOwnMessage ? 'message-own' : 'message-other'}`;
-            messageDiv.innerHTML = `[${timestamp}] ${isOwnMessage ? '' : message.username + ': '}${message.text}`;
+            messageDiv.innerHTML = `[${timestamp}] ${isOwnMessage ? '' : message.sender_username + ': '}${messageContent}`;
+        }
+
+        // Add reaction buttons if not a system message
+        if (message.type !== 'system') {
+            const reactionDiv = document.createElement('div');
+            reactionDiv.className = 'message-reactions';
+            const reactions = message.reactions || {};
+            
+            // Display existing reactions
+            Object.entries(reactions).forEach(([reaction, users]) => {
+                const count = Array.isArray(users) ? users.length : 0;
+                reactionDiv.innerHTML += `<span class="reaction" data-reaction="${reaction}">${reaction} ${count}</span>`;
+            });
+
+            // Add reaction button
+            const addReactionBtn = document.createElement('button');
+            addReactionBtn.className = 'btn btn-sm btn-link add-reaction';
+            addReactionBtn.innerHTML = '➕';
+            addReactionBtn.onclick = () => addReaction(message.id);
+            reactionDiv.appendChild(addReactionBtn);
+
+            messageDiv.appendChild(reactionDiv);
         }
 
         messageContainer.appendChild(messageDiv);
+    }
+
+    function addReaction(messageId) {
+        // Simple reaction picker
+        const reactions = ['👍', '❤️', '😄', '🎉', '👀'];
+        const picker = document.createElement('div');
+        picker.className = 'reaction-picker';
+        picker.innerHTML = reactions.map(r => `<span class="reaction-option">${r}</span>`).join('');
+        
+        // Position the picker
+        const rect = event.target.getBoundingClientRect();
+        picker.style.position = 'absolute';
+        picker.style.left = rect.left + 'px';
+        picker.style.top = (rect.top - 40) + 'px';
+        
+        // Handle reaction selection
+        picker.onclick = (e) => {
+            if (e.target.classList.contains('reaction-option')) {
+                const reaction = e.target.textContent;
+                socket.emit('add_reaction', {
+                    message_id: messageId,
+                    reaction: reaction
+                });
+                document.body.removeChild(picker);
+            }
+        };
+        
+        document.body.appendChild(picker);
     }
 
     function updateUserList(users) {

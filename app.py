@@ -1,7 +1,10 @@
 import os
+import os
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 import logging
 
@@ -15,6 +18,13 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 # Ensure proper PostgreSQL URL format
+# File upload configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 database_url = os.environ['DATABASE_URL']
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -22,6 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 socketio = SocketIO(app)
 
 # Store active users in memory
@@ -29,19 +40,44 @@ active_users = {}
 MAX_MESSAGES = 100
 
 # Message Model
-class Message(db.Model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20), nullable=False)
-    username = db.Column(db.String(50))
-    text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    is_moderator = db.Column(db.Boolean, default=False)
+    avatar = db.Column(db.String(200))  # URL to user avatar
+    status = db.Column(db.String(100))  # User status message
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
-            'type': self.type,
+            'id': self.id,
             'username': self.username,
+            'is_moderator': self.is_moderator,
+            'avatar': self.avatar,
+            'status': self.status,
+            'created_at': self.created_at.isoformat()
+        }
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system'
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    file_url = db.Column(db.String(200))  # For file attachments
+    reactions = db.Column(db.JSON, default=dict)  # Store reactions as {user_id: reaction_type}
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'type': self.type,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
             'text': self.text,
-            'timestamp': self.timestamp.isoformat()
+            'timestamp': self.timestamp.isoformat(),
+            'file_url': self.file_url,
+            'reactions': self.reactions
         }
 
 # Create database tables
@@ -63,15 +99,27 @@ def handle_join(data):
         return
     logger.debug(f"User joining: {username}")
     
-    # Store user information
+    # Create or get user
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        user = User(username=username)
+        db.session.add(user)
+        db.session.commit()
+    
+    # Store user information in active users
     active_users[request.sid] = {
+        'id': user.id,
         'username': username,
+        'is_moderator': user.is_moderator,
+        'avatar': user.avatar,
+        'status': user.status,
         'joined_at': datetime.now().isoformat()
     }
     
     # Create and store join message
     join_message = Message(
         type='system',
+        sender_id=user.id,
         text=f'{username} has joined the chat',
         timestamp=datetime.now()
     )
@@ -80,7 +128,14 @@ def handle_join(data):
     
     # Send active users and message history
     try:
-        recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
+        recent_messages = Message.query\
+            .filter((Message.type == 'public') | 
+                   (Message.type == 'system') | 
+                   ((Message.type == 'private') & 
+                    ((Message.sender_id == user.id) | (Message.receiver_id == user.id))))\
+            .order_by(Message.timestamp.desc())\
+            .limit(MAX_MESSAGES)\
+            .all()
         logger.debug(f"Retrieved {len(recent_messages)} messages from database")
         recent_messages.reverse()
     except Exception as e:
@@ -91,29 +146,129 @@ def handle_join(data):
     emit('message_history', {'messages': [msg.to_dict() for msg in recent_messages]})
     emit('new_message', join_message.to_dict(), broadcast=True)
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if file:
+        # Save file with secure filename
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        file_url = url_for('static', filename=f'uploads/{filename}')
+        return jsonify({'file_url': file_url})
+
 @socketio.on('message')
 def handle_message(data):
     if request.sid not in active_users:
         return
     
-    username = active_users[request.sid]['username']
+    user = active_users[request.sid]
     text = data.get('text', '').strip()
+    file_url = data.get('file_url')
     
     # Handle commands
     if text.startswith('/'):
-        handle_command(text, username)
+        handle_command(text, user['username'])
         return
     
     message = Message(
-        type='message',
-        username=username,
+        type='public',
+        sender_id=user['id'],
+        text=text,
+        file_url=file_url,
+        timestamp=datetime.now()
+    )
+    db.session.add(message)
+    db.session.commit()
+    
+    message_dict = message.to_dict()
+    message_dict['sender_username'] = user['username']
+    emit('new_message', message_dict, broadcast=True)
+
+@socketio.on('private_message')
+def handle_private_message(data):
+    if request.sid not in active_users:
+        return
+    
+    sender = active_users[request.sid]
+    recipient_username = data.get('recipient')
+    text = data.get('text', '').strip()
+    
+    # Find recipient user
+    recipient = User.query.filter_by(username=recipient_username).first()
+    if not recipient:
+        emit('new_message', {
+            'type': 'system',
+            'text': f'User {recipient_username} not found',
+            'timestamp': datetime.now().isoformat()
+        })
+        return
+    
+    message = Message(
+        type='private',
+        sender_id=sender['id'],
+        receiver_id=recipient.id,
         text=text,
         timestamp=datetime.now()
     )
     db.session.add(message)
     db.session.commit()
     
-    emit('new_message', message.to_dict(), broadcast=True)
+    message_dict = message.to_dict()
+    message_dict.update({
+        'sender_username': sender['username'],
+        'receiver_username': recipient_username
+    })
+    
+    # Send to sender and recipient only
+    for sid, user in active_users.items():
+        if user['id'] in (sender['id'], recipient.id):
+            emit('new_message', message_dict, room=sid)
+
+@socketio.on('add_reaction')
+def handle_reaction(data):
+    if request.sid not in active_users:
+        return
+    
+    user = active_users[request.sid]
+    message_id = data.get('message_id')
+    reaction = data.get('reaction')
+    
+    message = Message.query.get(message_id)
+    if not message:
+        return
+    
+    if not message.reactions:
+        message.reactions = {}
+    
+    # Initialize reaction if it doesn't exist
+    if reaction not in message.reactions:
+        message.reactions[reaction] = []
+    
+    # Toggle user's reaction
+    user_id = str(user['id'])
+    if user_id in message.reactions[reaction]:
+        message.reactions[reaction].remove(user_id)
+    else:
+        message.reactions[reaction].append(user_id)
+    
+    # Remove reaction if no users
+    if not message.reactions[reaction]:
+        del message.reactions[reaction]
+    
+    db.session.commit()
+    
+    # Broadcast updated message
+    message_dict = message.to_dict()
+    message_dict['sender_username'] = User.query.get(message.sender_id).username
+    if message.receiver_id:
+        message_dict['receiver_username'] = User.query.get(message.receiver_id).username
+    emit('new_message', message_dict, broadcast=True)
 
 @socketio.on('disconnect')
 def handle_disconnect():
