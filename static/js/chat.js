@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     let username = '';
+    let user_id = null;
     let messageHistory = [];
     let historyIndex = -1;
     
@@ -140,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('message_history', (data) => {
         messageContainer.innerHTML = '';
+        // Store user ID when receiving message history
+        if (data.user_id) {
+            user_id = data.user_id;
+        }
         data.messages.forEach(message => addMessage(message));
     });
 
@@ -188,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const isOwnMessage = message.sender_id === user_id;
             messageDiv.className = `message ${isOwnMessage ? 'message-own' : 'message-other'}`;
-            messageDiv.innerHTML = `[${timestamp}] ${isOwnMessage ? '' : message.sender_username + ': '}${messageContent}`;
+            messageDiv.innerHTML = `[${timestamp}] ${isOwnMessage ? '' : (message.sender_username || username) + ': '}${messageContent}`;
         }
 
         // Add reaction buttons if not a system message

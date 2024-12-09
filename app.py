@@ -2,7 +2,7 @@ import os
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, jsonify, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -143,7 +143,10 @@ def handle_join(data):
         recent_messages = []
     
     emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-    emit('message_history', {'messages': [msg.to_dict() for msg in recent_messages]})
+    emit('message_history', {
+        'messages': [msg.to_dict() for msg in recent_messages],
+        'user_id': user.id
+    })
     emit('new_message', join_message.to_dict(), broadcast=True)
 
 @app.route('/upload', methods=['POST'])

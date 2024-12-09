@@ -1,0 +1,4412 @@
+{
+  "metadata": {
+    "backup_type": "MANUAL",
+    "created_at": "2024-11-20T17:39:00.118372+00:00",
+    "version": "1.0",
+    "created_by": "962390249571483688",
+    "selected_tables": [
+      "guild_permissions",
+      "person_info",
+      "guild_warnings",
+      "person_faction_associations",
+      "person_to_person_relations",
+      "faction_relationships",
+      "faction_ranks",
+      "faction_metrics",
+      "faction_achievement_progress",
+      "faction_achievements",
+      "user_behavior_patterns",
+      "person_tag_associations",
+      "person_tags",
+      "factions",
+      "roles",
+      "user_profiles",
+      "faction_info",
+      "form_templates",
+      "form_submissions",
+      "user_audit_logs",
+      "persons",
+      "backup_history",
+      "command_history",
+      "webhook_registrations",
+      "ticket_priorities",
+      "tickets",
+      "ticket_automation_rules",
+      "ticket_categories",
+      "ticket_messages"
+    ],
+    "version_note": "",
+    "timestamp": "2024-11-20T17:39:04.084749+00:00",
+    "converted_at": "2024-11-20T18:08:33.294734+00:00",
+    "original_format": "gz",
+    "target_format": "json",
+    "schema_reconstructed": false
+  },
+  "data": {
+    "guild_permissions": [
+      {
+        "id": 1,
+        "guild_id": "1303685093960974336",
+        "command_name": "adduser",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:46:24.356938+00:00",
+        "updated_at": "2024-11-18T21:46:24.356943+00:00"
+      },
+      {
+        "id": 2,
+        "guild_id": "1303685093960974336",
+        "command_name": "removeuser",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:46:34.895049+00:00",
+        "updated_at": "2024-11-18T21:46:34.895054+00:00"
+      },
+      {
+        "id": 3,
+        "guild_id": "1303685093960974336",
+        "command_name": "changepermission",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:46:42.987003+00:00",
+        "updated_at": "2024-11-18T21:46:42.987007+00:00"
+      },
+      {
+        "id": 4,
+        "guild_id": "1303685093960974336",
+        "command_name": "listusers",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:46:49.662818+00:00",
+        "updated_at": "2024-11-18T21:46:49.662823+00:00"
+      },
+      {
+        "id": 5,
+        "guild_id": "1303685093960974336",
+        "command_name": "addfaction",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:47:09.517593+00:00",
+        "updated_at": "2024-11-18T21:47:09.517597+00:00"
+      },
+      {
+        "id": 6,
+        "guild_id": "1303685093960974336",
+        "command_name": "details",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:47:48.843836+00:00",
+        "updated_at": "2024-11-18T21:47:48.843842+00:00"
+      },
+      {
+        "id": 7,
+        "guild_id": "1303685093960974336",
+        "command_name": "remove",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:47:54.239691+00:00",
+        "updated_at": "2024-11-18T21:47:54.239695+00:00"
+      },
+      {
+        "id": 9,
+        "guild_id": "1303685093960974336",
+        "command_name": "listfactions",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:06.538641+00:00",
+        "updated_at": "2024-11-18T21:48:06.538644+00:00"
+      },
+      {
+        "id": 10,
+        "guild_id": "1303685093960974336",
+        "command_name": "search",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:12.862373+00:00",
+        "updated_at": "2024-11-18T21:48:12.862379+00:00"
+      },
+      {
+        "id": 11,
+        "guild_id": "1303685093960974336",
+        "command_name": "addinfo",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:18.667588+00:00",
+        "updated_at": "2024-11-18T21:48:18.667593+00:00"
+      },
+      {
+        "id": 12,
+        "guild_id": "1303685093960974336",
+        "command_name": "setrelation",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:27.919348+00:00",
+        "updated_at": "2024-11-18T21:48:27.919354+00:00"
+      },
+      {
+        "id": 14,
+        "guild_id": "1303685093960974336",
+        "command_name": "relations",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:42.616187+00:00",
+        "updated_at": "2024-11-18T21:48:42.616192+00:00"
+      },
+      {
+        "id": 15,
+        "guild_id": "1303685093960974336",
+        "command_name": "submit",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:33:49.268810+00:00",
+        "updated_at": "2024-11-18T23:33:49.268819+00:00"
+      },
+      {
+        "id": 16,
+        "guild_id": "1303685093960974336",
+        "command_name": "create",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:34:03.591559+00:00",
+        "updated_at": "2024-11-18T23:34:03.591584+00:00"
+      },
+      {
+        "id": 18,
+        "guild_id": "1303685093960974336",
+        "command_name": "help",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:34:31.825898+00:00",
+        "updated_at": "2024-11-18T23:34:31.825907+00:00"
+      },
+      {
+        "id": 19,
+        "guild_id": "1303685093960974336",
+        "command_name": "update",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:34:58.067466+00:00",
+        "updated_at": "2024-11-18T23:34:58.067477+00:00"
+      },
+      {
+        "id": 20,
+        "guild_id": "1303685093960974336",
+        "command_name": "add",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:35:09.489687+00:00",
+        "updated_at": "2024-11-18T23:35:09.489697+00:00"
+      },
+      {
+        "id": 21,
+        "guild_id": "1303685093960974336",
+        "command_name": "view",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:35:35.867059+00:00",
+        "updated_at": "2024-11-18T23:35:35.867071+00:00"
+      },
+      {
+        "id": 8,
+        "guild_id": "1303685093960974336",
+        "command_name": "edit",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:47:59.914146+00:00",
+        "updated_at": "2024-11-18T23:35:46.263451+00:00"
+      },
+      {
+        "id": 17,
+        "guild_id": "1303685093960974336",
+        "command_name": "list",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:34:16.441831+00:00",
+        "updated_at": "2024-11-18T23:36:46.298054+00:00"
+      },
+      {
+        "id": 23,
+        "guild_id": "1303685093960974336",
+        "command_name": "listpersons",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:53:54.360092+00:00",
+        "updated_at": "2024-11-19T01:53:54.360120+00:00"
+      },
+      {
+        "id": 24,
+        "guild_id": "1303685093960974336",
+        "command_name": "addrelation",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:54:05.048731+00:00",
+        "updated_at": "2024-11-19T01:54:05.048739+00:00"
+      },
+      {
+        "id": 25,
+        "guild_id": "1303685093960974336",
+        "command_name": "viewrelations",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:54:15.651028+00:00",
+        "updated_at": "2024-11-19T01:54:15.651038+00:00"
+      },
+      {
+        "id": 26,
+        "guild_id": "1303685093960974336",
+        "command_name": "updaterelation",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:54:23.844479+00:00",
+        "updated_at": "2024-11-19T01:54:23.844490+00:00"
+      },
+      {
+        "id": 13,
+        "guild_id": "1303685093960974336",
+        "command_name": "removerelation",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T21:48:35.800507+00:00",
+        "updated_at": "2024-11-19T01:54:30.249456+00:00"
+      },
+      {
+        "id": 27,
+        "guild_id": "1303685093960974336",
+        "command_name": "list-rules",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:54:51.990993+00:00",
+        "updated_at": "2024-11-19T01:54:51.991002+00:00"
+      },
+      {
+        "id": 28,
+        "guild_id": "1303685093960974336",
+        "command_name": "ticket",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:55:54.447127+00:00",
+        "updated_at": "2024-11-19T01:55:54.447137+00:00"
+      },
+      {
+        "id": 29,
+        "guild_id": "1303685093960974336",
+        "command_name": "automation-rule",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:56:08.741841+00:00",
+        "updated_at": "2024-11-19T01:56:08.741851+00:00"
+      },
+      {
+        "id": 30,
+        "guild_id": "1303685093960974336",
+        "command_name": "ticket-close",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:56:26.928626+00:00",
+        "updated_at": "2024-11-19T01:56:26.928634+00:00"
+      },
+      {
+        "id": 31,
+        "guild_id": "1303685093960974336",
+        "command_name": "ticket-priority",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:56:41.578391+00:00",
+        "updated_at": "2024-11-19T01:56:41.578398+00:00"
+      },
+      {
+        "id": 32,
+        "guild_id": "1303685093960974336",
+        "command_name": "ticket-assign",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:56:51.143634+00:00",
+        "updated_at": "2024-11-19T01:56:51.143649+00:00"
+      },
+      {
+        "id": 33,
+        "guild_id": "1303685093960974336",
+        "command_name": "ticket-category",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:57:00.667449+00:00",
+        "updated_at": "2024-11-19T01:57:00.667459+00:00"
+      },
+      {
+        "id": 34,
+        "guild_id": "1303685093960974336",
+        "command_name": "send",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:57:21.875810+00:00",
+        "updated_at": "2024-11-19T01:57:21.875822+00:00"
+      },
+      {
+        "id": 35,
+        "guild_id": "1303685093960974336",
+        "command_name": "send_category",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:57:31.927001+00:00",
+        "updated_at": "2024-11-19T01:57:31.927010+00:00"
+      },
+      {
+        "id": 36,
+        "guild_id": "1303685093960974336",
+        "command_name": "listwebhooks",
+        "enabled": false,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T01:57:39.747983+00:00",
+        "updated_at": "2024-11-19T01:57:39.747993+00:00"
+      },
+      {
+        "id": 22,
+        "guild_id": "1303685093960974336",
+        "command_name": "delete",
+        "enabled": false,
+        "created_by": "1252319208377680008",
+        "created_at": "2024-11-18T23:35:53.888792+00:00",
+        "updated_at": "2024-11-19T01:57:47.858362+00:00"
+      }
+    ],
+    "person_info": [],
+    "guild_warnings": [
+      {
+        "id": 1,
+        "guild_id": "1303685093960974336",
+        "user_id": "962390249571483688",
+        "moderator_id": "962390249571483688",
+        "reason": "test",
+        "action_taken": null,
+        "warning_level": 1,
+        "is_active": false,
+        "created_at": "2024-11-19T17:36:53.117286+00:00",
+        "expires_at": null
+      },
+      {
+        "id": 2,
+        "guild_id": "1303685093960974336",
+        "user_id": "962390249571483688",
+        "moderator_id": "962390249571483688",
+        "reason": "test",
+        "action_taken": null,
+        "warning_level": 3,
+        "is_active": false,
+        "created_at": "2024-11-19T17:38:57.479163+00:00",
+        "expires_at": null
+      }
+    ],
+    "person_faction_associations": [],
+    "person_to_person_relations": [
+      {
+        "id": 1,
+        "person_id": 3,
+        "related_person_id": 7,
+        "relationship_type": "associate",
+        "description": "Both apart of SCPF whereas Elbow works as a high-rank within SCPF.",
+        "strength": 8,
+        "status": "active",
+        "start_date": "2024-11-17T09:46:49.398879+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:46:49.398893+00:00",
+        "updated_at": "2024-11-17T09:46:49.398898+00:00"
+      },
+      {
+        "id": 2,
+        "person_id": 3,
+        "related_person_id": 6,
+        "relationship_type": "associate",
+        "description": "Both apart of SCPF whereas Otto works as a high-rank within SCPF.",
+        "strength": 8,
+        "status": "active",
+        "start_date": "2024-11-17T09:47:08.327190+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:47:08.327199+00:00",
+        "updated_at": "2024-11-17T09:47:08.327201+00:00"
+      },
+      {
+        "id": 3,
+        "person_id": 7,
+        "related_person_id": 6,
+        "relationship_type": "associate",
+        "description": "Both apart of SCPF as high-ranks.",
+        "strength": 6,
+        "status": "active",
+        "start_date": "2024-11-17T09:48:05.585307+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:48:05.585317+00:00",
+        "updated_at": "2024-11-17T09:48:05.585319+00:00"
+      },
+      {
+        "id": 4,
+        "person_id": 12,
+        "related_person_id": 8,
+        "relationship_type": "associate",
+        "description": "Dubsarereal is a TRP state owner.",
+        "strength": 7,
+        "status": "active",
+        "start_date": "2024-11-17T09:49:46.825151+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:49:46.825160+00:00",
+        "updated_at": "2024-11-17T09:49:46.825162+00:00"
+      },
+      {
+        "id": 5,
+        "person_id": 11,
+        "related_person_id": 8,
+        "relationship_type": "associate",
+        "description": "Rico is a TRP hicom.",
+        "strength": 7,
+        "status": "active",
+        "start_date": "2024-11-17T09:51:06.665525+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:51:06.665539+00:00",
+        "updated_at": "2024-11-17T09:51:06.665542+00:00"
+      },
+      {
+        "id": 6,
+        "person_id": 13,
+        "related_person_id": 8,
+        "relationship_type": "associate",
+        "description": "Jack48slayer is a TRP hicom.",
+        "strength": 7,
+        "status": "active",
+        "start_date": "2024-11-17T09:51:25.734633+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:51:25.734642+00:00",
+        "updated_at": "2024-11-17T09:51:25.734644+00:00"
+      },
+      {
+        "id": 7,
+        "person_id": 10,
+        "related_person_id": 8,
+        "relationship_type": "associate",
+        "description": "FourHorned is a TRP hicom.",
+        "strength": 7,
+        "status": "active",
+        "start_date": "2024-11-17T09:52:01.115671+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:52:01.115685+00:00",
+        "updated_at": "2024-11-17T09:52:01.115688+00:00"
+      },
+      {
+        "id": 8,
+        "person_id": 2,
+        "related_person_id": 3,
+        "relationship_type": "enemy",
+        "description": "Kal4n is an enemy of SCPF and Ducky is an enemy of Central Legion.",
+        "strength": 7,
+        "status": "active",
+        "start_date": "2024-11-17T09:53:20.474037+00:00",
+        "end_date": null,
+        "last_interaction": null,
+        "interaction_frequency": 0,
+        "impact_score": 0.0,
+        "influence_type": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-17T09:53:20.474048+00:00",
+        "updated_at": "2024-11-17T09:53:20.474050+00:00"
+      }
+    ],
+    "faction_relationships": [],
+    "faction_ranks": [],
+    "faction_metrics": [],
+    "faction_achievement_progress": [],
+    "faction_achievements": [],
+    "user_behavior_patterns": [],
+    "person_tag_associations": [],
+    "person_tags": [],
+    "factions": [
+      {
+        "id": 6,
+        "name": "Central Legion",
+        "description": "Legionis Centralis, also under the alias Black Legion within the past, is a faction operating within the Roblox game Town. It consists of three-hundred to five-hundred members hosted within a Discord communications server. They act through \u201cstates\u201d/controlled factions (factions under control of Legionis Centralis). Canonically based on ancient rome.\nRoblox: https://www.roblox.com/groups/11997394/Black-Legion",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-18T23:11:24.481686+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 7,
+        "name": "SCPF",
+        "description": "SCPF-based faction led by Ducky TA. One of the most developed groups within Town due to their organization and doc development. The memberbase consists of over 350+.\n\nDiscord: https://discord.gg/4dXccDaWBx",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-18T23:11:38.451246+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 8,
+        "name": "Phantom International",
+        "description": "Phanton international is a mercenary faction which is active within multiple games across Roblox. Mostly active within the Town landscape. Under their definition/description of their group: \"Phantom International is a mercenary group spanning various games, with goals ranging from attacking or protecting the very things we may have been hired to attack.\"\n\nDiscord: https://discord.gg/JDJuY2UFcB\nRoblox: https://www.roblox.com/groups/15820443/Phantom-International",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-18T23:11:57.711308+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 9,
+        "name": "Enclave",
+        "description": "The Enclave is a Town operation faction owned and operated by the user \"45_ACP\"/Heavens_Trail. It's based off the Fallout universe and engages in wars within the Town-space.\n\nDiscord: https://discord.gg/wBGB5KDwkt",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-18T23:12:12.651252+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 10,
+        "name": "Splinter's Combat Collective",
+        "description": "A faction owned and operated by 1SHEL/1SHELL_CHAMBERED. They're highly active within the town competitive scene-- warring with a large number of other factions and individuals within scrimmages and raids.\n\nDiscord: https://discord.gg/sUDY4ZYm",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-18T23:12:28.733551+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 11,
+        "name": "ZPMC",
+        "description": "ZPMC is a PMC faction within Town's competitive scene. They're owned and operated by the user XorenMunich. The invite attached is to their ACTIVE server/their lineup server. Under no circumstances should you join this.\n\nDiscord: https://discord.gg/ZBh9585eJX",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-18T23:13:07.675754+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 12,
+        "name": "Talon PMC",
+        "description": "A Town faction owned and operated by ThirdTimesTheCharm12.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:24:19.306221+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 13,
+        "name": "Republic of Greger",
+        "description": "A Town faction owned and operated by Riydite.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:25:22.782378+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 14,
+        "name": "Kyiv Industries",
+        "description": "A Town faction owned and operated by 1Kyiv1.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:26:19.433773+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 15,
+        "name": "The Commonwealth",
+        "description": "A Town faction owned and operated by Ocenting.",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-19T03:28:22.745386+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 16,
+        "name": "Silver Oaks",
+        "description": "A Town faction owned and operated by Exgg_o.",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T03:29:26.734260+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 17,
+        "name": "Bad Company",
+        "description": "A Town faction owned and operated by ITZGOINRAIN.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:30:25.966604+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 18,
+        "name": "Military of Robloxia",
+        "description": "A Town faction owned and operated by P1aint.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:31:21.234496+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 19,
+        "name": "Unusual Incidents Unit",
+        "description": "A Town faction owned and operated by dxrksxul.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:31:43.679824+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 20,
+        "name": "Shark Head Army",
+        "description": "A Town faction owned and operated by Kwestman11Alt1.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:33:24.724086+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 21,
+        "name": "Nowhereville Research Facility",
+        "description": "A Town faction owned and operated by Jetsonclapz.",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T03:33:54.662255+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 22,
+        "name": "The Great Empire",
+        "description": "A Town faction owned and operated by TheeSoulman.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:35:06.197449+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 23,
+        "name": "CombatMind Industries",
+        "description": "A Town faction owned and operated by Matthew0921Roblox.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:36:05.054628+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 24,
+        "name": "Special Assault Command",
+        "description": "A Town faction owned and operated by Jay_Jaydie2.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:36:59.001606+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 25,
+        "name": "Atlas Corporation",
+        "description": "A Town faction owned and operated by Bebito776.",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T03:37:39.553554+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 26,
+        "name": "Brotherhood of Steel",
+        "description": "A Town faction owned and operated by SrRonex_Cel.",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-19T03:38:29.641905+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 27,
+        "name": "Nowhereville\u2019s Resistance Movement",
+        "description": "A Town faction owned and operated by deathnotifications.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:41:00.394542+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 28,
+        "name": "Deparatment of Faction Intelligence",
+        "description": "A Town informational faction owned and operated by Status303.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:43:02.612333+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 29,
+        "name": "Alpha Combat Organization",
+        "description": "A Town faction owned and operated by nicokey2001.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:43:55.386229+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 30,
+        "name": "Folgore Combat Contingent",
+        "description": "A Town faction owned and operated by nicokey2001.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:44:32.019761+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 31,
+        "name": "New California Republic",
+        "description": "A Town faction owned and operated by CertifiedMiho.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:46:27.691453+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 32,
+        "name": "Gear Corporation",
+        "description": "A Town faction owned and operated by Sol_devy.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:47:11.554421+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 33,
+        "name": "International Contracting Agency",
+        "description": "A Town faction owned and operated by RSSUPER56.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:48:34.782989+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 34,
+        "name": "Mentally Insane Lineup",
+        "description": "A Town faction owned and operated by XxravencreepyxX.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:49:37.811002+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 35,
+        "name": "Imperium of Man",
+        "description": "A Town faction owned and operated by Evyheck1.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T03:50:01.689133+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 36,
+        "name": "Scry's Combat Collective",
+        "description": "A Town faction owned and operated by AFTERW0RLDLY.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:51:36.633827+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 37,
+        "name": "Republic of Tyerna",
+        "description": "A Town and military group owned and operated by Error29123.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:56:17.706103+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 38,
+        "name": "Nowhereville Liberation Legion",
+        "description": "A Town faction owned and operated by supermario859.",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-19T03:57:12.501150+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 39,
+        "name": "The Reaper\u2019s Path",
+        "description": "A Town faction owned and operated by RapidDino14.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T03:58:14.880536+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 40,
+        "name": "Grant County Militia",
+        "description": "A Town faction owned and operated by Helloboblox123281qr.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T04:00:31.794154+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 41,
+        "name": "K\u00e4seKorp",
+        "description": "A Town faction owned and operated by Lite_Lion.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T04:01:01.538932+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 43,
+        "name": "Silver Oaks",
+        "description": "Silver Oaks is a gated retirement community based around safety and civil life. Non-violence is the norm, with the community designed to simulate normal life as much as possible within the archaic nature of town.",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-19T20:29:59.217343+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 44,
+        "name": "\"National Epic Meme Coalition\" (NEMC)",
+        "description": "(MAKE SURE TO CLICK THE PURPLE APP BUTTON, MOST ACTIVITY IS THERE)\r\n\r\nwe are NEMC and we are an epic meme group\r\nwe specialize in things, mainly playing town, making movies (sometimes), and telling the guys who cuss to stop\r\n\r\nyou can mainly find us in town:\r\nhttps://www.roblox.com/games/4991214437/town\r\n\r\ngroup founded march 28, 2024\r\n(note: the origin date of modern NEMC was july 17 2023)\r\n\r\nmake sure to join the hapless group\r\n\r\nHapless Studios\r\n\r\n\r\nrules:\r\n1. follow roblox tos\r\n2. no swearing\r\n3. no being unfunny\r\n4. no politics\r\n5. no advertising faction or other game or group\r\n6. do not be banned in town",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:32:21.838855+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 45,
+        "name": "UNGOC: NOWHERE-VILLE",
+        "description": "The Global Occult Coalition is an organization operating alongside the United Nations to combat anomalous phenomenon wherever it is found. If you join our server, you will be given the chance to participate in events/raids, recruit more members, and rise the ranks to command infantry and host events/raids of your own.",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:33:15.768229+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 46,
+        "name": "Korsan Empire",
+        "description": "\u2022\ud835\udce3\ud835\udcf1\ud835\udcee \ud835\udcda\ud835\udcf8\ud835\udcfb\ud835\udcfc\ud835\udcea\ud835\udcf7 \ud835\udcd4\ud835\udcf6\ud835\udcf9\ud835\udcf2\ud835\udcfb\ud835\udcee\u2022\r\n\r\n\u2694\ufe0f\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u2694\ufe0f\r\n\r\n\u3010\u2022\ud835\udd38\ud835\udd39\ud835\udd46\ud835\udd4c\ud835\udd4b\u2022\u3011\r\n\r\nwe are the girthiest sigmas of all the land, fear us cuz we punch metal for fun muahahhahha\r\n\r\nNational Anthem: That one Nutcracker song\r\nMeaning: when korsanis was a youngling in 1st grade he played in the nutcracker\r\n\r\nNational Animal: Pigeon\r\nMeaning: if Mike Tyson likes pigeons, so do we\r\n\r\n\u3010\u2022\ud835\udd4c\u2119\u2102\ud835\udd46\ud835\udd44\ud835\udd40\u2115\ud835\udd3e\u2022\u3011\r\n\r\ncoming soon?\r\n\r\n\u3010\u2022\u2102\ud835\udd46\ud835\udd44\ud835\udd44\ud835\udd4c\u2115\ud835\udd40\u2102\ud835\udd38\ud835\udd4b\ud835\udd40\ud835\udd46\u2115\u2022\u3011\r\n\r\nIf you want to become more involved in our shenanigans join our communications server and enlist\r\n\r\n\u2694\ufe0f\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u2694\ufe0f",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T20:34:13.606426+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 47,
+        "name": "Greater NT Empire",
+        "description": "\ud835\udce1\ud835\udcde\ud835\udcd1\ud835\udcdb\ud835\udcde\ud835\udce7 \ud835\udce3\ud835\udcde\ud835\udce6\ud835\udcdd \ud835\udcd6\ud835\udce1\ud835\udcde\ud835\udce4\ud835\udcdf\r\n\ud835\ude40\ud835\ude68\ud835\ude69\ud835\ude56\ud835\ude57\ud835\ude61\ud835\ude5e\ud835\ude68\ud835\ude5d\ud835\ude5a\ud835\ude59: \ud835\udc12\ud835\udc1e\ud835\udc29\ud835\udc2d\ud835\udc1e\ud835\udc26\ud835\udc1b\ud835\udc1e\ud835\udc2b \ud835\udfd0\ud835\udfce\ud835\udfd0\ud835\udfd0\r\n\r\n-- allied to alot of groups lol --\r\n-- Signed the Townistan Pact --\r\n-- Transitioned from PR M to GNTE --\r\n\r\ntook down the Aid Inform Zero, won the AIZ vs PR M battle\r\ntook down the CDO\r\nwon a short war against the TAP after they isolated themselves\r\ntook down the Town Apocalypse Protector, won the TAP vs PR M battle\r\nwas at war with D/E and allidam for a bit, unofficial ceasefire has been made\r\ntook down the WSG (AKA: NR), won the NR vs TP battle\r\ntook down the DAM (AKA: BDR), won the BDR vs VCA battle\r\nmade peace with the 981 / 1 N DE after ages of rivalry\r\nwon the GNTE Civil War\r\n\r\n\r\n\ud835\udc0e\ud835\udc1f\ud835\udc1f\ud835\udc22\ud835\udc1c\ud835\udc22\ud835\udc1a\ud835\udc25 \ud835\udc00\ud835\udc27\ud835\udc2d\ud835\udc21\ud835\udc1e\ud835\udc26: Anthem of the GNTE\r\n\ud835\udc0e\ud835\udc1f\ud835\udc1f\ud835\udc22\ud835\udc1c\ud835\udc22\ud835\udc1a\ud835\udc25 \ud835\udc26\ud835\udc28\ud835\udc2d\ud835\udc2d\ud835\udc28: \ud835\ude73\ud835\ude74\ud835\ude7e \ud835\ude85\ud835\ude78\ud835\ude7d\ud835\ude73\ud835\ude78\ud835\ude72\ud835\ude74",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:35:07.195039+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 48,
+        "name": "Haplessian Lumberjacks Co.",
+        "description": "We exist only to spite Silver Oaks.\r\nThere are no requirements here, nor are there any events. This group simply exists as a silent army protesting the tyranny of the horrid, malign, and shady higher ups attempting to force their control upon the populace through the conduit that is \"Silver Oaks Retirement Home\".\r\n\r\nThis supposed \"Retirement home\" building uses occult eldritch magic to dramatically reduce the temporal frequency of Humans in the general vicinity, leading to suppressed motor functions and increased levels of anger. They also use this magic to influence the masses by psionically broadcasting Propaganda into the minds of nearby civilians. This is all part of their master plan to overrun Nowhereville and enforce their horrid rules through their hypnotised Sector-7 Reaper squads.",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:35:58.718891+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 49,
+        "name": "Nowhere Emporium",
+        "description": "Copyright \u00a9 2024. NowhereVille Stores USA\r\n\r\nBased in Town, Nowhere-Ville, USA",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:37:00.313661+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 50,
+        "name": "MANEKI",
+        "description": "Founded on 9/8/2020\r\n\r\nManeki is a direct assault unit. We work with the Washington state train army, Nowhereville Insurgency, 5.11, anyone that has the bankroll to pay the bills (willing to work with each other) other groups specialize in strategic objectives...here, we like to keep it simple: Kill or be Killed\r\n\r\n\r\n\r\n\r\n\r\nICN bases will be found here at https://www.roblox.com/games/4991214437/town",
+        "group_link": null,
+        "security_level": 1,
+        "created_at": "2024-11-19T20:37:54.339876+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 51,
+        "name": "The Blackghost",
+        "description": "we are blackghost a fondation based on the game town we are here againts aiz and his supremacy.",
+        "group_link": null,
+        "security_level": 3,
+        "created_at": "2024-11-19T20:39:00.659680+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 52,
+        "name": "Alto-Army forces",
+        "description": "A private military faction made to stop war-criminals and terroris#s in a game called town debug. One of our purposes is to hunt down and either execute or lock away the war-criminals or terroris#s we find.",
+        "group_link": null,
+        "security_level": 2,
+        "created_at": "2024-11-19T20:40:43.166002+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      },
+      {
+        "id": 53,
+        "name": "SECTOR-7 REAPERS",
+        "description": "dumb",
+        "group_link": null,
+        "security_level": 4,
+        "created_at": "2024-11-19T20:42:03.483692+00:00",
+        "is_blacklisted": false,
+        "blacklist_reason": null,
+        "blacklisted_until": null,
+        "blacklisted_by": null,
+        "blacklist_date": null
+      }
+    ],
+    "roles": [
+      {
+        "member_id": "962390249571483688",
+        "permission_level": "ADMIN",
+        "assigned_by": "SYSTEM",
+        "created_at": "2024-11-18T21:00:17.158573+00:00",
+        "updated_at": "2024-11-18T21:00:17.158577+00:00"
+      },
+      {
+        "member_id": "1252319208377680008",
+        "permission_level": "ADMIN",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-18T21:45:42.813691+00:00",
+        "updated_at": "2024-11-18T21:45:42.813695+00:00"
+      },
+      {
+        "member_id": "545806322264834049",
+        "permission_level": "READ",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:45:55.475047+00:00",
+        "updated_at": "2024-11-19T17:45:55.475056+00:00"
+      },
+      {
+        "member_id": "573547543204593694",
+        "permission_level": "READ",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:46:29.073067+00:00",
+        "updated_at": "2024-11-19T17:46:29.073076+00:00"
+      },
+      {
+        "member_id": "561264655348269076",
+        "permission_level": "READ",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:46:35.827857+00:00",
+        "updated_at": "2024-11-19T17:46:35.827864+00:00"
+      },
+      {
+        "member_id": "1244460892985364613",
+        "permission_level": "WRITE",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:46:57.439379+00:00",
+        "updated_at": "2024-11-19T17:46:57.439385+00:00"
+      },
+      {
+        "member_id": "1160191464664481812",
+        "permission_level": "WRITE",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:47:47.140440+00:00",
+        "updated_at": "2024-11-19T17:47:47.140449+00:00"
+      },
+      {
+        "member_id": "415027540965457921",
+        "permission_level": "WRITE",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:49:02.557539+00:00",
+        "updated_at": "2024-11-19T17:49:02.557545+00:00"
+      },
+      {
+        "member_id": "317275024849633281",
+        "permission_level": "ADMIN",
+        "assigned_by": "962390249571483688",
+        "created_at": "2024-11-19T17:45:36.748232+00:00",
+        "updated_at": "2024-11-19T19:13:50.929128+00:00"
+      }
+    ],
+    "user_profiles": [
+      {
+        "user_id": "962390249571483688",
+        "display_name": "System Admin",
+        "email": null,
+        "avatar_url": null,
+        "discord_id": null,
+        "discord_username": null,
+        "discord_discriminator": null,
+        "discord_access_token": null,
+        "discord_refresh_token": null,
+        "discord_token_expires_at": null,
+        "last_login": null,
+        "is_active": true,
+        "failed_login_attempts": 0,
+        "last_failed_login": null,
+        "is_banned": false,
+        "ban_reason": null,
+        "banned_until": null,
+        "banned_by": null,
+        "ban_date": null,
+        "created_at": "2024-11-18T21:00:17.230519+00:00",
+        "updated_at": "2024-11-18T21:00:17.230528+00:00"
+      },
+      {
+        "user_id": "1160191464664481812",
+        "display_name": null,
+        "email": "drspidzz@gmail.com",
+        "avatar_url": "https://cdn.discordapp.com/avatars/1160191464664481812/28ddb485901503757ce6f55521bff451.png",
+        "discord_id": "1160191464664481812",
+        "discord_username": "dr.spidzz",
+        "discord_discriminator": "0",
+        "discord_access_token": "Y27eouxIe4wY60uMco33IEU83yhIfz",
+        "discord_refresh_token": "sNFZ4GFoRJu8b6Nsdhqi1uLJNc1q5D",
+        "discord_token_expires_at": "2024-11-26T20:28:34.524539+00:00",
+        "last_login": "2024-11-19T20:28:34.524988+00:00",
+        "is_active": true,
+        "failed_login_attempts": 0,
+        "last_failed_login": null,
+        "is_banned": false,
+        "ban_reason": null,
+        "banned_until": null,
+        "banned_by": null,
+        "ban_date": null,
+        "created_at": "2024-11-19T20:28:34.531546+00:00",
+        "updated_at": "2024-11-19T20:28:34.531554+00:00"
+      },
+      {
+        "user_id": "1252319208377680008",
+        "display_name": null,
+        "email": "etoiyoiky@gmail.com",
+        "avatar_url": "https://cdn.discordapp.com/avatars/1252319208377680008/c58ee11d2af749ca016274b9a23ca409.png",
+        "discord_id": "1252319208377680008",
+        "discord_username": "zconnections",
+        "discord_discriminator": "0",
+        "discord_access_token": "zmXq74wjSl9wpx9JAliC8dsC1Tji1N",
+        "discord_refresh_token": "KK8xxqo9YVwrHJR2G0fLaUgSUOuQOl",
+        "discord_token_expires_at": "2024-11-27T17:08:40.767923+00:00",
+        "last_login": "2024-11-20T17:08:40.768483+00:00",
+        "is_active": true,
+        "failed_login_attempts": 0,
+        "last_failed_login": null,
+        "is_banned": false,
+        "ban_reason": null,
+        "banned_until": null,
+        "banned_by": null,
+        "ban_date": null,
+        "created_at": "2024-11-20T17:08:40.776514+00:00",
+        "updated_at": "2024-11-20T17:08:40.776544+00:00"
+      }
+    ],
+    "faction_info": [
+      {
+        "faction_id": 10,
+        "content_number": 1,
+        "info": "Disbanded",
+        "created_by": null,
+        "created_at": "2024-11-18T23:12:41.055630+00:00",
+        "updated_at": "2024-11-18T23:12:41.056897+00:00"
+      },
+      {
+        "faction_id": 22,
+        "content_number": 1,
+        "info": "Disbanded.",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T03:35:12.708222+00:00",
+        "updated_at": "2024-11-19T03:35:12.708233+00:00"
+      },
+      {
+        "faction_id": 27,
+        "content_number": 1,
+        "info": "Under interest of Zeta partner ICA.",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T03:41:12.583506+00:00",
+        "updated_at": "2024-11-19T03:41:12.583514+00:00"
+      },
+      {
+        "faction_id": 32,
+        "content_number": 1,
+        "info": "Under watch for evaluation as faction grows.",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T03:47:27.077826+00:00",
+        "updated_at": "2024-11-19T03:47:27.077835+00:00"
+      },
+      {
+        "faction_id": 33,
+        "content_number": 1,
+        "info": "Zeta partner-- not on the DNI list.",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T03:48:50.690118+00:00",
+        "updated_at": "2024-11-19T03:48:50.690127+00:00"
+      },
+      {
+        "faction_id": 35,
+        "content_number": 1,
+        "info": "Zeta partner-- on the DNI list due to its owner being present within Zeta's ranks.",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-19T03:50:31.710895+00:00",
+        "updated_at": "2024-11-19T03:50:31.710906+00:00"
+      }
+    ],
+    "form_templates": [
+      {
+        "id": 1,
+        "title": "Welcome Form",
+        "creator_id": "962390249571483688",
+        "questions": [
+          "What's your Discord username?",
+          "Why do you want to join?"
+        ],
+        "submission_channel_id": "1303399104700878929",
+        "accepted_channel_id": null,
+        "denied_channel_id": null,
+        "created_at": "2024-11-18T21:00:17.182710+00:00",
+        "updated_at": "2024-11-18T21:00:17.182715+00:00"
+      }
+    ],
+    "form_submissions": [],
+    "user_audit_logs": [
+      {
+        "id": 1,
+        "user_id": "962390249571483688",
+        "action": "USER_CREATED",
+        "details": "Initial admin user created by system",
+        "user_agent": null,
+        "performed_at": "2024-11-18T21:00:17.083710+00:00"
+      },
+      {
+        "id": 2,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_IMPORTED",
+        "details": "Imported backup: backup_20241118_030000.json",
+        "user_agent": null,
+        "performed_at": "2024-11-18T23:03:24.431967+00:00"
+      },
+      {
+        "id": 3,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_TRIGGERED",
+        "details": "Manual backup triggered successfully",
+        "user_agent": null,
+        "performed_at": "2024-11-20T01:49:06.753347+00:00"
+      },
+      {
+        "id": 4,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_DOWNLOADED",
+        "details": "Downloaded backup: backup_20241120_014906.json",
+        "user_agent": null,
+        "performed_at": "2024-11-20T01:49:21.461520+00:00"
+      },
+      {
+        "id": 5,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_CREATED",
+        "details": "Created backup: backup_20241120_020950.gz",
+        "user_agent": null,
+        "performed_at": "2024-11-20T02:09:54.696964+00:00"
+      },
+      {
+        "id": 6,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_DOWNLOADED",
+        "details": "Downloaded backup: backup_20241120_020950.gz",
+        "user_agent": null,
+        "performed_at": "2024-11-20T02:10:00.574795+00:00"
+      },
+      {
+        "id": 7,
+        "user_id": "962390249571483688",
+        "action": "BACKUP_CREATED",
+        "details": "Created backup: backup_20241120_173611.gz",
+        "user_agent": null,
+        "performed_at": "2024-11-20T17:36:17.021822+00:00"
+      }
+    ],
+    "persons": [
+      {
+        "id": 1,
+        "name": "System Admin",
+        "description": null,
+        "discord_id": "962390249571483688",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 0,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-18T21:00:17.206279+00:00",
+        "updated_at": "2024-11-18T21:00:17.206283+00:00"
+      },
+      {
+        "id": 2,
+        "name": "Kal4n",
+        "description": "Owner of Central Legion. Known nuker, doxxer, and general conduct violator.",
+        "discord_id": "570138604605669376",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 4,
+        "threat_level": 2,
+        "monitoring_status": "watch",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:13:19.010762+00:00",
+        "updated_at": "2024-11-18T23:13:19.042386+00:00"
+      },
+      {
+        "id": 3,
+        "name": "Ducky TA",
+        "description": "Owner of SCPF.",
+        "discord_id": "717110651415429151",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 4,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:13:53.778242+00:00",
+        "updated_at": "2024-11-18T23:13:53.808348+00:00"
+      },
+      {
+        "id": 4,
+        "name": "Zilly",
+        "description": "Document writer/creator on numerous factions and individuals across the Town community.",
+        "discord_id": "1241823418433929280",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 2,
+        "threat_level": 4,
+        "monitoring_status": "alert",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:14:16.334698+00:00",
+        "updated_at": "2024-11-18T23:14:16.365896+00:00"
+      },
+      {
+        "id": 5,
+        "name": "Raptor",
+        "description": "Owner of Phanton International.",
+        "discord_id": "585516341973483532",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 4,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:14:33.270445+00:00",
+        "updated_at": "2024-11-18T23:14:33.299333+00:00"
+      },
+      {
+        "id": 6,
+        "name": "Otto",
+        "description": "Apart of numerous factions with high ranking status in each.",
+        "discord_id": "1259891761518477404",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:14:47.259542+00:00",
+        "updated_at": "2024-11-18T23:14:47.285857+00:00"
+      },
+      {
+        "id": 7,
+        "name": "Elbow",
+        "description": "Owns the Elbow Community server and the Elbow Corps faction. Been banned in the past for controversy of high degree.",
+        "discord_id": "1073054009113444353",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 2,
+        "threat_level": 1,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:15:14.028043+00:00",
+        "updated_at": "2024-11-18T23:15:14.062860+00:00"
+      },
+      {
+        "id": 8,
+        "name": "RapidDino14",
+        "description": "Owner of The Reaper's Path and known conduct violating behavior exhibitor as well as engaging in activities violating conduct.",
+        "discord_id": "889981771440078899",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 1,
+        "monitoring_status": "watch",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:15:29.830721+00:00",
+        "updated_at": "2024-11-18T23:15:29.858712+00:00"
+      },
+      {
+        "id": 9,
+        "name": "Blugrenade",
+        "description": "General within The Reaper's Path.",
+        "discord_id": "615652903331299350",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:15:44.319097+00:00",
+        "updated_at": "2024-11-18T23:15:44.354882+00:00"
+      },
+      {
+        "id": 10,
+        "name": "FourHorned",
+        "description": "General within The Reaper's Path.",
+        "discord_id": "456623902202789902",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:15:53.848481+00:00",
+        "updated_at": "2024-11-18T23:15:53.876517+00:00"
+      },
+      {
+        "id": 11,
+        "name": "Rico",
+        "description": "General within The Reaper's Path.",
+        "discord_id": "310482842272399361",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:16:06.211266+00:00",
+        "updated_at": "2024-11-18T23:16:06.244585+00:00"
+      },
+      {
+        "id": 12,
+        "name": "dubsarereal",
+        "description": "The Reaper's Path state owner.",
+        "discord_id": "804802973099360308",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 2,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:16:21.242954+00:00",
+        "updated_at": "2024-11-18T23:16:21.275559+00:00"
+      },
+      {
+        "id": 13,
+        "name": "Jack48slayer",
+        "description": "\"Reaper In Training\" within The Reaper's Path/second-in-command",
+        "discord_id": "741394780839215195",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:16:46.703980+00:00",
+        "updated_at": "2024-11-18T23:16:46.732154+00:00"
+      },
+      {
+        "id": 14,
+        "name": "289GoldKit",
+        "description": "\"Reaper In Training\" within The Reaper's Path.",
+        "discord_id": "744598183669399552",
+        "status": "active",
+        "notes": null,
+        "last_seen": null,
+        "security_level": 3,
+        "threat_level": 0,
+        "monitoring_status": "none",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:17:02.457675+00:00",
+        "updated_at": "2024-11-18T23:17:02.489633+00:00"
+      }
+    ],
+    "backup_history": [
+      {
+        "id": 1,
+        "filename": "initial_backup.zip",
+        "backup_type": "SYSTEM",
+        "selected_tables": null,
+        "size_bytes": 0,
+        "status": "success",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-18T21:00:17.086405+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 2,
+        "filename": "backup_20241118_030000.json",
+        "backup_type": "FULL",
+        "selected_tables": null,
+        "size_bytes": 147802,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-18T23:03:24.367186+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": "2024-11-18T23:04:46.138882+00:00",
+        "restored_by": "962390249571483688",
+        "restore_status": "FAILED",
+        "restore_error": "'BackupManager' object has no attribute 'restore_backup'"
+      },
+      {
+        "id": 6,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83448,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:04.309308+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 5,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83450,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:04.052494+00:00",
+        "version": "2",
+        "version_note": null,
+        "parent_backup_id": 6,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 3,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83450,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:03.633226+00:00",
+        "version": "2",
+        "version_note": null,
+        "parent_backup_id": 6,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 4,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83450,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:04.036165+00:00",
+        "version": "2",
+        "version_note": null,
+        "parent_backup_id": 6,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 8,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83447,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:04.666041+00:00",
+        "version": "3",
+        "version_note": null,
+        "parent_backup_id": 6,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 7,
+        "filename": "backup_20241119_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 83447,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-19T03:00:04.651543+00:00",
+        "version": "3",
+        "version_note": null,
+        "parent_backup_id": 6,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 9,
+        "filename": "backup_20241120_014901.gz",
+        "backup_type": "MANUAL",
+        "selected_tables": [
+          "guild_permissions",
+          "person_info",
+          "guild_warnings",
+          "person_faction_associations",
+          "person_to_person_relations",
+          "faction_relationships",
+          "faction_ranks",
+          "faction_metrics",
+          "faction_achievement_progress",
+          "faction_achievements",
+          "user_behavior_patterns",
+          "person_tag_associations",
+          "person_tags",
+          "factions",
+          "roles",
+          "user_profiles",
+          "faction_info",
+          "form_templates",
+          "form_submissions",
+          "user_audit_logs",
+          "persons",
+          "backup_history",
+          "command_history",
+          "webhook_registrations",
+          "ticket_priorities",
+          "tickets",
+          "ticket_automation_rules",
+          "ticket_categories",
+          "ticket_messages"
+        ],
+        "size_bytes": null,
+        "status": "FAILED",
+        "success": false,
+        "error_message": "Failed to export table guild_permissions: 'BackupManager' object has no attribute 'export_table'",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T01:49:01.229714+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 15,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129872,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.057407+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": 10,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 10,
+        "filename": "backup_20241120_014906.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 119737,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T01:49:06.777676+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": 8,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 11,
+        "filename": "backup_20241120_014906.json",
+        "backup_type": "IMPORTED",
+        "selected_tables": null,
+        "size_bytes": null,
+        "status": "FAILED",
+        "success": false,
+        "error_message": "Invalid backup structure: Missing required metadata field: created_at",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T01:49:28.742332+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 12,
+        "filename": "backup_20241120_020037.gz",
+        "backup_type": "MANUAL",
+        "selected_tables": [
+          "guild_permissions",
+          "person_info",
+          "guild_warnings",
+          "person_faction_associations",
+          "person_to_person_relations",
+          "faction_relationships",
+          "faction_ranks",
+          "faction_metrics",
+          "faction_achievement_progress",
+          "faction_achievements",
+          "user_behavior_patterns",
+          "person_tag_associations",
+          "person_tags",
+          "factions",
+          "roles",
+          "user_profiles",
+          "faction_info",
+          "form_templates",
+          "form_submissions",
+          "user_audit_logs",
+          "persons",
+          "backup_history",
+          "command_history",
+          "webhook_registrations",
+          "ticket_priorities",
+          "tickets",
+          "ticket_automation_rules",
+          "ticket_categories",
+          "ticket_messages"
+        ],
+        "size_bytes": null,
+        "status": "FAILED",
+        "success": false,
+        "error_message": "Failed to export table guild_permissions: 'BackupManager' object has no attribute 'export_table'",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T02:00:37.135142+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 13,
+        "filename": "backup_20241120_020950.gz",
+        "backup_type": "MANUAL",
+        "selected_tables": [
+          "guild_permissions",
+          "person_info",
+          "guild_warnings",
+          "person_faction_associations",
+          "person_to_person_relations",
+          "faction_relationships",
+          "faction_ranks",
+          "faction_metrics",
+          "faction_achievement_progress",
+          "faction_achievements",
+          "user_behavior_patterns",
+          "person_tag_associations",
+          "person_tags",
+          "factions",
+          "roles",
+          "user_profiles",
+          "faction_info",
+          "form_templates",
+          "form_submissions",
+          "user_audit_logs",
+          "persons",
+          "backup_history",
+          "command_history",
+          "webhook_registrations",
+          "ticket_priorities",
+          "tickets",
+          "ticket_automation_rules",
+          "ticket_categories",
+          "ticket_messages"
+        ],
+        "size_bytes": 11621,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T02:09:50.757730+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 14,
+        "filename": "backup_20241120_020950.gz",
+        "backup_type": "IMPORTED",
+        "selected_tables": null,
+        "size_bytes": null,
+        "status": "FAILED",
+        "success": false,
+        "error_message": "Invalid backup data: Missing required keys in backup data",
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T02:10:14.756943+00:00",
+        "version": "1",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 23,
+        "filename": "backup_20241120_173900.gz",
+        "backup_type": "MANUAL",
+        "selected_tables": [
+          "guild_permissions",
+          "person_info",
+          "guild_warnings",
+          "person_faction_associations",
+          "person_to_person_relations",
+          "faction_relationships",
+          "faction_ranks",
+          "faction_metrics",
+          "faction_achievement_progress",
+          "faction_achievements",
+          "user_behavior_patterns",
+          "person_tag_associations",
+          "person_tags",
+          "factions",
+          "roles",
+          "user_profiles",
+          "faction_info",
+          "form_templates",
+          "form_submissions",
+          "user_audit_logs",
+          "persons",
+          "backup_history",
+          "command_history",
+          "webhook_registrations",
+          "ticket_priorities",
+          "tickets",
+          "ticket_automation_rules",
+          "ticket_categories",
+          "ticket_messages"
+        ],
+        "size_bytes": null,
+        "status": "PENDING",
+        "success": false,
+        "error_message": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T17:39:00.026053+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 16,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.096003+00:00",
+        "version": "1.1",
+        "version_note": null,
+        "parent_backup_id": 15,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 19,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.204084+00:00",
+        "version": "1.1",
+        "version_note": null,
+        "parent_backup_id": 15,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 20,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.225527+00:00",
+        "version": "1.1",
+        "version_note": null,
+        "parent_backup_id": 15,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 18,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.195998+00:00",
+        "version": "1.1",
+        "version_note": null,
+        "parent_backup_id": 15,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 21,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.287128+00:00",
+        "version": "1.2",
+        "version_note": null,
+        "parent_backup_id": 20,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 17,
+        "filename": "backup_20241120_030000.json",
+        "backup_type": "AUTOMATED",
+        "selected_tables": null,
+        "size_bytes": 129875,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "SYSTEM",
+        "created_at": "2024-11-20T03:00:00.105799+00:00",
+        "version": "1.2",
+        "version_note": null,
+        "parent_backup_id": 20,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      },
+      {
+        "id": 22,
+        "filename": "backup_20241120_173611.gz",
+        "backup_type": "MANUAL",
+        "selected_tables": [
+          "guild_permissions",
+          "person_info",
+          "guild_warnings",
+          "person_faction_associations",
+          "person_to_person_relations",
+          "faction_relationships",
+          "faction_ranks",
+          "faction_metrics",
+          "faction_achievement_progress",
+          "faction_achievements",
+          "user_behavior_patterns",
+          "person_tag_associations",
+          "person_tags",
+          "factions",
+          "roles",
+          "user_profiles",
+          "faction_info",
+          "form_templates",
+          "form_submissions",
+          "user_audit_logs",
+          "persons",
+          "backup_history",
+          "command_history",
+          "webhook_registrations",
+          "ticket_priorities",
+          "tickets",
+          "ticket_automation_rules",
+          "ticket_categories",
+          "ticket_messages"
+        ],
+        "size_bytes": 12068,
+        "status": "COMPLETED",
+        "success": true,
+        "error_message": null,
+        "created_by": "962390249571483688",
+        "created_at": "2024-11-20T17:36:11.885568+00:00",
+        "version": "1.0",
+        "version_note": null,
+        "parent_backup_id": null,
+        "verification_status": null,
+        "verification_data": null,
+        "verified_at": null,
+        "restored_at": null,
+        "restored_by": null,
+        "restore_status": null,
+        "restore_error": null
+      }
+    ],
+    "command_history": [],
+    "webhook_registrations": [
+      {
+        "id": 2,
+        "name": "Relations",
+        "url": "https://discord.com/api/webhooks/1308193624407937145/p_lQLh9HOCu7Dtj1NJARekfxBY8y0U6ZImZ862UmyDybvSPMb4bXF9CtsXBhP6JTdyd1",
+        "category": "public",
+        "creator_id": "1252319208377680008",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T22:15:13.992912+00:00",
+        "updated_at": "2024-11-18T22:15:13.992919+00:00"
+      },
+      {
+        "id": 3,
+        "name": "ICA",
+        "url": "https://discord.com/api/webhooks/1307110374461542492/bJspc5BCBlBjrUMnG-vs2-1HPP7mItih00OCSLV7PI8IZz29ZVWyTC-CbqBgR4FxlCnY",
+        "category": "public",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T23:20:54.307565+00:00",
+        "updated_at": "2024-11-18T23:20:54.307576+00:00"
+      },
+      {
+        "id": 4,
+        "name": "Updates",
+        "url": "https://discord.com/api/webhooks/1306309850870976625/n-9AS2HcyC1YQK882bs3tLMHW7aH9l27Kk52duh-wRT4REk6AvpAwxvSg2EkVh93vmh-",
+        "category": "announcements",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T23:21:20.794607+00:00",
+        "updated_at": "2024-11-18T23:21:20.794618+00:00"
+      },
+      {
+        "id": 5,
+        "name": "Relations Reports",
+        "url": "https://ptb.discord.com/api/webhooks/1308210618280710174/XTlLEmsBn467RYTRDMs8DUkv407n0Fa1VZvOSiPj7ZsbMrGY4Tj71hWDYegt9Jtr1DFH",
+        "category": "public",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T23:22:20.128736+00:00",
+        "updated_at": "2024-11-18T23:22:20.128745+00:00"
+      },
+      {
+        "id": 6,
+        "name": "About Us",
+        "url": "https://discord.com/api/webhooks/1308214743244345445/FSlveccQOEXwonTX4Prdv62aZjQXpjzY6i7L8G10OyVKNo1JDmBsm8t0lKUL9bqPU_eu",
+        "category": "general",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T23:39:02.242686+00:00",
+        "updated_at": "2024-11-18T23:39:02.242693+00:00"
+      },
+      {
+        "id": 7,
+        "name": "Ticket",
+        "url": "https://discord.com/api/webhooks/1308216997091344414/u6oNMoeFbsds2YKToxZklKQa2u_UzezDDjJlMZkZ71--9LsMyblP0Ahw9CquvxaA-Dmd",
+        "category": "general",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-18T23:48:26.827367+00:00",
+        "updated_at": "2024-11-18T23:48:26.827373+00:00"
+      },
+      {
+        "id": 8,
+        "name": "Test",
+        "url": "https://discord.com/api/webhooks/1305300203666014309/XP8tsHs1PuL4kNqEk0DZqofrb87QlWBG_o2YYD6xrncrphHl0MGy1BSio2eXGjWIhQ0O",
+        "category": "alerts",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-19T06:23:10.930122+00:00",
+        "updated_at": "2024-11-19T06:23:10.930131+00:00"
+      },
+      {
+        "id": 9,
+        "name": "Test2",
+        "url": "https://discord.com/api/webhooks/1308597553654136832/9FjnsyFphw0souYLC7bim2Txx2KUVmwN_33y4vBPR7GIe71n-JqrCfj5bDMDdK12QY5e",
+        "category": "alerts",
+        "creator_id": "962390249571483688",
+        "log_filters": {
+          "actions": [],
+          "users": [],
+          "exclude_actions": [],
+          "exclude_users": []
+        },
+        "created_at": "2024-11-20T00:59:52.592695+00:00",
+        "updated_at": "2024-11-20T00:59:52.592702+00:00"
+      }
+    ],
+    "ticket_priorities": [
+      {
+        "id": 1,
+        "name": "low",
+        "description": null,
+        "color": "#00ff00",
+        "weight": 1,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 2,
+        "name": "medium",
+        "description": null,
+        "color": "#ffff00",
+        "weight": 2,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 3,
+        "name": "high",
+        "description": null,
+        "color": "#ff0000",
+        "weight": 3,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      }
+    ],
+    "tickets": [],
+    "ticket_automation_rules": [
+      {
+        "id": 1,
+        "name": "Technical Support Alert",
+        "description": "Automatically notifies support team about technical tickets",
+        "condition_type": "category",
+        "condition_data": {
+          "category": "technical"
+        },
+        "action_type": "notify",
+        "action_data": {
+          "message": "\u26a0\ufe0f New technical support ticket requires attention! Please check the ticket channel."
+        },
+        "is_active": true,
+        "created_at": "2024-11-17T17:13:54.044950+00:00",
+        "updated_at": "2024-11-17T17:13:54.044950+00:00"
+      }
+    ],
+    "ticket_categories": [
+      {
+        "id": 1,
+        "name": "general",
+        "description": null,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 2,
+        "name": "technical",
+        "description": null,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 3,
+        "name": "feature",
+        "description": null,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 4,
+        "name": "account",
+        "description": null,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      },
+      {
+        "id": 5,
+        "name": "other",
+        "description": null,
+        "created_at": "2024-11-17T17:13:54.044950+00:00"
+      }
+    ],
+    "ticket_messages": []
+  },
+  "schema": {
+    "guild_permissions": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "guild_id": {
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "command_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "enabled": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "person_info": {
+      "columns": {
+        "person_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": [
+            {
+              "table": "persons",
+              "column": "id"
+            }
+          ]
+        },
+        "content_number": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "info": {
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "persons": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_id": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "notes": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "last_seen": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "security_level": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "threat_level": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "monitoring_status": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "guild_warnings": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "guild_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "user_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "moderator_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "reason": {
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "action_taken": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "warning_level": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "expires_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_guild_warnings_active",
+          "columns": [
+            "is_active"
+          ]
+        },
+        {
+          "name": "idx_guild_warnings_user",
+          "columns": [
+            "guild_id",
+            "user_id"
+          ]
+        }
+      ]
+    },
+    "person_faction_associations": {
+      "columns": {
+        "person_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "role": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "join_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "person_to_person_relations": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "person_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "related_person_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "relationship_type": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "strength": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "start_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "end_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "last_interaction": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "interaction_frequency": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "impact_score": {
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "influence_type": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_relationships": {
+      "columns": {
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "related_faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "relationship_type": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "strength": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "start_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "end_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_ranks": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "rank_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "rank_level": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "permissions": {
+          "type": "JSONB",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_metrics": {
+      "columns": {
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "metric_date": {
+          "type": "DATE",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "member_count": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "activity_score": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "influence_score": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "territory_count": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "resource_score": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_achievement_progress": {
+      "columns": {
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "achievement_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": [
+            {
+              "table": "faction_achievements",
+              "column": "id"
+            }
+          ]
+        },
+        "progress": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "completed": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "completed_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_achievements": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "requirements": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "points": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "user_behavior_patterns": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "user_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "message_frequency": {
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "message_timestamps": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "message_patterns": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "user_agents": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "login_times": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "active_hours": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "command_patterns": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "similarity_scores": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "pattern_features": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "alt_probability": {
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "last_updated": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "activity_intervals": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "daily_activity_distribution": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "weekly_patterns": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "active_days": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_behavior_user_id",
+          "columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "idx_behavior_alt_prob",
+          "columns": [
+            "alt_probability"
+          ]
+        }
+      ]
+    },
+    "person_tag_associations": {
+      "columns": {
+        "person_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "tag_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": [
+            {
+              "table": "person_tags",
+              "column": "id"
+            }
+          ]
+        },
+        "added_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "added_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "person_tags": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "color": {
+          "type": "VARCHAR(7)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "factions": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "group_link": {
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "security_level": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_blacklisted": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "blacklist_reason": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "blacklisted_until": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "blacklisted_by": {
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "blacklist_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "roles": {
+      "columns": {
+        "member_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "permission_level": {
+          "type": "VARCHAR(5)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "assigned_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "user_profiles": {
+      "columns": {
+        "user_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": [
+            {
+              "table": "roles",
+              "column": "member_id"
+            }
+          ]
+        },
+        "display_name": {
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "email": {
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "avatar_url": {
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_id": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_username": {
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_discriminator": {
+          "type": "VARCHAR(4)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_access_token": {
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_refresh_token": {
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "discord_token_expires_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "last_login": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "failed_login_attempts": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "last_failed_login": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_banned": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "ban_reason": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "banned_until": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "banned_by": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "ban_date": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "faction_info": {
+      "columns": {
+        "faction_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": [
+            {
+              "table": "factions",
+              "column": "id"
+            }
+          ]
+        },
+        "content_number": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "info": {
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "form_templates": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "title": {
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "creator_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "questions": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "submission_channel_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "accepted_channel_id": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "denied_channel_id": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "form_submissions": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "form_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "form_templates",
+              "column": "id"
+            }
+          ]
+        },
+        "submitter_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "responses": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "reviewer_id": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "review_time": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "submitted_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "user_audit_logs": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "user_id": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "roles",
+              "column": "member_id"
+            }
+          ]
+        },
+        "action": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "details": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "user_agent": {
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "performed_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "backup_history": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "filename": {
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "backup_type": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "selected_tables": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "size_bytes": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "success": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "error_message": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_by": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "version": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "version_note": {
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "parent_backup_id": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "backup_history",
+              "column": "id"
+            }
+          ]
+        },
+        "verification_status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "verification_data": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "verified_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "restored_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "restored_by": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "restore_status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "restore_error": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "command_history": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "command_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "user_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "arguments": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "error_message": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "execution_time": {
+          "type": "DOUBLE PRECISION",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "webhook_registrations": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "url": {
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "category": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "creator_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "log_filters": {
+          "type": "JSON",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "ticket_priorities": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "color": {
+          "type": "VARCHAR(7)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "weight": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "tickets": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "title": {
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "creator_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "assigned_to": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "status": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "priority_id": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "ticket_priorities",
+              "column": "id"
+            }
+          ]
+        },
+        "category_id": {
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "ticket_categories",
+              "column": "id"
+            }
+          ]
+        },
+        "channel_id": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "closed_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "closed_by": {
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_tickets_channel",
+          "columns": [
+            "channel_id"
+          ]
+        },
+        {
+          "name": "idx_tickets_status",
+          "columns": [
+            "status"
+          ]
+        },
+        {
+          "name": "idx_tickets_assigned",
+          "columns": [
+            "assigned_to"
+          ]
+        },
+        {
+          "name": "idx_tickets_creator",
+          "columns": [
+            "creator_id"
+          ]
+        }
+      ]
+    },
+    "ticket_categories": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": []
+    },
+    "ticket_automation_rules": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "condition_type": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "condition_data": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "action_type": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "action_data": {
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_automation_rules_condition",
+          "columns": [
+            "condition_type"
+          ]
+        },
+        {
+          "name": "idx_automation_rules_action",
+          "columns": [
+            "action_type"
+          ]
+        },
+        {
+          "name": "idx_automation_rules_active",
+          "columns": [
+            "is_active"
+          ]
+        }
+      ]
+    },
+    "ticket_messages": {
+      "columns": {
+        "id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": true,
+          "foreign_keys": []
+        },
+        "ticket_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": [
+            {
+              "table": "tickets",
+              "column": "id"
+            }
+          ]
+        },
+        "author_id": {
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "content": {
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        },
+        "is_system_message": {
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false,
+          "foreign_keys": []
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_messages_author",
+          "columns": [
+            "author_id"
+          ]
+        },
+        {
+          "name": "idx_messages_ticket",
+          "columns": [
+            "ticket_id"
+          ]
+        },
+        {
+          "name": "idx_messages_system",
+          "columns": [
+            "is_system_message"
+          ]
+        }
+      ]
+    }
+  }
+}
