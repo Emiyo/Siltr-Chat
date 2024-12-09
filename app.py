@@ -47,6 +47,31 @@ class User(db.Model):
     avatar = db.Column(db.String(200))  # URL to user avatar
     status = db.Column(db.String(100))  # User status message
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    muted_until = db.Column(db.DateTime, nullable=True)  # Timestamp until user is muted
+
+    # Moderation actions
+    def mute_user(self, duration_minutes=10):
+        self.muted_until = datetime.utcnow() + timedelta(minutes=duration_minutes)
+        return f"User {self.username} has been muted for {duration_minutes} minutes"
+
+    def unmute_user(self):
+        self.muted_until = None
+        return f"User {self.username} has been unmuted"
+
+    def promote_to_moderator(self):
+        self.is_moderator = True
+        return f"User {self.username} has been promoted to moderator"
+
+    def demote_from_moderator(self):
+        self.is_moderator = False
+        return f"User {self.username} has been demoted from moderator"
+
+    def update_profile(self, status=None, avatar=None):
+        if status is not None:
+            self.status = status
+        if avatar is not None:
+            self.avatar = avatar
+        return "Profile updated successfully"
 
     def to_dict(self):
         return {
@@ -55,7 +80,8 @@ class User(db.Model):
             'is_moderator': self.is_moderator,
             'avatar': self.avatar,
             'status': self.status,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'is_muted': self.muted_until and self.muted_until > datetime.utcnow()
         }
 
 class Message(db.Model):
@@ -174,9 +200,19 @@ def handle_message(data):
     text = data.get('text', '').strip()
     file_url = data.get('file_url')
     
+    # Check if user is muted
+    db_user = User.query.get(user['id'])
+    if db_user.muted_until and db_user.muted_until > datetime.utcnow():
+        emit('new_message', {
+            'type': 'system',
+            'text': f'You are muted until {db_user.muted_until.strftime("%H:%M:%S")}',
+            'timestamp': datetime.now().isoformat()
+        })
+        return
+    
     # Handle commands
     if text.startswith('/'):
-        handle_command(text, user['username'])
+        handle_command(text, db_user)
         return
     
     message = Message(
@@ -290,15 +326,70 @@ def handle_disconnect():
         emit('user_list', {'users': list(active_users.values())}, broadcast=True)
         emit('new_message', leave_message.to_dict(), broadcast=True)
 
-def handle_command(text, username):
-    command = text.lower().split()[0]
+def handle_command(text, user):
+    command_parts = text.lower().split()
+    command = command_parts[0]
     
     if command == '/help':
+        help_text = 'Available commands:\n' + \
+                   '/help - Show this message\n' + \
+                   '/clear - Clear your chat history\n' + \
+                   '/status <message> - Update your status\n'
+        if user.is_moderator:
+            help_text += 'Moderator commands:\n' + \
+                        '/mute @user <minutes> - Mute a user\n' + \
+                        '/unmute @user - Unmute a user\n' + \
+                        '/promote @user - Promote user to moderator\n' + \
+                        '/demote @user - Demote user from moderator'
         help_message = {
             'type': 'system',
-            'text': 'Available commands: /help - Show this message, /clear - Clear your chat history',
+            'text': help_text,
             'timestamp': datetime.now().isoformat()
         }
         emit('new_message', help_message)
     elif command == '/clear':
         emit('clear_chat')
+    elif command == '/status' and len(command_parts) > 1:
+        status = ' '.join(command_parts[1:])
+        db_user = User.query.get(user['id'])
+        if db_user:
+            result = db_user.update_profile(status=status)
+            emit('new_message', {
+                'type': 'system',
+                'text': result,
+                'timestamp': datetime.now().isoformat()
+            })
+            emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+    elif user['is_moderator']:
+        if command in ['/mute', '/unmute', '/promote', '/demote'] and len(command_parts) > 1:
+            target_username = command_parts[1].lstrip('@')
+            target_user = User.query.filter_by(username=target_username).first()
+            
+            if not target_user:
+                emit('new_message', {
+                    'type': 'system',
+                    'text': f'User {target_username} not found',
+                    'timestamp': datetime.now().isoformat()
+                })
+                return
+            
+            result = None
+            if command == '/mute':
+                duration = int(command_parts[2]) if len(command_parts) > 2 else 10
+                result = target_user.mute_user(duration)
+            elif command == '/unmute':
+                result = target_user.unmute_user()
+            elif command == '/promote':
+                result = target_user.promote_to_moderator()
+            elif command == '/demote':
+                result = target_user.demote_from_moderator()
+            
+            if result:
+                db.session.commit()
+                emit('new_message', {
+                    'type': 'system',
+                    'text': result,
+                    'timestamp': datetime.now().isoformat()
+                }, broadcast=True)
+                # Update user list to reflect changes
+                emit('user_list', {'users': list(active_users.values())}, broadcast=True)
