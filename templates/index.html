@@ -13,19 +13,18 @@
         <div class="modal fade" id="usernameModal" data-bs-backdrop="static" tabindex="-1">
             <div class="modal-dialog modal-sm modal-dialog-centered">
                 <div class="modal-content terminal">
-                    <div class="terminal-header py-0">
+                    <div class="terminal-header modal-header py-0">
                         <div class="terminal-buttons">
                             <span class="terminal-button terminal-button-red"></span>
                             <span class="terminal-button terminal-button-yellow"></span>
                             <span class="terminal-button terminal-button-green"></span>
                         </div>
-                        <span class="small">login.sh</span>
-                        <span></span>
+                        <small>login.sh</small>
                     </div>
                     <div class="modal-body p-1">
-                        <form id="usernameForm">
+                        <form id="usernameForm" class="m-0">
                             <div class="d-flex align-items-center">
-                                <span class="prompt me-2">$</span>
+                                <span class="prompt me-1">$</span>
                                 <input type="text" class="terminal-input" id="usernameInput" 
                                     placeholder="enter username" required minlength="2" maxlength="20">
                             </div>

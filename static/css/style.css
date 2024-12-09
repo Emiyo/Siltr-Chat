@@ -8,10 +8,21 @@
     color: var(--terminal-text);
     border: 1px solid #333;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    min-height: auto;
 }
 
 .modal-body {
     padding: 0.5rem;
+    min-height: auto;
+}
+
+.terminal-header.modal-header {
+    padding: 0.25rem 0.5rem;
+    min-height: auto;
+}
+
+.modal-sm .terminal-header {
+    padding: 0.15rem 0.5rem;
 }
 
 #usernameForm .terminal-input {
