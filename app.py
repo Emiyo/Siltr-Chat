@@ -7,10 +7,18 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Log SQL queries
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+# Ensure proper PostgreSQL URL format
+database_url = os.environ['DATABASE_URL']
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -53,6 +61,7 @@ def handle_join(data):
     username = data.get('username')
     if not username:
         return
+    logger.debug(f"User joining: {username}")
     
     # Store user information
     active_users[request.sid] = {
@@ -70,8 +79,13 @@ def handle_join(data):
     db.session.commit()
     
     # Send active users and message history
-    recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
-    recent_messages.reverse()
+    try:
+        recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
+        logger.debug(f"Retrieved {len(recent_messages)} messages from database")
+        recent_messages.reverse()
+    except Exception as e:
+        logger.error(f"Error retrieving messages: {str(e)}")
+        recent_messages = []
     
     emit('user_list', {'users': list(active_users.values())}, broadcast=True)
     emit('message_history', {'messages': [msg.to_dict() for msg in recent_messages]})
