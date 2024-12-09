@@ -1,5 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const messageContainer = document.getElementById('messageContainer');
+    const userList = document.getElementById('userList');
+    const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
+    let username = '';
+    let user_id = null;
+    const active_users = {};
+
+    // Show login modal on page load
+    usernameModal.show();
+
+    // Handle username form submission
+    document.getElementById('usernameForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        username = document.getElementById('usernameInput').value.trim();
+        if (username) {
+            usernameModal.hide();
+            socket.emit('join', { username });
+        }
+    });
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io();
     let username = '';
     let user_id = null;
     let currentChannel = null;
