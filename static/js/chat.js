@@ -146,7 +146,18 @@ document.addEventListener('DOMContentLoaded', () => {
             text: 'Connected to server',
             timestamp: new Date().toISOString()
         });
-        socket.emit('get_categories');
+    });
+    
+    // Request categories after successful login
+    socket.on('message_history', (data) => {
+        messageContainer.innerHTML = '';
+        if (data.user_id) {
+            user_id = data.user_id;
+            // Get categories after successful login
+            socket.emit('get_categories');
+        }
+        data.messages.forEach(message => addMessage(message));
+        scrollToBottom();
     });
 
     socket.on('disconnect', () => {
