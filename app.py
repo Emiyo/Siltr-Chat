@@ -27,6 +27,13 @@ if not database_url:
     raise ValueError("DATABASE_URL environment variable is not set")
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# Add SSL mode to avoid connection issues
+if '?' not in database_url:
+    database_url += '?sslmode=require'
+elif 'sslmode=' not in database_url:
+    database_url += '&sslmode=require'
+
 logger.info(f"Connecting to database with URL: {database_url.split('@')[1]}")  # Log without credentials
 
 # File upload configuration
