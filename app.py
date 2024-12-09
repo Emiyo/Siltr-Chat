@@ -9,7 +9,10 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Log SQL queries
@@ -17,7 +20,15 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-# Ensure proper PostgreSQL URL format
+
+# Database configuration
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    raise ValueError("DATABASE_URL environment variable is not set")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+logger.info(f"Connecting to database with URL: {database_url.split('@')[1]}")  # Log without credentials
+
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -107,8 +118,17 @@ class Message(db.Model):
         }
 
 # Create database tables
-with app.app_context():
-    db.create_all()
+try:
+    with app.app_context():
+        db.create_all()
+        logger.info("Database tables created successfully")
+        # Verify tables exist
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        logger.info(f"Available tables: {tables}")
+except Exception as e:
+    logger.error(f"Error creating database tables: {str(e)}")
+    raise
 
 @app.route('/')
 def index():
@@ -193,13 +213,18 @@ def upload_file():
 
 @socketio.on('message')
 def handle_message(data):
+    logger.debug(f"Received message data: {data}")
+    
     if request.sid not in active_users:
+        logger.error(f"User session {request.sid} not found in active_users")
         return
     
     user_data = active_users[request.sid]
     if not user_data:
-        logger.error("User data not found")
+        logger.error(f"User data not found for session {request.sid}")
         return
+    
+    logger.info(f"Processing message from user: {user_data['username']}")
     text = data.get('text', '').strip()
     file_url = data.get('file_url')
     
