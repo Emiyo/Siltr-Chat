@@ -45,7 +45,7 @@ class Category(db.Model):
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'channels': [channel.to_dict() for channel in self.channels]
+            'channels': [channel.to_dict() for channel in self.channels] if self.channels else []
         }
 
 class Channel(db.Model):
@@ -139,11 +139,11 @@ class Message(db.Model):
             'receiver_id': self.receiver_id,
             'channel_id': self.channel_id,
             'text': self.text,
-            'timestamp': self.timestamp.isoformat(),
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': self.reactions or {}
+            'reactions': {} if self.reactions is None else self.reactions
         }
 
 # Routes (Mostly from modified)
@@ -375,12 +375,18 @@ def handle_leave_channel(data):
 @socketio.on('get_categories')
 def handle_get_categories():
     if request.sid not in active_users:
+        logger.warning(f"Unauthorized request for categories from {request.sid}")
         return
     
-    categories = Category.query.all()
-    emit('categories_list', {
-        'categories': [category.to_dict() for category in categories]
-    })
+    try:
+        categories = Category.query.all()
+        logger.info(f"Found {len(categories)} categories")
+        emit('categories_list', {
+            'categories': [category.to_dict() for category in categories]
+        })
+    except Exception as e:
+        logger.error(f"Error fetching categories: {str(e)}")
+        emit('error', {'message': 'Error loading categories'})
 
 @socketio.on('create_category')
 def handle_create_category(data):
