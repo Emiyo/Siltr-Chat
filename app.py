@@ -196,12 +196,15 @@ def handle_message(data):
     if request.sid not in active_users:
         return
     
-    user = active_users[request.sid]
+    user_data = active_users[request.sid]
+    if not user_data:
+        logger.error("User data not found")
+        return
     text = data.get('text', '').strip()
     file_url = data.get('file_url')
     
     # Check if user is muted
-    db_user = User.query.get(user['id'])
+    db_user = User.query.get(user_data['id'])
     if not db_user:
         emit('new_message', {
             'type': 'system',
@@ -218,24 +221,33 @@ def handle_message(data):
         })
         return
     
-    # Handle commands
-    if text.startswith('/'):
-        handle_command(text, user, db_user)
-        return
-    
-    message = Message(
-        type='public',
-        sender_id=user['id'],
-        text=text,
-        file_url=file_url,
-        timestamp=datetime.now()
-    )
-    db.session.add(message)
-    db.session.commit()
-    
-    message_dict = message.to_dict()
-    message_dict['sender_username'] = user['username']
-    emit('new_message', message_dict, broadcast=True)
+    try:
+        # Handle commands
+        if text.startswith('/'):
+            handle_command(text, user_data, db_user)
+            return
+        
+        message = Message(
+            type='public',
+            sender_id=user_data['id'],
+            text=text,
+            file_url=file_url,
+            timestamp=datetime.now()
+        )
+        db.session.add(message)
+        db.session.commit()
+        
+        message_dict = message.to_dict()
+        message_dict['sender_username'] = user_data['username']
+        emit('new_message', message_dict, broadcast=True)
+        logger.debug(f"Message sent: {message_dict}")
+    except Exception as e:
+        logger.error(f"Error sending message: {str(e)}")
+        emit('new_message', {
+            'type': 'system',
+            'text': 'Error sending message',
+            'timestamp': datetime.now().isoformat()
+        })
 
 @socketio.on('private_message')
 def handle_private_message(data):
