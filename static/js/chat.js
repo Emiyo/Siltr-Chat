@@ -59,10 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             } else {
-                socket.emit('message', {
-                    text: message,
-                    channel_id: currentChannel
-                });
+                if (currentChannel) {
+                    socket.emit('message', {
+                        text: message,
+                        channel_id: currentChannel
+                    });
+                } else {
+                    addMessage({
+                        type: 'system',
+                        text: 'Please select a channel first',
+                        timestamp: new Date().toISOString()
+                    });
+                }
             }
             messageHistory.push(message);
             historyIndex = messageHistory.length;
@@ -249,6 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         socket.emit('leave_channel', { channel_id: currentChannel });
                     }
                     currentChannel = channelId;
+                    messageContainer.innerHTML = '';
+                    addMessage({
+                        type: 'system',
+                        text: `Joined channel #${item.textContent.trim()}`,
+                        timestamp: new Date().toISOString()
+                    });
                     socket.emit('join_channel', { channel_id: channelId });
                     document.querySelectorAll('.channel-item').forEach(ch => 
                         ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
