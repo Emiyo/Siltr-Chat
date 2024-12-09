@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
 import logging
 
 # Configure logging
@@ -9,12 +10,35 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
-# Store active users and messages in memory
+# Store active users in memory
 active_users = {}
-messages = []
 MAX_MESSAGES = 100
+
+# Message Model
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False)
+    username = db.Column(db.String(50))
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'type': self.type,
+            'username': self.username,
+            'text': self.text,
+            'timestamp': self.timestamp.isoformat()
+        }
+
+# Create database tables
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
@@ -36,20 +60,22 @@ def handle_join(data):
         'joined_at': datetime.now().isoformat()
     }
     
-    # Send join notification
-    join_message = {
-        'type': 'system',
-        'text': f'{username} has joined the chat',
-        'timestamp': datetime.now().isoformat()
-    }
-    messages.append(join_message)
-    if len(messages) > MAX_MESSAGES:
-        messages.pop(0)
+    # Create and store join message
+    join_message = Message(
+        type='system',
+        text=f'{username} has joined the chat',
+        timestamp=datetime.now()
+    )
+    db.session.add(join_message)
+    db.session.commit()
     
     # Send active users and message history
+    recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
+    recent_messages.reverse()
+    
     emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-    emit('message_history', {'messages': messages})
-    emit('new_message', join_message, broadcast=True)
+    emit('message_history', {'messages': [msg.to_dict() for msg in recent_messages]})
+    emit('new_message', join_message.to_dict(), broadcast=True)
 
 @socketio.on('message')
 def handle_message(data):
@@ -64,17 +90,16 @@ def handle_message(data):
         handle_command(text, username)
         return
     
-    message = {
-        'type': 'message',
-        'username': username,
-        'text': text,
-        'timestamp': datetime.now().isoformat()
-    }
-    messages.append(message)
-    if len(messages) > MAX_MESSAGES:
-        messages.pop(0)
+    message = Message(
+        type='message',
+        username=username,
+        text=text,
+        timestamp=datetime.now()
+    )
+    db.session.add(message)
+    db.session.commit()
     
-    emit('new_message', message, broadcast=True)
+    emit('new_message', message.to_dict(), broadcast=True)
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -82,17 +107,16 @@ def handle_disconnect():
         username = active_users[request.sid]['username']
         del active_users[request.sid]
         
-        leave_message = {
-            'type': 'system',
-            'text': f'{username} has left the chat',
-            'timestamp': datetime.now().isoformat()
-        }
-        messages.append(leave_message)
-        if len(messages) > MAX_MESSAGES:
-            messages.pop(0)
+        leave_message = Message(
+            type='system',
+            text=f'{username} has left the chat',
+            timestamp=datetime.now()
+        )
+        db.session.add(leave_message)
+        db.session.commit()
         
         emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-        emit('new_message', leave_message, broadcast=True)
+        emit('new_message', leave_message.to_dict(), broadcast=True)
 
 def handle_command(text, username):
     command = text.lower().split()[0]
