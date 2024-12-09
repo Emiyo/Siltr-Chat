@@ -3,25 +3,33 @@
     max-width: 300px;
 }
 
-.modal-content.terminal {
+#usernameModal .modal-dialog {
+    height: fit-content;
+}
+
+#usernameModal .modal-content.terminal {
     background-color: var(--terminal-bg);
     color: var(--terminal-text);
     border: 1px solid #333;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    min-height: auto;
+    height: 85px;
+    overflow: hidden;
 }
 
-.modal-body {
-    padding: 0.5rem;
-    min-height: auto;
+#usernameModal .modal-body {
+    padding: 0;
+    height: 30px;
 }
 
-.terminal-header {
+#usernameModal .terminal-header {
     padding: 0.15rem 0.5rem;
-    min-height: auto;
+    height: 25px;
+    min-height: 25px;
+    display: flex;
+    align-items: center;
 }
 
-.modal-header {
+#usernameModal .modal-header {
     border-bottom: none;
     padding: 0.15rem 0.5rem;
 }
