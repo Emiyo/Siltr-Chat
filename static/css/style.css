@@ -16,12 +16,13 @@
     min-height: auto;
 }
 
-.terminal-header.modal-header {
-    padding: 0.25rem 0.5rem;
+.terminal-header {
+    padding: 0.15rem 0.5rem;
     min-height: auto;
 }
 
-.modal-sm .terminal-header {
+.modal-header {
+    border-bottom: none;
     padding: 0.15rem 0.5rem;
 }
 
