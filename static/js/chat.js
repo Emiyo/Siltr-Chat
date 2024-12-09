@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     let username = '';
     let user_id = null;
+    let currentChannel = null;
+    let categories = [];
     let messageHistory = [];
     let historyIndex = -1;
     
@@ -163,6 +165,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('user_list', (data) => {
+    // Categories and Channels Handling
+    socket.on('categories_list', (data) => {
+        categories = data.categories;
+        updateCategoryList();
+    });
+
+    socket.on('category_created', (category) => {
+        categories.push(category);
+        updateCategoryList();
+    });
+
+    socket.on('channel_created', (channel) => {
+        const category = categories.find(c => c.id === channel.category_id);
+        if (category) {
+            if (!category.channels) category.channels = [];
+            category.channels.push(channel);
+            updateCategoryList();
+        }
+    });
+
+    socket.on('channel_history', (data) => {
+        if (data.channel_id === currentChannel) {
+            messageContainer.innerHTML = '';
+            data.messages.forEach(message => addMessage(message));
+            scrollToBottom();
+        }
+    });
+
+    function updateCategoryList() {
+        const categoryList = document.getElementById('categoryList');
+        categoryList.innerHTML = categories.map(category => `
+            <div class="category-item">
+                <div class="category-header">
+                    <span class="category-toggle">▶</span>
+                    ${category.name}
+                </div>
+                <div class="channel-list">
+                    ${category.channels.map(channel => `
+                        <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
+                             data-channel-id="${channel.id}">
+                            ${channel.is_private ? '🔒' : '#'} ${channel.name}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        document.querySelectorAll('.category-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                const channelList = header.nextElementSibling;
+                const toggle = header.querySelector('.category-toggle');
+                if (channelList.style.display === 'none') {
+                    channelList.style.display = 'block';
+                    toggle.textContent = '▼';
+                } else {
+                    channelList.style.display = 'none';
+                    toggle.textContent = '▶';
+                }
+            });
+        });
+
+        document.querySelectorAll('.channel-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const channelId = parseInt(item.dataset.channelId);
+                if (currentChannel !== channelId) {
+                    if (currentChannel) {
+                        socket.emit('leave_channel', { channel_id: currentChannel });
+                    }
+                    currentChannel = channelId;
+                    socket.emit('join_channel', { channel_id: channelId });
+                    document.querySelectorAll('.channel-item').forEach(ch => 
+                        ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
+                    );
+                }
+            });
+        });
+
+        // Show moderator controls if user is a moderator
+        const moderatorControls = document.getElementById('moderatorControls');
+        if (user_id && active_users[user_id]?.is_moderator) {
+            moderatorControls.classList.remove('d-none');
+        }
+    }
+
+    // Request initial categories list when connected
+    socket.on('connect', () => {
+        socket.emit('get_categories');
+    });
+
+    // Create category modal handlers
+    document.getElementById('createCategoryBtn')?.addEventListener('click', () => {
+        const name = prompt('Enter category name:');
+        const description = prompt('Enter category description (optional):');
+        if (name) {
+            socket.emit('create_category', { name, description });
+        }
+    });
+
+    // Create channel modal handlers
+    document.getElementById('createChannelBtn')?.addEventListener('click', () => {
+        const categoryId = prompt('Enter category ID:');
+        const name = prompt('Enter channel name:');
+        const description = prompt('Enter channel description (optional):');
+        const isPrivate = confirm('Should this be a private channel?');
+        
+        if (categoryId && name) {
+            socket.emit('create_channel', {
+                category_id: parseInt(categoryId),
+                name,
+                description,
+                is_private: isPrivate
+            });
+        }
+    });
         updateUserList(data.users);
     });
 

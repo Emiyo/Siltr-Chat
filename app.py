@@ -1,95 +1,111 @@
 import os
-import os
-from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta
-from flask import Flask, render_template, request, session, jsonify, url_for
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 import logging
+from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+from flask import Flask, request, render_template, jsonify, url_for
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
+from pydub import AudioSegment
+import json
 
 # Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Log SQL queries
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
+# Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-
-# Database configuration
-database_url = os.environ.get('DATABASE_URL')
-if not database_url:
-    raise ValueError("DATABASE_URL environment variable is not set")
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-# Add SSL mode to avoid connection issues
-if '?' not in database_url:
-    database_url += '?sslmode=require'
-elif 'sslmode=' not in database_url:
-    database_url += '&sslmode=require'
-
-logger.info(f"Connecting to database with URL: {database_url.split('@')[1]}")  # Log without credentials
-
-# File upload configuration
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-database_url = os.environ['DATABASE_URL']
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'} # Added from original
 
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize extensions
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Store active users in memory
+# Active users storage
 active_users = {}
 MAX_MESSAGES = 100
 
-# Message Model
+# Models (Mostly from modified, with some adjustments from original)
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    channels = db.relationship('Channel', backref='category', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'channels': [channel.to_dict() for channel in self.channels]
+        }
+
+class Channel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(200))
+    is_private = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    messages = db.relationship('Message', backref='channel', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'category_id': self.category_id,
+            'name': self.name,
+            'description': self.description,
+            'is_private': self.is_private
+        }
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
-    avatar = db.Column(db.String(200))  # URL to user avatar
-    status = db.Column(db.String(100))  # User status message
+    avatar = db.Column(db.String(200))
+    status = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    muted_until = db.Column(db.DateTime, nullable=True)  # Timestamp until user is muted
+    muted_until = db.Column(db.DateTime, nullable=True)
 
-    # Moderation actions
-    def mute_user(self, duration_minutes=10):
-        self.muted_until = datetime.utcnow() + timedelta(minutes=duration_minutes)
-        return f"User {self.username} has been muted for {duration_minutes} minutes"
+    def is_muted(self):
+        if self.muted_until and self.muted_until > datetime.utcnow():
+            return True
+        return False
+
+    def mute_user(self, minutes=10):
+        self.muted_until = datetime.utcnow() + timedelta(minutes=minutes)
+        return f'User {self.username} has been muted for {minutes} minutes'
 
     def unmute_user(self):
         self.muted_until = None
-        return f"User {self.username} has been unmuted"
+        return f'User {self.username} has been unmuted'
 
     def promote_to_moderator(self):
-        self.is_moderator = True
-        return f"User {self.username} has been promoted to moderator"
+        if not self.is_moderator:
+            self.is_moderator = True
+            return f'User {self.username} has been promoted to moderator'
+        return f'User {self.username} is already a moderator'
 
     def demote_from_moderator(self):
-        self.is_moderator = False
-        return f"User {self.username} has been demoted from moderator"
+        if self.is_moderator:
+            self.is_moderator = False
+            return f'User {self.username} has been demoted from moderator'
+        return f'User {self.username} is not a moderator'
 
     def update_profile(self, status=None, avatar=None):
         if status is not None:
-            self.status = status
+            self.status = status[:100]  # Limit status length
         if avatar is not None:
             self.avatar = avatar
-        return "Profile updated successfully"
+        return f'Profile updated successfully'
 
     def to_dict(self):
         return {
@@ -99,7 +115,7 @@ class User(db.Model):
             'avatar': self.avatar,
             'status': self.status,
             'created_at': self.created_at.isoformat(),
-            'is_muted': self.muted_until and self.muted_until > datetime.utcnow()
+            'is_muted': self.is_muted() # added from original
         }
 
 class Message(db.Model):
@@ -107,12 +123,13 @@ class Message(db.Model):
     type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice'
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
+    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'))  # Channel where message was sent
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     file_url = db.Column(db.String(200))  # For file attachments
     voice_url = db.Column(db.String(200))  # For voice messages
     voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
-    reactions = db.Column(db.JSON, default=dict)  # Store reactions as {user_id: reaction_type}
+    reactions = db.Column(db.JSON, default=dict)
 
     def to_dict(self):
         return {
@@ -120,148 +137,101 @@ class Message(db.Model):
             'type': self.type,
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id,
+            'channel_id': self.channel_id,
             'text': self.text,
             'timestamp': self.timestamp.isoformat(),
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': self.reactions
+            'reactions': self.reactions or {}
         }
 
-# Initialize Flask-Migrate
-migrate = Migrate(app, db)
-
-# Create tables and run migrations
-try:
-    with app.app_context():
-        db.create_all()
-        logger.info("Database tables created successfully")
-        # Run migrations
-        from flask_migrate import upgrade
-        upgrade(revision='merged_migrations')
-        logger.info("Database migrations applied successfully")
-        # Verify tables
-        inspector = db.inspect(db.engine)
-        tables = inspector.get_table_names()
-        logger.info(f"Available tables: {tables}")
-        for table in tables:
-            columns = [c['name'] for c in inspector.get_columns(table)]
-            logger.info(f"Table {table} columns: {columns}")
-except Exception as e:
-    logger.error(f"Error setting up database: {str(e)}")
-    if "duplicate table" in str(e).lower():
-        logger.info("Tables already exist, proceeding with migrations only")
-        try:
-            with app.app_context():
-                upgrade(revision='merged_migrations')
-                logger.info("Migrations applied successfully")
-        except Exception as migration_error:
-            logger.error(f"Migration error: {str(migration_error)}")
-            raise
-    else:
-        raise
-
+# Routes (Mostly from modified)
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    if file:
+        filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Handle audio files
+        if file.mimetype.startswith('audio/'):
+            file.save(filepath)
+            try:
+                audio = AudioSegment.from_file(filepath)
+                duration = len(audio) / 1000.0  # Convert to seconds
+                return jsonify({
+                    'voice_url': f'/static/uploads/{filename}',
+                    'voice_duration': duration
+                })
+            except Exception as e:
+                logger.error(f"Error processing audio file: {e}")
+                return jsonify({'error': 'Error processing audio file'}), 500
+        
+        # Handle other files
+        if filename.split('.')[-1] in ALLOWED_EXTENSIONS: #Added from original
+            file.save(filepath)
+            return jsonify({'file_url': url_for('static', filename=f'uploads/{filename}')}) #Modified from original
+        else:
+            return jsonify({'error': 'File type not allowed'}), 400
+
+# Socket Events (Mostly from modified)
 @socketio.on('connect')
 def handle_connect():
-    logging.debug(f"Client connected: {request.sid}")
+    logger.info(f"Client connected: {request.sid}")
 
 @socketio.on('join')
 def handle_join(data):
     username = data.get('username')
     if not username:
         return
-    logger.debug(f"User joining: {username}")
     
-    # Create or get user
+    # Get or create user
     user = User.query.filter_by(username=username).first()
     if not user:
         user = User(username=username)
         db.session.add(user)
         db.session.commit()
     
-    # Store user information in active users
+    # Store user in active users
     active_users[request.sid] = {
         'id': user.id,
-        'username': username,
+        'username': user.username,
         'is_moderator': user.is_moderator,
-        'avatar': user.avatar,
-        'status': user.status,
-        'joined_at': datetime.now().isoformat()
+        'status': user.status
     }
     
-    # Create and store join message
+    # Send join message
     join_message = Message(
         type='system',
-        sender_id=user.id,
         text=f'{username} has joined the chat',
         timestamp=datetime.now()
     )
     db.session.add(join_message)
     db.session.commit()
     
-    # Send active users and message history
-    try:
-        recent_messages = Message.query\
-            .filter((Message.type == 'public') | 
-                   (Message.type == 'system') | 
-                   ((Message.type == 'private') & 
-                    ((Message.sender_id == user.id) | (Message.receiver_id == user.id))))\
-            .order_by(Message.timestamp.desc())\
-            .limit(MAX_MESSAGES)\
-            .all()
-        logger.debug(f"Retrieved {len(recent_messages)} messages from database")
-        recent_messages.reverse()
-    except Exception as e:
-        logger.error(f"Error retrieving messages: {str(e)}")
-        recent_messages = []
+    # Send recent messages and current user list
+    recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
+    recent_messages.reverse()
     
-    emit('user_list', {'users': list(active_users.values())}, broadcast=True)
     emit('message_history', {
         'messages': [msg.to_dict() for msg in recent_messages],
         'user_id': user.id
     })
+    emit('user_list', {'users': list(active_users.values())}, broadcast=True)
     emit('new_message', join_message.to_dict(), broadcast=True)
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    
-    if file:
-        # Save file with secure filename
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        file_url = url_for('static', filename=f'uploads/{filename}')
-        
-        # Process audio file if it's a voice message
-        if file.filename.lower().endswith(('.wav', '.mp3', '.ogg', '.webm')):
-            try:
-                from pydub import AudioSegment
-                logger.info(f"Processing audio file: {file_path}")
-                
-                # Load and process audio file
-                audio = AudioSegment.from_file(file_path)
-                duration = len(audio) / 1000.0  # Convert to seconds
-                
-                logger.info(f"Successfully processed audio file. Duration: {duration}s")
-                return jsonify({
-                    'voice_url': file_url,
-                    'voice_duration': round(duration, 2)  # Round to 2 decimal places
-                })
-            except Exception as e:
-                error_msg = f"Error processing audio file: {str(e)}"
-                logger.error(error_msg)
-                return jsonify({'error': error_msg}), 500
-        
-        return jsonify({'file_url': file_url})
 
 @socketio.on('message')
 def handle_message(data):
@@ -278,101 +248,45 @@ def handle_message(data):
     
     logger.info(f"Processing message from user: {user_data['username']}")
     text = data.get('text', '').strip()
+    channel_id = data.get('channel_id')
     file_url = data.get('file_url')
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
     
-    # Set message type based on content
-    msg_type = 'voice' if voice_url else 'public'
-    logger.info(f"Processing {msg_type} message. Voice URL: {voice_url}, Duration: {voice_duration}")
-    
     # Check if user is muted
-    db_user = User.query.get(user_data['id'])
-    if not db_user:
-        emit('new_message', {
-            'type': 'system',
-            'text': 'Error: User not found',
-            'timestamp': datetime.now().isoformat()
-        })
-        return
-        
-    if db_user.muted_until and db_user.muted_until > datetime.utcnow():
-        emit('new_message', {
-            'type': 'system',
-            'text': f'You are muted until {db_user.muted_until.strftime("%H:%M:%S")}',
-            'timestamp': datetime.now().isoformat()
-        })
+    user = User.query.get(user_data['id'])
+    if user.is_muted():
+        emit('error', {'message': f'You are muted until {user.muted_until}'})
         return
     
-    try:
-        # Handle commands
-        if text.startswith('/'):
-            handle_command(text, user_data, db_user)
-            return
-        
-        message = Message(
-            type=msg_type,
-            sender_id=user_data['id'],
-            text=text or "Voice message",  # Default text for voice messages
-            file_url=file_url,
-            voice_url=voice_url,
-            voice_duration=voice_duration,
-            timestamp=datetime.now()
-        )
-        db.session.add(message)
-        db.session.commit()
-        
-        message_dict = message.to_dict()
-        message_dict['sender_username'] = user_data['username']
-        emit('new_message', message_dict, broadcast=True)
-        logger.debug(f"Message sent: {message_dict}")
-    except Exception as e:
-        logger.error(f"Error sending message: {str(e)}")
-        emit('new_message', {
-            'type': 'system',
-            'text': 'Error sending message',
-            'timestamp': datetime.now().isoformat()
-        })
-
-@socketio.on('private_message')
-def handle_private_message(data):
-    if request.sid not in active_users:
+    # Handle commands
+    if text.startswith('/'):
+        handle_command(text, user_data, user)
         return
     
-    sender = active_users[request.sid]
-    recipient_username = data.get('recipient')
-    text = data.get('text', '').strip()
-    
-    # Find recipient user
-    recipient = User.query.filter_by(username=recipient_username).first()
-    if not recipient:
-        emit('new_message', {
-            'type': 'system',
-            'text': f'User {recipient_username} not found',
-            'timestamp': datetime.now().isoformat()
-        })
-        return
-    
+    # Create and save message
     message = Message(
-        type='private',
-        sender_id=sender['id'],
-        receiver_id=recipient.id,
+        type='public',
+        sender_id=user_data['id'],
+        channel_id=channel_id,
         text=text,
-        timestamp=datetime.now()
+        file_url=file_url,
+        voice_url=voice_url,
+        voice_duration=voice_duration,
+        reactions={}
     )
     db.session.add(message)
     db.session.commit()
     
+    # Prepare message for broadcast
     message_dict = message.to_dict()
-    message_dict.update({
-        'sender_username': sender['username'],
-        'receiver_username': recipient_username
-    })
+    message_dict['sender_username'] = user_data['username']
     
-    # Send to sender and recipient only
-    for sid, user in active_users.items():
-        if user['id'] in (sender['id'], recipient.id):
-            emit('new_message', message_dict, room=sid)
+    # Broadcast to channel if specified, otherwise broadcast to all
+    if channel_id:
+        emit('new_message', message_dict, room=f'channel_{channel_id}')
+    else:
+        emit('new_message', message_dict, broadcast=True)
 
 @socketio.on('add_reaction')
 def handle_reaction(data):
@@ -383,14 +297,18 @@ def handle_reaction(data):
     message_id = data.get('message_id')
     reaction = data.get('reaction')
     
+    if not all([message_id, reaction]):
+        return
+    
     message = Message.query.get(message_id)
     if not message:
         return
     
-    if not message.reactions:
+    # Initialize reactions if None
+    if message.reactions is None:
         message.reactions = {}
     
-    # Initialize reaction if it doesn't exist
+    # Initialize reaction array if not exists
     if reaction not in message.reactions:
         message.reactions[reaction] = []
     
@@ -412,7 +330,110 @@ def handle_reaction(data):
     message_dict['sender_username'] = User.query.get(message.sender_id).username
     if message.receiver_id:
         message_dict['receiver_username'] = User.query.get(message.receiver_id).username
-    emit('new_message', message_dict, broadcast=True)
+    
+    # Broadcast to channel if specified, otherwise broadcast to all
+    if message.channel_id:
+        emit('new_message', message_dict, room=f'channel_{message.channel_id}')
+    else:
+        emit('new_message', message_dict, broadcast=True)
+
+@socketio.on('join_channel')
+def handle_join_channel(data):
+    if request.sid not in active_users:
+        return
+    
+    channel_id = data.get('channel_id')
+    channel = Channel.query.get(channel_id)
+    if not channel:
+        emit('error', {'message': 'Channel not found'})
+        return
+    
+    # Join the channel room
+    join_room(f'channel_{channel_id}')
+    
+    # Get recent messages for this channel
+    recent_messages = Message.query\
+        .filter_by(channel_id=channel_id)\
+        .order_by(Message.timestamp.desc())\
+        .limit(MAX_MESSAGES)\
+        .all()
+    recent_messages.reverse()
+    
+    emit('channel_history', {
+        'channel_id': channel_id,
+        'messages': [msg.to_dict() for msg in recent_messages]
+    })
+
+@socketio.on('leave_channel')
+def handle_leave_channel(data):
+    if request.sid not in active_users:
+        return
+    
+    channel_id = data.get('channel_id')
+    leave_room(f'channel_{channel_id}')
+
+@socketio.on('get_categories')
+def handle_get_categories():
+    if request.sid not in active_users:
+        return
+    
+    categories = Category.query.all()
+    emit('categories_list', {
+        'categories': [category.to_dict() for category in categories]
+    })
+
+@socketio.on('create_category')
+def handle_create_category(data):
+    if request.sid not in active_users:
+        return
+    
+    user = active_users[request.sid]
+    if not user.get('is_moderator'):
+        emit('error', {'message': 'Only moderators can create categories'})
+        return
+    
+    name = data.get('name')
+    description = data.get('description')
+    
+    if not name:
+        emit('error', {'message': 'Category name is required'})
+        return
+    
+    category = Category(name=name, description=description)
+    db.session.add(category)
+    db.session.commit()
+    
+    emit('category_created', category.to_dict(), broadcast=True)
+
+@socketio.on('create_channel')
+def handle_create_channel(data):
+    if request.sid not in active_users:
+        return
+    
+    user = active_users[request.sid]
+    if not user.get('is_moderator'):
+        emit('error', {'message': 'Only moderators can create channels'})
+        return
+    
+    category_id = data.get('category_id')
+    name = data.get('name')
+    description = data.get('description')
+    is_private = data.get('is_private', False)
+    
+    if not all([category_id, name]):
+        emit('error', {'message': 'Category ID and channel name are required'})
+        return
+    
+    channel = Channel(
+        category_id=category_id,
+        name=name,
+        description=description,
+        is_private=is_private
+    )
+    db.session.add(channel)
+    db.session.commit()
+    
+    emit('channel_created', channel.to_dict(), broadcast=True)
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -498,3 +519,11 @@ def handle_command(text, user_data, db_user):
                 }, broadcast=True)
                 # Update user list to reflect changes
                 emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+
+if __name__ == '__main__':
+    with app.app_context():
+        # Migration handling is missing from the modified code and needs to be added back from original
+        from flask_migrate import upgrade
+        upgrade()
+        db.create_all()
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

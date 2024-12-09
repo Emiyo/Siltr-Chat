@@ -419,6 +419,68 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Categories and Channels */
+.category-item {
+    margin-bottom: 1rem;
+}
+
+.category-header {
+    padding: 0.5rem;
+    font-weight: bold;
+    color: #4a9eff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-header:hover {
+    background-color: rgba(74, 158, 255, 0.1);
+}
+
+.channel-list {
+    margin-left: 1rem;
+}
+
+.channel-item {
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.channel-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left-color: #4a9eff;
+}
+
+.channel-item.active {
+    background-color: rgba(74, 158, 255, 0.1);
+    border-left-color: #4a9eff;
+}
+
+.channel-private {
+    color: #ffd700;
+}
+
+.btn-terminal {
+    background-color: transparent;
+    border: 1px solid #4a9eff;
+    color: #4a9eff;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.btn-terminal:hover {
+    background-color: rgba(74, 158, 255, 0.1);
+    border-color: #4a9eff;
+    color: #4a9eff;
+    transform: translateY(-1px);
+}
+
 /* User List */
 .user-item {
     padding: 0.5rem;
