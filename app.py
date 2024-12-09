@@ -117,18 +117,38 @@ class Message(db.Model):
             'reactions': self.reactions
         }
 
-# Create database tables
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
+
+# Create tables and run migrations
 try:
     with app.app_context():
         db.create_all()
         logger.info("Database tables created successfully")
-        # Verify tables exist
+        # Run migrations
+        from flask_migrate import upgrade
+        upgrade(revision='merged_migrations')
+        logger.info("Database migrations applied successfully")
+        # Verify tables
         inspector = db.inspect(db.engine)
         tables = inspector.get_table_names()
         logger.info(f"Available tables: {tables}")
+        for table in tables:
+            columns = [c['name'] for c in inspector.get_columns(table)]
+            logger.info(f"Table {table} columns: {columns}")
 except Exception as e:
-    logger.error(f"Error creating database tables: {str(e)}")
-    raise
+    logger.error(f"Error setting up database: {str(e)}")
+    if "duplicate table" in str(e).lower():
+        logger.info("Tables already exist, proceeding with migrations only")
+        try:
+            with app.app_context():
+                upgrade(revision='merged_migrations')
+                logger.info("Migrations applied successfully")
+        except Exception as migration_error:
+            logger.error(f"Migration error: {str(migration_error)}")
+            raise
+    else:
+        raise
 
 @app.route('/')
 def index():
