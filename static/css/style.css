@@ -12,19 +12,19 @@
     color: var(--terminal-text);
     border: 1px solid #333;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    height: 85px;
+    height: 60px;
     overflow: hidden;
 }
 
 #usernameModal .modal-body {
     padding: 0;
-    height: 30px;
+    height: 25px;
 }
 
 #usernameModal .terminal-header {
-    padding: 0.15rem 0.5rem;
-    height: 25px;
-    min-height: 25px;
+    padding: 0.1rem 0.5rem;
+    height: 20px;
+    min-height: 20px;
     display: flex;
     align-items: center;
 }
