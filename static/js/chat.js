@@ -164,11 +164,22 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
     });
 
+    let categories = [];
+    let currentChannel = null;
+
     socket.on('user_list', (data) => {
+        updateUserList(data.users);
+    });
+
     // Categories and Channels Handling
     socket.on('categories_list', (data) => {
-        categories = data.categories;
-        updateCategoryList();
+        console.log('Received categories:', data);
+        if (data && data.categories) {
+            categories = data.categories;
+            updateCategoryList();
+        } else {
+            console.error('Invalid categories data received:', data);
+        }
     });
 
     socket.on('category_created', (category) => {
@@ -194,23 +205,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateCategoryList() {
+        console.log('Updating category list with:', categories);
         const categoryList = document.getElementById('categoryList');
-        categoryList.innerHTML = categories.map(category => `
-            <div class="category-item">
-                <div class="category-header">
-                    <span class="category-toggle">▶</span>
-                    ${category.name}
+        if (!categoryList) {
+            console.error('Category list element not found');
+            return;
+        }
+        if (!Array.isArray(categories)) {
+            console.error('Categories is not an array:', categories);
+            return;
+        }
+        
+        categoryList.innerHTML = categories.map(category => {
+            const channels = category.channels || [];
+            return `
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-toggle">▼</span>
+                        ${category.name}
+                    </div>
+                    <div class="channel-list" style="display: block;">
+                        ${channels.map(channel => `
+                            <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
+                                 data-channel-id="${channel.id}">
+                                ${channel.is_private ? '🔒' : '#'} ${channel.name}
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
-                <div class="channel-list">
-                    ${category.channels.map(channel => `
-                        <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
-                             data-channel-id="${channel.id}">
-                            ${channel.is_private ? '🔒' : '#'} ${channel.name}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Add event listeners
         document.querySelectorAll('.category-header').forEach(header => {
