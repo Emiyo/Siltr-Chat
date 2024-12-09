@@ -97,12 +97,14 @@ class User(db.Model):
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system'
+    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice'
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     file_url = db.Column(db.String(200))  # For file attachments
+    voice_url = db.Column(db.String(200))  # For voice messages
+    voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
     reactions = db.Column(db.JSON, default=dict)  # Store reactions as {user_id: reaction_type}
 
     def to_dict(self):
@@ -114,6 +116,8 @@ class Message(db.Model):
             'text': self.text,
             'timestamp': self.timestamp.isoformat(),
             'file_url': self.file_url,
+            'voice_url': self.voice_url,
+            'voice_duration': self.voice_duration,
             'reactions': self.reactions
         }
 
@@ -229,6 +233,21 @@ def upload_file():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         file_url = url_for('static', filename=f'uploads/{filename}')
+        
+        # Process audio file if it's a voice message
+        if file.filename.endswith(('.wav', '.mp3', '.ogg', '.webm')):
+            try:
+                from pydub import AudioSegment
+                audio = AudioSegment.from_file(file_path)
+                duration = len(audio) / 1000.0  # Convert to seconds
+                return jsonify({
+                    'voice_url': file_url,
+                    'voice_duration': duration
+                })
+            except Exception as e:
+                logger.error(f"Error processing audio file: {str(e)}")
+                return jsonify({'error': 'Error processing audio file'}), 500
+        
         return jsonify({'file_url': file_url})
 
 @socketio.on('message')
@@ -247,6 +266,11 @@ def handle_message(data):
     logger.info(f"Processing message from user: {user_data['username']}")
     text = data.get('text', '').strip()
     file_url = data.get('file_url')
+    voice_url = data.get('voice_url')
+    voice_duration = data.get('voice_duration')
+    
+    # Set message type based on content
+    msg_type = 'voice' if voice_url else 'public'
     
     # Check if user is muted
     db_user = User.query.get(user_data['id'])
@@ -273,10 +297,12 @@ def handle_message(data):
             return
         
         message = Message(
-            type='public',
+            type=msg_type,
             sender_id=user_data['id'],
-            text=text,
+            text=text or "Voice message",  # Default text for voice messages
             file_url=file_url,
+            voice_url=voice_url,
+            voice_duration=voice_duration,
             timestamp=datetime.now()
         )
         db.session.add(message)
