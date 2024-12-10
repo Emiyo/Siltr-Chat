@@ -23,35 +23,49 @@ class CryptoManager {
     }
 
     static async generateSymmetricKey() {
-        return await window.crypto.subtle.generateKey(
-            {
-                name: "AES-GCM",
-                length: 256
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
+        try {
+            return await window.crypto.subtle.generateKey(
+                {
+                    name: "AES-GCM",
+                    length: 256
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+        } catch (error) {
+            console.error('Error generating symmetric key:', error);
+            throw new Error('Failed to generate encryption key');
+        }
     }
 
     static async encryptMessage(message, symmetricKey) {
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        const encodedMessage = new TextEncoder().encode(message);
+        try {
+            if (!message || !symmetricKey) {
+                throw new Error('Missing message or encryption key');
+            }
 
-        const encryptedData = await window.crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            symmetricKey,
-            encodedMessage
-        );
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encodedMessage = new TextEncoder().encode(message);
 
-        const encryptedArray = new Uint8Array(encryptedData);
-        const combined = new Uint8Array(iv.length + encryptedArray.length);
-        combined.set(iv);
-        combined.set(encryptedArray, iv.length);
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                symmetricKey,
+                encodedMessage
+            );
 
-        return btoa(String.fromCharCode(...combined));
+            const encryptedArray = new Uint8Array(encryptedData);
+            const combined = new Uint8Array(iv.length + encryptedArray.length);
+            combined.set(iv);
+            combined.set(encryptedArray, iv.length);
+
+            return btoa(String.fromCharCode(...combined));
+        } catch (error) {
+            console.error('Error encrypting message:', error);
+            throw new Error('Failed to encrypt message');
+        }
     }
 
     static async decryptMessage(encryptedMessage, symmetricKey) {

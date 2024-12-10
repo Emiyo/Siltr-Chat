@@ -65,23 +65,33 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (currentChannel) {
                     try {
-                        // Get or create symmetric key for the channel
-                        let symmetricKey = channelKeys.get(currentChannel);
-                        if (!symmetricKey) {
-                            symmetricKey = await CryptoManager.generateSymmetricKey();
-                            channelKeys.set(currentChannel, symmetricKey);
+                        try {
+                            // Get or create symmetric key for the channel
+                            let symmetricKey = channelKeys.get(currentChannel);
+                            if (!symmetricKey) {
+                                symmetricKey = await CryptoManager.generateSymmetricKey();
+                                channelKeys.set(currentChannel, symmetricKey);
+                            }
+
+                            // Encrypt the message
+                            const encryptedMessage = await CryptoManager.encryptMessage(message, symmetricKey);
+                            const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+
+                            socket.emit('message', {
+                                text: encryptedMessage,
+                                channel_id: currentChannel,
+                                encryption_key: exportedKey,
+                                is_encrypted: true
+                            });
+                        } catch (error) {
+                            console.error('Encryption error details:', error);
+                            addMessage({
+                                type: 'system',
+                                text: 'Failed to encrypt message: ' + error.message,
+                                timestamp: new Date().toISOString()
+                            });
+                            return;
                         }
-
-                        // Encrypt the message
-                        const encryptedMessage = await CryptoManager.encryptMessage(message, symmetricKey);
-                        const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
-
-                        socket.emit('message', {
-                            text: encryptedMessage,
-                            channel_id: currentChannel,
-                            encryption_key: exportedKey,
-                            is_encrypted: true
-                        });
                     } catch (error) {
                         console.error('Encryption error:', error);
                         addMessage({
