@@ -474,6 +474,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                             ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
                         </div>`;
+                } else if (message.original_type && message.original_type.startsWith('image/')) {
+                    messageContent = `
+                        <div class="message-content">${message.text}</div>
+                        <div class="image-preview">
+                            <div id="image-${downloadId}" class="encrypted-image-placeholder">
+                                Loading encrypted image...
+                            </div>
+                        </div>
+                        <button id="${downloadId}" class="btn btn-sm btn-terminal encrypted-download-btn">
+                            Download Original Image
+                        </button>`;
                 } else {
                     messageContent = `
                         <div class="message-content">${message.text}</div>
@@ -558,13 +569,29 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                                 downloadLink.dispatchEvent(clickEvent);
                                 
-                                // Clean up
-                                setTimeout(() => {
-                                    document.body.removeChild(downloadLink);
-                                    URL.revokeObjectURL(downloadUrl);
-                                }, 100);
+                                // If it's an image, create a preview
+                                if (message.original_type && message.original_type.startsWith('image/')) {
+                                    const imagePreview = document.getElementById(`image-${downloadId}`);
+                                    if (imagePreview) {
+                                        const img = document.createElement('img');
+                                        img.src = downloadUrl;
+                                        img.classList.add('embedded-image');
+                                        img.alt = message.original_name || 'Decrypted image';
+                                        imagePreview.innerHTML = '';
+                                        imagePreview.appendChild(img);
+                                        
+                                        // Don't revoke URL for images that are being displayed
+                                        document.body.removeChild(downloadLink);
+                                    }
+                                } else {
+                                    // Clean up for non-image files
+                                    setTimeout(() => {
+                                        document.body.removeChild(downloadLink);
+                                        URL.revokeObjectURL(downloadUrl);
+                                    }, 100);
+                                }
                                 
-                                console.log('File download completed successfully');
+                                console.log('File download/preview completed successfully');
                             } catch (error) {
                                 console.error('Detailed error in file decryption:', error);
                                 console.error('Error stack:', error.stack);

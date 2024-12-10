@@ -455,6 +455,38 @@ body {
     box-shadow: 0 0 15px rgba(74, 158, 255, 0.2);
     transform: translateY(-1px);
 }
+/* Image Preview Styling */
+.image-preview {
+    margin: 0.75rem 0;
+    max-width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.encrypted-image-placeholder {
+    padding: 1rem;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+}
+
+.embedded-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+    margin: 0 auto;
+}
+
+.encrypted-download-btn {
+    margin-top: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.encrypted-download-btn:hover {
+    background-color: rgba(74, 158, 255, 0.1);
+}
     gap: 0.5rem;
     flex-wrap: wrap;
 }
