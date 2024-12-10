@@ -53,14 +53,18 @@ def send_password_reset_email(user):
     token = generate_reset_token(user.email)
     reset_url = url_for('reset_password', token=token, _external=True)
     
-    msg = Message('Password Reset Request',
-                  recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
+    msg = Message(
+        subject='Password Reset Request',
+        recipients=[user.email],
+        body=f'''To reset your password, visit the following link:
 {reset_url}
 
 If you did not make this request, please ignore this email.
 '''
+    )
     mail.send(msg)
+
+# Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
