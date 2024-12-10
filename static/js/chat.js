@@ -423,12 +423,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let messageContent = message.text;
         let messageHeader = '';
 
-        // Handle encrypted messages
-        if (message.is_encrypted && message.encryption_key) {
+        // Handle file attachments first, before any decryption
+        if (message.voice_url || message.file_url) {
+            // Skip decryption for file messages, handle them separately
+            console.log('Processing file attachment message:', {
+                hasVoice: !!message.voice_url,
+                hasFile: !!message.file_url,
+                isEncrypted: message.is_encrypted
+            });
+        }
+        // Only attempt decryption for regular encrypted messages (not file attachments)
+        else if (message.is_encrypted && message.encryption_key) {
             try {
-                console.log('Attempting to decrypt message:', {
-                    encryptedText: message.text,
-                    hasKey: !!message.encryption_key
+                console.log('Attempting to decrypt regular message:', {
+                    hasKey: !!message.encryption_key,
+                    messageType: 'regular'
                 });
                 
                 const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
