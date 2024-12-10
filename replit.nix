@@ -1,5 +1,7 @@
 {pkgs}: {
   deps = [
+    pkgs.libev
+    pkgs.iana-etc
     pkgs.rustc
     pkgs.pkg-config
     pkgs.libxcrypt
