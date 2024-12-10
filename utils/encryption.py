@@ -2,10 +2,12 @@ import os
 import base64
 import json
 import logging
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Tuple
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.exceptions import InvalidKey
 
 logger = logging.getLogger(__name__)
 

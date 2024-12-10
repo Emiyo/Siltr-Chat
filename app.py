@@ -1,68 +1,20 @@
-import os
-import base64
-import json
-import logging
-import eventlet
 from datetime import datetime
-from flask import Flask, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, current_user
-from flask_bcrypt import Bcrypt
+from flask import request, render_template
+from flask_socketio import emit, join_room, leave_room
+from flask_login import current_user
 from utils.encryption import EncryptionWrapper
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Initialize Flask app and extensions
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.urandom(24)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///chat.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload folder exists
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
-# Initialize extensions
-db = SQLAlchemy(app)
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode='eventlet',
-    logger=True,
-    engineio_logger=True,
-    ping_timeout=60,
-    ping_interval=25
-)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
+# Import from main.py
+from main import socketio, db, logger
+from models import User, Message, Channel, Category
 
 # Initialize encryption wrapper
 encryption = EncryptionWrapper()
 
 # Global variables
 active_users = {}  # sid -> user_data
+user_keys = {}    # user_id -> encryption_key
 MAX_MESSAGES = 100
-
-# Models
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True)
-    password_hash = db.Column(db.String(128))
-    is_moderator = db.Column(db.Boolean, default=False)
-    status = db.Column(db.String(100), default="")
-    muted_until = db.Column(db.DateTime)
-
-    def is_muted(self):
-        if self.muted_until and self.muted_until > datetime.utcnow():
-            return True
-        return False
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,6 +50,7 @@ class Channel(db.Model):
     description = db.Column(db.String(200))
     is_private = db.Column(db.Boolean, default=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -112,6 +65,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -123,6 +77,10 @@ class Category(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 # SocketIO event handlers
 @socketio.on("connect")
@@ -309,12 +267,10 @@ def handle_disconnect():
         emit("user_list", {"users": list(active_users.values())}, broadcast=True)
         emit("new_message", leave_message.to_dict(), broadcast=True)
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        # Ensure we have at least one channel
-        if not Channel.query.first():
-            default_channel = Channel(name="General", description="General chat channel")
-            db.session.add(default_channel)
-            db.session.commit()
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, use_reloader=False, log_output=True)
+with app.app_context():
+    db.create_all()
+    # Ensure we have at least one channel
+    if not Channel.query.first():
+        default_channel = Channel(name="General", description="General chat channel")
+        db.session.add(default_channel)
+        db.session.commit()
