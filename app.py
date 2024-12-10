@@ -868,12 +868,7 @@ def handle_command(text, user_data, db_user):
 
 if __name__ == '__main__':
     with app.app_context():
-        from flask_migrate import Migrate, upgrade
+        from flask_migrate import Migrate
         migrate = Migrate(app, db)
-        try:
-            upgrade()
-        except Exception as e:
-            logger.error(f"Migration error: {e}")
-            # Ensure tables exist even if migrations fail
-            db.create_all()
+        db.create_all()  # Create tables based on models
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
