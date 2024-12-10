@@ -18,84 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let categories = [];
     let messageHistory = [];
     let historyIndex = -1;
-    
-    // Encryption state
-    let keyPair = null;
-    let publicKeys = new Map();
-    let channelKeys = new Map();
-    
-    // Crypto functions
-    async function generateKeyPair() {
-        keyPair = await window.crypto.subtle.generateKey(
-            {
-                name: "RSA-OAEP",
-                modulusLength: 2048,
-                publicExponent: new Uint8Array([1, 0, 1]),
-                hash: "SHA-256"
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
-        return keyPair;
-    }
-    
-    async function generateChannelKey() {
-        return await window.crypto.subtle.generateKey(
-            {
-                name: "AES-GCM",
-                length: 256
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
-    }
-    
-    async function encryptMessage(text, channelId) {
-        const channelKey = channelKeys.get(channelId);
-        if (!channelKey) return text;
-        
-        const encoder = new TextEncoder();
-        const encodedText = encoder.encode(text);
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        
-        const encryptedData = await window.crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            channelKey,
-            encodedText
-        );
-        
-        return {
-            encrypted: Array.from(new Uint8Array(encryptedData)),
-            iv: Array.from(iv)
-        };
-    }
-    
-    async function decryptMessage(encryptedObj) {
-        if (!encryptedObj.encrypted || !encryptedObj.iv) return encryptedObj;
-        
-        const channelKey = channelKeys.get(currentChannel);
-        if (!channelKey) return encryptedObj;
-        
-        try {
-            const decryptedData = await window.crypto.subtle.decrypt(
-                {
-                    name: "AES-GCM",
-                    iv: new Uint8Array(encryptedObj.iv)
-                },
-                channelKey,
-                new Uint8Array(encryptedObj.encrypted)
-            );
-            
-            const decoder = new TextDecoder();
-            return decoder.decode(decryptedData);
-        } catch (error) {
-            console.error('Decryption failed:', error);
-            return '[Encrypted message]';
-        }
-    }
 
     // Show login modal on page load
     usernameModal.show();
@@ -122,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(fileInput);
 
     // Message form handling
-    messageForm.addEventListener('submit', async (e) => {
+    messageForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
@@ -138,11 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 if (currentChannel) {
-                    const encryptedData = await encryptMessage(message, currentChannel);
                     socket.emit('message', {
-                        text: encryptedData,
-                        channel_id: currentChannel,
-                        encrypted: true
+                        text: message,
+                        channel_id: currentChannel
                     });
                 } else {
                     addMessage({
@@ -220,22 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Socket event handlers
-    socket.on('connect', async () => {
-        // Initialize encryption system
-        if (!keyPair) {
-            keyPair = await generateKeyPair();
-            const exportedPublicKey = await window.crypto.subtle.exportKey(
-                "spki",
-                keyPair.publicKey
-            );
-            socket.emit('public_key', {
-                key: Array.from(new Uint8Array(exportedPublicKey))
-            });
-        }
-        
+    socket.on('connect', () => {
         addMessage({
             type: 'system',
-            text: 'Connected to server (E2E encryption enabled)',
+            text: 'Connected to server',
             timestamp: new Date().toISOString()
         });
     });
@@ -275,11 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
     });
 
-    socket.on('new_message', async (message) => {
-        if (message.encrypted && message.text) {
-            const decryptedText = await decryptMessage(message.text);
-            message.text = decryptedText;
-        }
+    socket.on('new_message', (message) => {
         addMessage(message);
         scrollToBottom();
     });
@@ -363,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.channel-item').forEach(item => {
-            item.addEventListener('click', async () => {
+            item.addEventListener('click', () => {
                 const channelId = parseInt(item.dataset.channelId);
                 if (currentChannel !== channelId) {
                     if (currentChannel) {
@@ -371,28 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     currentChannel = channelId;
                     messageContainer.innerHTML = '';
-                    
-                    // Generate new channel key
-                    const channelKey = await generateChannelKey();
-                    channelKeys.set(channelId, channelKey);
-                    
-                    // Export key for storage
-                    const exportedKey = await window.crypto.subtle.exportKey(
-                        "raw",
-                        channelKey
-                    );
-                    
                     addMessage({
                         type: 'system',
-                        text: `Joined channel #${item.textContent.trim()} (Encrypted)`,
+                        text: `Joined channel #${item.textContent.trim()}`,
                         timestamp: new Date().toISOString()
                     });
-                    
-                    socket.emit('join_channel', {
-                        channel_id: channelId,
-                        channel_key: Array.from(new Uint8Array(exportedKey))
-                    });
-                    
+                    socket.emit('join_channel', { channel_id: channelId });
                     document.querySelectorAll('.channel-item').forEach(ch => 
                         ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
                     );
