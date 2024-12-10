@@ -177,8 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Create form data with encrypted file
             const formData = new FormData();
-            formData.append('file', encryptedFile.blob, `encrypted_${file.name}`);
+            formData.append('file', encryptedFile.blob, file.name); // Keep original filename
             formData.append('original_type', file.type);
+            formData.append('original_name', file.name);
             
             const response = await fetch('/upload', {
                 method: 'POST',
@@ -517,8 +518,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const downloadUrl = URL.createObjectURL(decryptedBlob);
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = downloadUrl;
+                                
                                 // Ensure we preserve the original filename with extension
-                                const filename = message.original_name || `downloaded_file${message.original_type ? '.' + message.original_type.split('/')[1] : ''}`;
+                                let filename;
+                                if (message.original_name) {
+                                    filename = message.original_name;
+                                } else {
+                                    const extension = message.original_type ? 
+                                        '.' + message.original_type.split('/')[1] : 
+                                        '.bin';
+                                    filename = `downloaded_file${extension}`;
+                                }
+                                
                                 downloadLink.download = filename;
                                 document.body.appendChild(downloadLink);
                                 downloadLink.click();
