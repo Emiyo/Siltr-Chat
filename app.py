@@ -36,6 +36,35 @@ RSA_PADDING = padding.OAEP(
     label=None
 )
 
+def generate_rsa_keypair():
+    """Generate a new RSA key pair"""
+    try:
+        private_key = rsa.generate_private_key(
+            public_exponent=RSA_PUBLIC_EXPONENT,
+            key_size=RSA_KEY_SIZE,
+            backend=default_backend()
+        )
+        public_key = private_key.public_key()
+        
+        # Serialize keys
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        
+        return {
+            'private_key': base64.b64encode(private_pem).decode('utf-8'),
+            'public_key': base64.b64encode(public_pem).decode('utf-8')
+        }
+    except Exception as e:
+        logger.error(f"Error generating RSA key pair: {str(e)}")
+        raise
+
 def generate_channel_key():
     """Generate a new AES-GCM key for channel encryption"""
     return AESGCM.generate_key(bit_length=256)
@@ -863,28 +892,95 @@ def handle_join(data):
 @socketio.on('message')
 def handle_message(data):
     """Handle incoming chat messages with encryption support"""
-    logger.debug(f"Received message data: {data}")
-    
-    if request.sid not in active_users:
-        logger.error(f"User session {request.sid} not found in active_users")
+    try:
+        logger.debug(f"Received message data: {data}")
+        
+        if request.sid not in active_users:
+            logger.error(f"User session {request.sid} not found in active_users")
+            return
+        
+        user_data = active_users[request.sid]
+        if not user_data:
+            logger.error(f"User data not found for session {request.sid}")
+            return
+        
+        logger.info(f"Processing message from user: {user_data['username']}")
+        encrypted_data = data.get('encrypted_data')
+        channel_id = data.get('channel_id')
+        file_url = data.get('file_url')
+        voice_url = data.get('voice_url')
+        voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
+        
+        # Check if user is muted
+        user = User.query.get(user_data['id'])
+        if user.is_muted():
+            emit('error', {'message': f'You are muted until {user.muted_until}'})
+            return
+            
+        # Process encrypted messages
+        text = '[Encrypted message]'
+        if encrypted_data:
+            try:
+                # Verify channel key exists
+                if channel_id not in channel_keys:
+                    logger.error(f"Channel key not found for channel {channel_id}")
+                    emit('error', {'message': 'Channel key not found'})
+                    return
+                
+                # Create and save message with encrypted content
+                message = Message(
+                    type='public',
+                    sender_id=user_data['id'],
+                    channel_id=channel_id,
+                    text=json.dumps(encrypted_data),
+                    file_url=file_url,
+                    voice_url=voice_url,
+                    voice_duration=voice_duration,
+                    reactions={},
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(message)
+                db.session.commit()
+                
+                # Broadcast the encrypted message
+                message_dict = message.to_dict()
+                message_dict['timestamp'] = message.timestamp.isoformat()
+                message_dict['encrypted'] = True
+                room = f'channel_{channel_id}'
+                emit('new_message', message_dict, room=room)
+                logger.info(f"Successfully broadcasted encrypted message to channel {channel_id}")
+                
+            except Exception as e:
+                logger.error(f"Error processing encrypted message: {str(e)}")
+                emit('error', {'message': 'Error processing encrypted message'})
+                return
+        else:
+            # Handle unencrypted messages (system messages, etc.)
+            message = Message(
+                type='public',
+                sender_id=user_data['id'],
+                channel_id=channel_id,
+                text=data.get('text', ''),
+                file_url=file_url,
+                voice_url=voice_url,
+                voice_duration=voice_duration,
+                reactions={},
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            # Broadcast unencrypted message
+            message_dict = message.to_dict()
+            message_dict['timestamp'] = message.timestamp.isoformat()
+            room = f'channel_{channel_id}'
+            emit('new_message', message_dict, room=room)
+            logger.info(f"Successfully broadcasted message to channel {channel_id}")
+            
+    except Exception as e:
+        logger.error(f"Error in message handler: {str(e)}")
+        emit('error', {'message': 'Internal server error'})
         return
-    
-    user_data = active_users[request.sid]
-    if not user_data:
-        logger.error(f"User data not found for session {request.sid}")
-        return
-    
-    logger.info(f"Processing message from user: {user_data['username']}")
-    encrypted_data = data.get('encrypted_data')
-    channel_id = data.get('channel_id')
-    file_url = data.get('file_url')
-    voice_url = data.get('voice_url')
-    voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
-    
-    # Process encrypted messages
-    text = '[Encrypted message]'
-    if encrypted_data:
-        try:
             # Validate encrypted data format
             if not isinstance(encrypted_data, dict) or not all(k in encrypted_data for k in ('nonce', 'ciphertext')):
                 logger.error("Invalid encrypted message format")
