@@ -183,11 +183,12 @@ class CryptoManager {
             combined.set(encryptedArray, iv.length);
             console.log('Combined IV and encrypted data');
 
-            // Create a new Blob with the encrypted data
-            const encryptedBlob = new Blob([combined], { type: 'application/octet-stream' });
+            // Create a new Blob with the encrypted data and preserve the original type
+            const encryptedBlob = new Blob([combined], { type: file.type });
             console.log('Created encrypted blob:', {
                 size: encryptedBlob.size,
-                type: encryptedBlob.type
+                type: encryptedBlob.type,
+                originalName: file.name
             });
 
             return {

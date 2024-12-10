@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 );
                                 console.log('File decrypted successfully');
 
-                                // Create download link for decrypted file
+                                // Create download link for decrypted file with proper MIME type
                                 const downloadUrl = URL.createObjectURL(decryptedBlob);
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = downloadUrl;
@@ -530,7 +530,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     filename = `downloaded_file${extension}`;
                                 }
                                 
+                                console.log('Downloading file:', {
+                                    filename,
+                                    type: message.original_type,
+                                    size: decryptedBlob.size
+                                });
+                                
                                 downloadLink.download = filename;
+                                downloadLink.type = message.original_type || 'application/octet-stream';
                                 document.body.appendChild(downloadLink);
                                 downloadLink.click();
                                 document.body.removeChild(downloadLink);
