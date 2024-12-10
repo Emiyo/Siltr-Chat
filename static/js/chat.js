@@ -460,6 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (message.voice_url || message.file_url) {
             const url = message.voice_url || message.file_url;
             const isEncrypted = message.is_encrypted && message.encryption_key;
+            
+            // Don't try to decrypt the message text for file messages
+            messageContent = message.text;
 
             if (isEncrypted) {
                 // Create unique ID for this message's download button
