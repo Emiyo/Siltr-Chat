@@ -20,4 +20,5 @@ dependencies = [
     "flask-mail>=0.10.0",
     "itsdangerous",
     "cryptography>=44.0.0",
+    "black>=24.10.0",
 ]
