@@ -1,22 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
+    
+    // DOM Elements
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
-    const messageContainer = document.getElementById('messages');
+    const messageContainer = document.getElementById('messageContainer');
     const userList = document.getElementById('userList');
-    const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'));
-    
+    const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
+
+    // State variables
     let username = '';
     let user_id = null;
     let currentChannel = null;
     let categories = [];
     let messageHistory = [];
     let historyIndex = -1;
-    
-    // Encryption keys
-    let keyPair = null;
-    let channelKeys = new Map();
-    let userPublicKeys = new Map();
 
     // Show login modal on page load
     usernameModal.show();
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(fileInput);
 
     // Message form handling
-    messageForm.addEventListener('submit', async (e) => {
+    messageForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
@@ -52,41 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (spaceIndex > 1) {
                     const recipient = message.substring(1, spaceIndex);
                     const privateMessage = message.substring(spaceIndex + 1);
-                    
-                    // Encrypt private message with recipient's public key
-                    const recipientPublicKey = userPublicKeys.get(recipient);
-                    if (recipientPublicKey) {
-                        const encryptedData = await encryptMessage(privateMessage, recipientPublicKey);
-                        socket.emit('private_message', {
-                            recipient: recipient,
-                            encrypted: encryptedData.encrypted,
-                            iv: encryptedData.iv
-                        });
-                    } else {
-                        addMessage({
-                            type: 'system',
-                            text: 'Cannot send encrypted message: Recipient key not found',
-                            timestamp: new Date().toISOString()
-                        });
-                    }
+                    socket.emit('private_message', {
+                        recipient: recipient,
+                        text: privateMessage
+                    });
                 }
             } else {
                 if (currentChannel) {
-                    const channelKey = channelKeys.get(currentChannel);
-                    if (channelKey) {
-                        const encryptedData = await encryptMessage(message, channelKey);
-                        socket.emit('message', {
-                            encrypted: encryptedData.encrypted,
-                            iv: encryptedData.iv,
-                            channel_id: currentChannel
-                        });
-                    } else {
-                        addMessage({
-                            type: 'system',
-                            text: 'Cannot send encrypted message: Channel key not found',
-                            timestamp: new Date().toISOString()
-                        });
-                    }
+                    socket.emit('message', {
+                        text: message,
+                        channel_id: currentChannel
+                    });
                 } else {
                     addMessage({
                         type: 'system',
@@ -163,39 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Socket event handlers
-    socket.on('connect', async () => {
-        // Generate key pair for this session
-        const publicKeyStr = await generateKeyPair();
-        
+    socket.on('connect', () => {
         addMessage({
             type: 'system',
             text: 'Connected to server',
             timestamp: new Date().toISOString()
         });
-
-        // Share public key with server
-        socket.emit('share_public_key', { publicKey: publicKeyStr });
-    });
-
-    // Handle received public keys
-    socket.on('public_key_shared', (data) => {
-        const { userId, publicKey } = data;
-        userPublicKeys.set(userId, publicKey);
-    });
-
-    // Handle channel key distribution
-    socket.on('channel_key', async (data) => {
-        try {
-            const { channelId, encryptedKey } = data;
-            const key = await window.crypto.subtle.decrypt(
-                { name: "RSA-OAEP" },
-                keyPair.privateKey,
-                Uint8Array.from(atob(encryptedKey), c => c.charCodeAt(0))
-            );
-            channelKeys.set(channelId, key);
-        } catch (error) {
-            console.error('Error processing channel key:', error);
-        }
     });
     
     socket.on('message_history', (data) => {
@@ -224,30 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    socket.on('new_message', async (message) => {
-        if (message.encrypted && message.iv) {
-            try {
-                let decryptionKey;
-                if (message.type === 'private') {
-                    decryptionKey = keyPair.privateKey;
-                } else {
-                    decryptionKey = channelKeys.get(message.channel_id);
-                }
-                
-                if (decryptionKey) {
-                    const decryptedText = await decryptMessage(
-                        { encrypted: message.encrypted, iv: message.iv },
-                        decryptionKey
-                    );
-                    message.text = decryptedText;
-                } else {
-                    message.text = '[Encrypted message - key not available]';
-                }
-            } catch (error) {
-                console.error('Error decrypting message:', error);
-                message.text = '[Decryption failed]';
-            }
+    socket.on('message_history', (data) => {
+        messageContainer.innerHTML = '';
+        if (data.user_id) {
+            user_id = data.user_id;
         }
+        data.messages.forEach(message => addMessage(message));
+        scrollToBottom();
+    });
+
+    socket.on('new_message', (message) => {
         addMessage(message);
         scrollToBottom();
     });
@@ -351,6 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // Show moderator controls if user is a moderator
+        const moderatorControls = document.getElementById('moderatorControls');
+        if (moderatorControls && user_id &&  document.getElementById('moderatorControls') ) {
+            moderatorControls.classList.remove('d-none');
+        }
     }
 
     function addMessage(message) {
@@ -419,88 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${user.username}
             </div>
         `).join('');
-    }
-
-    // Encryption utilities
-    async function generateKeyPair() {
-        try {
-            console.log('Generating new key pair...');
-            keyPair = await window.crypto.subtle.generateKey(
-                {
-                    name: "RSA-OAEP",
-                    modulusLength: 2048,
-                    publicExponent: new Uint8Array([1, 0, 1]),
-                    hash: "SHA-256",
-                },
-                true,
-                ["encrypt", "decrypt"]
-            );
-            
-            // Export public key for sharing
-            const exported = await window.crypto.subtle.exportKey(
-                "spki",
-                keyPair.publicKey
-            );
-            const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exported)));
-            console.log('Key pair generated successfully');
-            return publicKeyString;
-        } catch (error) {
-            console.error('Error generating key pair:', error);
-            throw new Error('Failed to generate key pair');
-        }
-    }
-
-    async function generateChannelKey() {
-        return await window.crypto.subtle.generateKey(
-            {
-                name: "AES-GCM",
-                length: 256
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
-    }
-
-    async function encryptMessage(text, key) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(text);
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        
-        const encryptedContent = await window.crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            key,
-            data
-        );
-
-        return {
-            encrypted: btoa(String.fromCharCode(...new Uint8Array(encryptedContent))),
-            iv: btoa(String.fromCharCode(...iv))
-        };
-    }
-
-    async function decryptMessage(encryptedObj, key) {
-        try {
-            const encryptedData = Uint8Array.from(atob(encryptedObj.encrypted), c => c.charCodeAt(0));
-            const iv = Uint8Array.from(atob(encryptedObj.iv), c => c.charCodeAt(0));
-            
-            const decrypted = await window.crypto.subtle.decrypt(
-                {
-                    name: "AES-GCM",
-                    iv: iv
-                },
-                key,
-                encryptedData
-            );
-
-            const decoder = new TextDecoder();
-            return decoder.decode(decrypted);
-        } catch (error) {
-            console.error('Decryption failed:', error);
-            return '[Unable to decrypt message]';
-        }
     }
 
     function scrollToBottom() {
