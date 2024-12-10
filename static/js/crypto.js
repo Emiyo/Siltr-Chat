@@ -96,11 +96,14 @@ class CryptoManager {
             // Remove any remaining whitespace
             standardBase64 = standardBase64.replace(/\s/g, '');
 
-            // Validate base64 format
-            if (!/^[A-Za-z0-9+/]*={0,3}$/.test(standardBase64)) {
+            // More lenient base64 validation that handles URL-safe format
+            if (!/^[A-Za-z0-9+/_-]*={0,3}$/.test(standardBase64)) {
                 console.error('Invalid base64 string:', standardBase64);
                 throw new Error('Invalid base64 format');
             }
+            
+            // Additional logging for debugging
+            console.log('Base64 validation passed, string length:', standardBase64.length);
 
             let decodedData;
             try {

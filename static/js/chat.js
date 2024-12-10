@@ -651,11 +651,30 @@ document.addEventListener('DOMContentLoaded', () => {
                                     metadataType: message.file_metadata?.type
                                 });
                                 
-                                if (targetType.startsWith('image/')) {
-                                    console.log('Processing image preview for type:', targetType);
-                                    const imagePreview = document.getElementById(`image-${downloadId}`);
-                                    console.log('Found preview container:', imagePreview ? 'yes' : 'no');
-                                    if (imagePreview) {
+                                // Enhanced image type detection and logging
+                                console.log('File type detection:', {
+                                    targetType,
+                                    originalType: message.original_type,
+                                    metadataType: message.file_metadata?.type,
+                                    isImage: targetType?.startsWith('image/') || message.original_type?.startsWith('image/')
+                                });
+
+                                const isImage = targetType?.startsWith('image/') || message.original_type?.startsWith('image/');
+                                if (isImage) {
+                                    console.log('Processing image preview:', {
+                                        downloadId,
+                                        type: targetType || message.original_type
+                                    });
+                                    
+                                    // Create preview container if it doesn't exist
+                                    let imagePreview = document.getElementById(`image-${downloadId}`);
+                                    if (!imagePreview) {
+                                        imagePreview = document.createElement('div');
+                                        imagePreview.id = `image-${downloadId}`;
+                                        imagePreview.className = 'image-preview';
+                                        messageDiv.appendChild(imagePreview);
+                                    }
+                                    console.log('Preview container:', imagePreview ? 'created/found' : 'missing');
                                         try {
                                             // Clear any existing content and show loading state
                                             imagePreview.innerHTML = `
