@@ -17,4 +17,6 @@ dependencies = [
     "sounddevice>=0.5.1",
     "flask-login",
     "flask-bcrypt",
+    "flask-mail>=0.10.0",
+    "itsdangerous",
 ]

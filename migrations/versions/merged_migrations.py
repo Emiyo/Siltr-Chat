@@ -1,4 +1,4 @@
-"""Merged migrations for user profiles and muting
+"""Merged initial migrations
 
 Revision ID: merged_migrations
 Revises: 

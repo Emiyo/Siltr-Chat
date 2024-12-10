@@ -2,6 +2,10 @@ import os
 import logging
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+from datetime import datetime, timedelta
+from itsdangerous import URLSafeTimedSerializer
+import os
 from flask import Flask, request, render_template, jsonify, url_for, flash, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
@@ -24,6 +28,39 @@ app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Ensure upload folder exists
+# Email Configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
+mail = Mail(app)
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+def generate_reset_token(email):
+    return serializer.dumps(email, salt='password-reset-salt')
+
+def verify_reset_token(token, expiration=3600):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+        return email
+    except:
+        return None
+
+def send_password_reset_email(user):
+    token = generate_reset_token(user.email)
+    reset_url = url_for('reset_password', token=token, _external=True)
+    
+    msg = Message('Password Reset Request',
+                  recipients=[user.email])
+    msg.body = f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request, please ignore this email.
+'''
+    mail.send(msg)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
@@ -243,7 +280,7 @@ def register():
         except EmailNotValidError:
             flash('Invalid email address', 'error')
             return redirect(url_for('register'))
-        
+            
         if User.query.filter_by(username=username).first():
             flash('Username already taken', 'error')
             return redirect(url_for('register'))
@@ -296,6 +333,55 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            send_password_reset_email(user)
+            flash('An email has been sent with instructions to reset your password.', 'info')
+            return redirect(url_for('login'))
+        else:
+            flash('No account found with that email address.', 'error')
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    email = verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired reset token', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not password or not confirm_password:
+            flash('Please fill in all fields', 'error')
+        elif password != confirm_password:
+            flash('Passwords do not match', 'error')
+        else:
+            user.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+            db.session.commit()
+            flash('Your password has been updated! You can now log in', 'success')
+            return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', token=token)
 
 @app.route('/profile', methods=['GET'])
 @login_required
