@@ -61,8 +61,14 @@ class CryptoManager {
             combined.set(iv);
             combined.set(encryptedArray, iv.length);
 
-            // Convert to base64 safely
-            return btoa(String.fromCharCode.apply(null, combined));
+            // Convert to base64 safely using URL-safe format
+            const base64Data = btoa(String.fromCharCode.apply(null, combined))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+            
+            console.log('Encrypted message length:', base64Data.length);
+            return base64Data;
         } catch (error) {
             console.error('Error encrypting message:', error);
             throw new Error('Failed to encrypt message: ' + error.message);
@@ -75,29 +81,48 @@ class CryptoManager {
                 throw new Error('Missing encrypted message or decryption key');
             }
 
-            // Safely decode base64 with proper error handling
+            console.log('Attempting to decrypt message of length:', encryptedMessage.length);
+            
+            // Restore base64 standard characters
+            let standardBase64 = encryptedMessage
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            // Add back padding if needed
+            while (standardBase64.length % 4) {
+                standardBase64 += '=';
+            }
+
+            // Remove any remaining whitespace
+            standardBase64 = standardBase64.replace(/\s/g, '');
+
+            // Validate base64 format
+            if (!/^[A-Za-z0-9+/]*={0,3}$/.test(standardBase64)) {
+                console.error('Invalid base64 string:', standardBase64);
+                throw new Error('Invalid base64 format');
+            }
+
             let decodedData;
             try {
-                // Remove any whitespace and validate base64 string
-                const cleanBase64 = encryptedMessage.replace(/\s/g, '');
-                if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanBase64)) {
-                    throw new Error('Invalid base64 format');
-                }
-                decodedData = atob(cleanBase64);
+                decodedData = atob(standardBase64);
+                console.log('Base64 decoded successfully, length:', decodedData.length);
             } catch (base64Error) {
-                throw new Error('Invalid base64 encoding: ' + base64Error.message);
+                console.error('Base64 decoding error:', base64Error);
+                throw new Error('Base64 decoding failed: ' + base64Error.message);
             }
 
             // Convert decoded string to Uint8Array
             const combined = new Uint8Array(decodedData.split('').map(c => c.charCodeAt(0)));
+            console.log('Decoded data length:', combined.length);
             
             if (combined.length <= 12) {
-                throw new Error('Encrypted data too short');
+                throw new Error('Decoded data too short (minimum 12 bytes for IV)');
             }
 
             // Extract IV and encrypted data
             const iv = combined.slice(0, 12);
             const encryptedData = combined.slice(12);
+            console.log('IV length:', iv.length, 'Encrypted data length:', encryptedData.length);
 
             // Decrypt the data
             const decryptedData = await window.crypto.subtle.decrypt(
@@ -115,9 +140,11 @@ class CryptoManager {
                 throw new Error('Decrypted text is empty');
             }
 
+            console.log('Message decrypted successfully');
             return decryptedText;
         } catch (error) {
             console.error('Decryption error details:', error);
+            console.error('Error stack:', error.stack);
             throw new Error(`Decryption failed: ${error.message}`);
         }
     }
