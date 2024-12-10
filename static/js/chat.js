@@ -341,13 +341,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (message.is_encrypted && message.encryption_key) {
             try {
                 const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
-                messageContent = await CryptoManager.decryptMessage(message.text, symmetricKey);
-                if (!messageContent) {
+                const decryptedContent = await CryptoManager.decryptMessage(message.text, symmetricKey);
+                if (decryptedContent) {
+                    messageContent = decryptedContent;
+                } else {
+                    console.error('Decryption returned null');
                     messageContent = '[Unable to decrypt message]';
                 }
             } catch (error) {
                 console.error('Decryption error:', error);
-                messageContent = '[Unable to decrypt message]';
+                messageContent = '[Unable to decrypt message: ' + error.message + ']';
             }
         }
 

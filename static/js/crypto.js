@@ -70,13 +70,18 @@ class CryptoManager {
 
     static async decryptMessage(encryptedMessage, symmetricKey) {
         try {
-            const combined = new Uint8Array(
-                atob(encryptedMessage).split('').map(char => char.charCodeAt(0))
-            );
+            if (!encryptedMessage || !symmetricKey) {
+                throw new Error('Missing encrypted message or decryption key');
+            }
+
+            // Decode base64 to get the combined IV + encrypted data
+            const combined = Uint8Array.from(atob(encryptedMessage), c => c.charCodeAt(0));
             
+            // Extract IV (first 12 bytes) and encrypted data
             const iv = combined.slice(0, 12);
             const encryptedData = combined.slice(12);
 
+            // Decrypt the data
             const decryptedData = await window.crypto.subtle.decrypt(
                 {
                     name: "AES-GCM",
@@ -86,10 +91,16 @@ class CryptoManager {
                 encryptedData
             );
 
-            return new TextDecoder().decode(decryptedData);
+            // Convert decrypted array buffer to string
+            const decryptedText = new TextDecoder().decode(decryptedData);
+            if (!decryptedText) {
+                throw new Error('Decrypted text is empty');
+            }
+
+            return decryptedText;
         } catch (error) {
-            console.error('Decryption failed:', error);
-            return null;
+            console.error('Decryption error details:', error);
+            throw new Error(`Decryption failed: ${error.message}`);
         }
     }
 
