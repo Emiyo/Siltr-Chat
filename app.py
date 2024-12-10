@@ -260,7 +260,9 @@ class Message(db.Model):
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': {} if self.reactions is None else self.reactions
+            'reactions': {} if self.reactions is None else self.reactions,
+            'is_encrypted': self.is_encrypted,
+            'encryption_key': self.encryption_key if self.is_encrypted else None
         }
 
 @login_manager.user_loader
@@ -626,7 +628,9 @@ def handle_message(data):
         file_url=file_url,
         voice_url=voice_url,
         voice_duration=voice_duration,
-        reactions={}
+        reactions={},
+        is_encrypted=data.get('is_encrypted', False),
+        encryption_key=data.get('encryption_key')
     )
     db.session.add(message)
     db.session.commit()
