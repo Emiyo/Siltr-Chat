@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_authentication_fields'
-down_revision = 'merged_migrations'
+down_revision = 'add_categories_and_channels'
 branch_labels = None
 depends_on = None
 

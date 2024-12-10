@@ -616,8 +616,12 @@ def handle_command(text, user_data, db_user):
 
 if __name__ == '__main__':
     with app.app_context():
-        # Migration handling is missing from the modified code and needs to be added back from original
-        from flask_migrate import upgrade
-        upgrade()
-        db.create_all()
+        from flask_migrate import Migrate, upgrade
+        migrate = Migrate(app, db)
+        try:
+            upgrade()
+        except Exception as e:
+            logger.error(f"Migration error: {e}")
+            # Ensure tables exist even if migrations fail
+            db.create_all()
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
