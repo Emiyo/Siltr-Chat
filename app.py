@@ -15,35 +15,46 @@ import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
+# Initialize Flask app and extensions
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL')) #Using os.getenv as per modified code, but keeping original method as fallback
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'} # Added from original
 
-# Ensure upload directory exists
+# Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-login_manager.login_message_category = 'info'
 socketio = SocketIO(app, cors_allowed_origins="*")
+bcrypt = Bcrypt(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info' # Retained from original
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
-# Active users storage
+# Constants
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'txt', 'pdf'} #Combined allowed extensions
+MAX_MESSAGES = 50
 active_users = {}
-MAX_MESSAGES = 100
 
-# Models (Mostly from modified, with some adjustments from original)
+# Models
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    permissions = db.relationship('Permission', secondary='role_permissions', backref=db.backref('roles', lazy='dynamic')) #Retained from original
+    users = db.relationship('User', secondary='user_roles', back_populates='roles')
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    roles = db.relationship('Role', secondary='role_permissions', backref=db.backref('permissions', lazy='dynamic')) #Retained from original
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
@@ -77,17 +88,6 @@ class Channel(db.Model):
             'is_private': self.is_private
         }
 
-class Role(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.String(200))
-    permissions = db.relationship('Permission', secondary='role_permissions',
-                                backref=db.backref('roles', lazy='dynamic'))
-
-class Permission(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.String(200))
 
 role_permissions = db.Table('role_permissions',
     db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
@@ -99,7 +99,7 @@ user_roles = db.Table('user_roles',
     db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
 )
 
-class User(db.Model, UserMixin):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -108,9 +108,9 @@ class User(db.Model, UserMixin):
     avatar = db.Column(db.String(200))
     status = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    muted_until = db.Column(db.DateTime, nullable=True)
-    roles = db.relationship('Role', secondary=user_roles, backref=db.backref('users', lazy='dynamic'))
-    
+    muted_until = db.Column(db.DateTime)
+    roles = db.relationship('Role', secondary=user_roles, back_populates='users')
+
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
     
@@ -118,18 +118,15 @@ class User(db.Model, UserMixin):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def has_permission(self, permission_name):
-        """Check if user has a specific permission through any of their roles"""
         return any(
             any(p.name == permission_name for p in role.permissions)
             for role in self.roles
         )
 
     def has_role(self, role_name):
-        """Check if user has a specific role"""
         return any(role.name == role_name for role in self.roles)
 
     def add_role(self, role_name):
-        """Add a role to the user"""
         role = Role.query.filter_by(name=role_name).first()
         if role and role not in self.roles:
             self.roles.append(role)
@@ -137,7 +134,6 @@ class User(db.Model, UserMixin):
         return f'Role {role_name} not found or already assigned'
 
     def remove_role(self, role_name):
-        """Remove a role from the user"""
         role = Role.query.filter_by(name=role_name).first()
         if role and role in self.roles:
             self.roles.remove(role)
@@ -186,7 +182,7 @@ class User(db.Model, UserMixin):
             'avatar': self.avatar,
             'status': self.status,
             'created_at': self.created_at.isoformat(),
-            'is_muted': self.is_muted() # added from original
+            'is_muted': self.is_muted()
         }
 
 class Message(db.Model):
@@ -217,7 +213,16 @@ class Message(db.Model):
             'reactions': {} if self.reactions is None else self.reactions
         }
 
-# Routes (Mostly from modified)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Routes
+@app.route('/')
+@login_required
+def index():
+    return render_template('index.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -292,10 +297,69 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/')
+
+@app.route('/admin/roles', methods=['GET'])
 @login_required
-def index():
-    return render_template('index.html')
+def list_roles():
+    if not current_user.has_role('admin'):
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    roles = Role.query.all()
+    return render_template('admin/roles.html', roles=roles)
+
+@app.route('/admin/roles/assign', methods=['POST'])
+@login_required
+def assign_role():
+    if not current_user.has_role('admin'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    user_id = request.form.get('user_id')
+    role_name = request.form.get('role_name')
+    
+    if not all([user_id, role_name]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    result = user.add_role(role_name)
+    db.session.commit()
+    
+    return jsonify({'message': result})
+
+@app.route('/admin/roles/remove', methods=['POST'])
+@login_required
+def remove_role():
+    if not current_user.has_role('admin'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    user_id = request.form.get('user_id')
+    role_name = request.form.get('role_name')
+    
+    if not all([user_id, role_name]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    result = user.remove_role(role_name)
+    db.session.commit()
+    
+    return jsonify({'message': result})
+
+@app.route('/admin/users', methods=['GET'])
+@login_required
+def list_users():
+    if not current_user.has_role('admin'):
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    users = User.query.all()
+    roles = Role.query.all()
+    return render_template('admin/users.html', users=users, roles=roles)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -327,13 +391,13 @@ def upload_file():
                 return jsonify({'error': 'Error processing audio file'}), 500
         
         # Handle other files
-        if filename.split('.')[-1] in ALLOWED_EXTENSIONS: #Added from original
+        if filename.split('.')[-1] in ALLOWED_EXTENSIONS:
             file.save(filepath)
-            return jsonify({'file_url': url_for('static', filename=f'uploads/{filename}')}) #Modified from original
+            return jsonify({'file_url': url_for('static', filename=f'uploads/{filename}')})
         else:
             return jsonify({'error': 'File type not allowed'}), 400
 
-# Socket Events (Mostly from modified)
+# Socket Events
 @socketio.on('connect')
 def handle_connect():
     logger.info(f"Client connected: {request.sid}")

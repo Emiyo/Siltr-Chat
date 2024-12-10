@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Role Management</h2>
+    <div class="roles-list">
+        {% for role in roles %}
+        <div class="role-card">
+            <h3>{{ role.name|title }}</h3>
+            <p>{{ role.description }}</p>
+            <h4>Permissions:</h4>
+            <ul>
+                {% for permission in role.permissions %}
+                <li>{{ permission.name|replace('_', ' ')|title }}: {{ permission.description }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

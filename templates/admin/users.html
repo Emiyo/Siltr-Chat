@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>User Management</h2>
+    <div class="users-list">
+        {% for user in users %}
+        <div class="user-card">
+            <h3>{{ user.username }}</h3>
+            <p>Email: {{ user.email }}</p>
+            <div class="current-roles">
+                <h4>Current Roles:</h4>
+                <ul>
+                    {% for role in user.roles %}
+                    <li>
+                        {{ role.name|title }}
+                        <form class="inline-form" action="{{ url_for('remove_role') }}" method="POST">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <input type="hidden" name="role_name" value="{{ role.name }}">
+                            <button type="submit" class="btn-small">Remove</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="add-role">
+                <h4>Add Role:</h4>
+                <form action="{{ url_for('assign_role') }}" method="POST">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <select name="role_name" required>
+                        <option value="">Select Role</option>
+                        {% for role in roles %}
+                        {% if role not in user.roles %}
+                        <option value="{{ role.name }}">{{ role.name|title }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Add Role</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
