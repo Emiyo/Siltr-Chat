@@ -423,23 +423,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Encryption utilities
     async function generateKeyPair() {
-        keyPair = await window.crypto.subtle.generateKey(
-            {
-                name: "RSA-OAEP",
-                modulusLength: 2048,
-                publicExponent: new Uint8Array([1, 0, 1]),
-                hash: "SHA-256",
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
-        
-        // Export public key for sharing
-        const exported = await window.crypto.subtle.exportKey(
-            "spki",
-            keyPair.publicKey
-        );
-        return btoa(String.fromCharCode(...new Uint8Array(exported)));
+        try {
+            console.log('Generating new key pair...');
+            keyPair = await window.crypto.subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([1, 0, 1]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            
+            // Export public key for sharing
+            const exported = await window.crypto.subtle.exportKey(
+                "spki",
+                keyPair.publicKey
+            );
+            const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exported)));
+            console.log('Key pair generated successfully');
+            return publicKeyString;
+        } catch (error) {
+            console.error('Error generating key pair:', error);
+            throw new Error('Failed to generate key pair');
+        }
     }
 
     async function generateChannelKey() {

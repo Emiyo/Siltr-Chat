@@ -76,7 +76,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -540,14 +540,68 @@ def upload_file():
 
 import base64
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.backends import default_backend
+from cryptography.exceptions import InvalidKey
 
-# Socket Events and Key Management
+# Encryption Configuration
+RSA_PUBLIC_EXPONENT = 65537
+RSA_KEY_SIZE = 2048
+RSA_PADDING = padding.OAEP(
+    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+    algorithm=hashes.SHA256(),
+    label=None
+)
+
+# Key Management
 public_keys = {}  # Store user public keys (format: {user_id: serialized_public_key})
 channel_keys = {}  # Store channel encryption keys (format: {channel_id: bytes})
+
+def generate_channel_key():
+    """Generate a new AES key for channel encryption"""
+    return AESGCM.generate_key(bit_length=256)
+
+def encrypt_channel_key(channel_key, public_key_pem):
+    """Encrypt a channel key with a user's public key"""
+    try:
+        public_key = serialization.load_pem_public_key(
+            base64.b64decode(public_key_pem),
+            backend=default_backend()
+        )
+        encrypted_key = public_key.encrypt(channel_key, RSA_PADDING)
+        return base64.b64encode(encrypted_key).decode('utf-8')
+    except Exception as e:
+        logger.error(f"Error encrypting channel key: {str(e)}")
+        raise
+
+def decrypt_message(encrypted_data, key, associated_data=None):
+    """Decrypt a message using AES-GCM"""
+    try:
+        aesgcm = AESGCM(key)
+        nonce = base64.b64decode(encrypted_data['nonce'])
+        ciphertext = base64.b64decode(encrypted_data['ciphertext'])
+        ad = associated_data.encode() if associated_data else None
+        plaintext = aesgcm.decrypt(nonce, ciphertext, ad)
+        return plaintext.decode()
+    except Exception as e:
+        logger.error(f"Error decrypting message: {str(e)}")
+        raise
+
+def encrypt_message(plaintext, key, associated_data=None):
+    """Encrypt a message using AES-GCM"""
+    try:
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(12)  # 96-bit nonce for AES-GCM
+        ad = associated_data.encode() if associated_data else None
+        ciphertext = aesgcm.encrypt(nonce, plaintext.encode(), ad)
+        return {
+            'nonce': base64.b64encode(nonce).decode('utf-8'),
+            'ciphertext': base64.b64encode(ciphertext).decode('utf-8')
+        }
+    except Exception as e:
+        logger.error(f"Error encrypting message: {str(e)}")
+        raise
 
 @socketio.on('connect')
 def handle_connect():
@@ -555,23 +609,48 @@ def handle_connect():
 
 @socketio.on('share_public_key')
 def handle_public_key(data):
-    if request.sid in active_users:
+    try:
+        if request.sid not in active_users:
+            logger.error(f"User not found for session {request.sid}")
+            return
+        
         user_id = active_users[request.sid]['id']
         public_key = data.get('publicKey')
-        if public_key:
-            public_keys[user_id] = public_key
-            # Share this user's public key with others
-            emit('public_key_shared', {
-                'userId': user_id,
-                'publicKey': public_key
-            }, broadcast=True)
-            # Share existing public keys with this user
-            for uid, key in public_keys.items():
-                if uid != user_id:
-                    emit('public_key_shared', {
-                        'userId': uid,
-                        'publicKey': key
-                    })
+        
+        if not public_key:
+            logger.error(f"No public key provided by user {user_id}")
+            return
+        
+        # Validate the public key format
+        try:
+            decoded_key = base64.b64decode(public_key)
+            serialization.load_pem_public_key(decoded_key, backend=default_backend())
+            logger.info(f"Valid public key received from user {user_id}")
+        except Exception as e:
+            logger.error(f"Invalid public key format from user {user_id}: {str(e)}")
+            return
+        
+        # Store and share the public key
+        public_keys[user_id] = public_key
+        logger.info(f"Stored public key for user {user_id}")
+        
+        # Share this user's public key with others
+        emit('public_key_shared', {
+            'userId': user_id,
+            'publicKey': public_key
+        }, broadcast=True)
+        
+        # Share existing public keys with this user
+        for uid, key in public_keys.items():
+            if uid != user_id:
+                emit('public_key_shared', {
+                    'userId': uid,
+                    'publicKey': key
+                })
+        logger.info(f"Successfully shared public keys for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error handling public key: {str(e)}")
+        emit('error', {'message': 'Error processing public key'})
 
 @socketio.on('join')
 def handle_join(data):
@@ -628,15 +707,21 @@ def handle_message(data):
         return
     
     logger.info(f"Processing message from user: {user_data['username']}")
-    encrypted = data.get('encrypted')
-    iv = data.get('iv')
+    encrypted_data = data.get('encrypted_data')
     channel_id = data.get('channel_id')
     file_url = data.get('file_url')
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
     
-    # For encrypted messages, we pass through the encrypted data
-    text = '[Encrypted message]' if encrypted else data.get('text', '').strip()
+    # For encrypted messages, we store and forward the encrypted data
+    text = '[Encrypted message]'
+    if encrypted_data:
+        # Validate encrypted data format
+        if not all(k in encrypted_data for k in ('nonce', 'ciphertext')):
+            emit('error', {'message': 'Invalid encrypted message format'})
+            return
+        # Store the encrypted data for forwarding
+        text = json.dumps(encrypted_data)
     
     # Check if user is muted
     user = User.query.get(user_data['id'])
@@ -951,4 +1036,6 @@ if __name__ == '__main__':
         from flask_migrate import Migrate
         migrate = Migrate(app, db)
         db.create_all()  # Create tables based on models
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
