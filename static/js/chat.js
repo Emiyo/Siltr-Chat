@@ -143,11 +143,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
+        console.log('File selected:', file ? {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            lastModified: new Date(file.lastModified).toISOString()
+        } : 'No file selected');
+        
         if (!file) {
+            console.log('No file selected, returning');
             return;
         }
 
         if (!currentChannel) {
+            console.log('No channel selected for file upload');
             addMessage({
                 type: 'system',
                 text: 'Please select a channel before uploading files',
@@ -156,6 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInput.value = '';
             return;
         }
+        
+        console.log('Starting file upload process for channel:', currentChannel);
 
         try {
             // Show upload status
@@ -510,11 +521,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                             ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
                         </div>`;
-                } else if (message.original_type && message.original_type.startsWith('image/')) {
+                } else if (fileType.startsWith('image/')) {
                     console.log('Creating image preview container:', {
                         imageId: imageId,
                         downloadId: downloadId,
-                        originalType: message.original_type
+                        fileType: fileType,
+                        originalName: message.original_name,
+                        metadata: message.file_metadata
                     });
                     
                     messageContent = `
@@ -528,6 +541,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button id="${downloadId}" class="btn btn-sm btn-terminal encrypted-download-btn">
                             Download Original Image
                         </button>`;
+                    
+                    console.log('Image preview HTML created with IDs:', {
+                        previewContainerId: imageId,
+                        downloadButtonId: downloadId
+                    });
                 } else {
                     messageContent = `
                         <div class="message-content">${message.text}</div>
@@ -567,15 +585,25 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                                 console.log('Starting file decryption');
+                                console.log('Starting file decryption with params:', {
+                                    blobSize: encryptedBlob.size,
+                                    blobType: encryptedBlob.type,
+                                    targetType: message.original_type || 'application/octet-stream'
+                                });
+
                                 const decryptedBlob = await CryptoManager.decryptFile(
                                     encryptedBlob,
                                     symmetricKey,
                                     message.original_type || 'application/octet-stream'
                                 );
-                                console.log('File decrypted successfully');
+                                console.log('File decrypted successfully:', {
+                                    decryptedSize: decryptedBlob.size,
+                                    decryptedType: decryptedBlob.type
+                                });
 
                                 // Create download link for decrypted file with proper MIME type
                                 const downloadUrl = URL.createObjectURL(decryptedBlob);
+                                console.log('Created object URL for decrypted blob');
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = downloadUrl;
                                 
@@ -613,9 +641,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 downloadLink.dispatchEvent(clickEvent);
                                 
                                 // If it's an image, create a preview
-                                if (message.original_type && message.original_type.startsWith('image/')) {
-                                    console.log('Processing image preview');
+                                const targetType = message.original_type || 
+                                                 (message.file_metadata && message.file_metadata.type) || 
+                                                 'application/octet-stream';
+                                console.log('Checking file type for preview:', {
+                                    targetType,
+                                    isImage: targetType.startsWith('image/'),
+                                    messageType: message.original_type,
+                                    metadataType: message.file_metadata?.type
+                                });
+                                
+                                if (targetType.startsWith('image/')) {
+                                    console.log('Processing image preview for type:', targetType);
                                     const imagePreview = document.getElementById(`image-${downloadId}`);
+                                    console.log('Found preview container:', imagePreview ? 'yes' : 'no');
                                     if (imagePreview) {
                                         try {
                                             const img = document.createElement('img');
