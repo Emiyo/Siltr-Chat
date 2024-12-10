@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Encrypt the file
             const encryptedFile = await CryptoManager.encryptFile(file, symmetricKey);
             
-            // Create form data with encrypted file
+            // Create form data with encrypted file and metadata
             const formData = new FormData();
             formData.append('file', encryptedFile.blob, file.name);
             formData.append('original_type', file.type);
@@ -184,7 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Uploading file with metadata:', {
                 name: file.name,
                 type: file.type,
-                size: encryptedFile.blob.size
+                size: encryptedFile.blob.size,
+                originalType: encryptedFile.originalType,
+                originalName: encryptedFile.originalName
             });
             
             const response = await fetch('/upload', {
@@ -214,15 +216,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     original_type: file.type
                 });
             } else {
-                socket.emit('message', {
+                // For image files, include additional metadata
+                const messageData = {
                     text: `Shared a file: ${file.name}`,
                     file_url: data.file_url,
                     channel_id: currentChannel,
                     is_encrypted: true,
                     encryption_key: exportedKey,
                     original_type: file.type,
-                    original_name: file.name
-                });
+                    original_name: file.name,
+                    file_metadata: {
+                        type: file.type,
+                        name: file.name,
+                        size: file.size
+                    }
+                };
+                
+                console.log('Emitting message with file:', messageData);
+                socket.emit('message', messageData);
             }
 
             addMessage({
@@ -478,10 +489,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const downloadId = `download-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const imageId = `image-${downloadId}`;
                 
+                // Get file type from all possible sources
+                const fileType = message.original_type || 
+                               (message.file_metadata && message.file_metadata.type) || 
+                               'application/octet-stream';
+                
                 console.log('Processing encrypted attachment:', {
-                    type: message.original_type,
+                    type: fileType,
                     hasVoice: !!message.voice_url,
-                    hasImage: message.original_type?.startsWith('image/')
+                    hasImage: fileType.startsWith('image/'),
+                    metadata: message.file_metadata
                 });
                 
                 if (message.voice_url) {
