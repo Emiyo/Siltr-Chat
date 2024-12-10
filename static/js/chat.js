@@ -657,14 +657,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                     console.log('Found preview container:', imagePreview ? 'yes' : 'no');
                                     if (imagePreview) {
                                         try {
+                                            // Clear any existing content and show loading state
+                                            imagePreview.innerHTML = `
+                                                <div class="encrypted-image-placeholder">
+                                                    <div class="loading-spinner"></div>
+                                                    Loading encrypted image...
+                                                </div>`;
+                                            
                                             const img = document.createElement('img');
                                             
                                             // Set up event handlers before setting src
-                                            // Set up image load handlers first
                                             img.onload = () => {
                                                 console.log('Image loaded successfully:', {
                                                     width: img.width,
                                                     height: img.height,
+                                                    naturalWidth: img.naturalWidth,
+                                                    naturalHeight: img.naturalHeight,
                                                     src: img.src.substring(0, 50) + '...'
                                                 });
                                                 
@@ -672,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 imagePreview.innerHTML = '';
                                                 imagePreview.appendChild(img);
                                                 
-                                                // Clean up download link
+                                                // Clean up download link after successful load
                                                 if (document.body.contains(downloadLink)) {
                                                     document.body.removeChild(downloadLink);
                                                 }
@@ -684,28 +692,41 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 console.error('Failed to load image:', error);
                                                 console.error('Image details:', {
                                                     src: img.src.substring(0, 50) + '...',
-                                                    type: message.original_type
+                                                    type: targetType,
+                                                    originalType: message.original_type,
+                                                    metadataType: message.file_metadata?.type
                                                 });
                                                 
                                                 imagePreview.innerHTML = `
                                                     <div class="encrypted-image-placeholder">
-                                                        Failed to load image
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                                                        </svg>
+                                                        <span>Failed to load encrypted image</span>
+                                                        <button class="btn btn-sm btn-terminal" onclick="window.open('${downloadUrl}', '_blank')">
+                                                            View Original
+                                                        </button>
                                                     </div>`;
                                                 
                                                 // Clean up resources
                                                 if (document.body.contains(downloadLink)) {
                                                     document.body.removeChild(downloadLink);
                                                 }
-                                                URL.revokeObjectURL(downloadUrl);
+                                                // Keep URL valid for the "View Original" button
                                             };
                                             
                                             // Configure image properties
                                             img.classList.add('embedded-image');
                                             img.alt = message.original_name || 'Decrypted image';
-                                            img.setAttribute('data-original-type', message.original_type);
+                                            img.setAttribute('data-original-type', targetType);
+                                            img.setAttribute('crossorigin', 'anonymous');
                                             
-                                            // Set src last to trigger loading
-                                            console.log('Setting image src to trigger loading');
+                                            // Log and set src last to trigger loading
+                                            console.log('Setting image src to trigger loading:', {
+                                                url: downloadUrl.substring(0, 50) + '...',
+                                                type: targetType
+                                            });
                                             img.src = downloadUrl;
                                             
                                             console.log('Image element created with URL:', {
