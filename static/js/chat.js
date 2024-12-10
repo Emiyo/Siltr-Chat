@@ -129,10 +129,22 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            
             try {
+                // Get or create symmetric key for the channel
+                let symmetricKey = channelKeys.get(currentChannel);
+                if (!symmetricKey) {
+                    symmetricKey = await CryptoManager.generateSymmetricKey();
+                    channelKeys.set(currentChannel, symmetricKey);
+                }
+
+                // Encrypt the file
+                const encryptedFile = await CryptoManager.encryptFile(file, symmetricKey);
+                
+                // Create form data with encrypted file
+                const formData = new FormData();
+                formData.append('file', encryptedFile.blob, `encrypted_${file.name}`);
+                formData.append('original_type', file.type);
+                
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
@@ -140,23 +152,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.voice_url) {
+                    const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+                    
+                    if (file.type.startsWith('audio/')) {
                         socket.emit('message', {
                             text: 'Voice message',
                             voice_url: data.voice_url,
                             voice_duration: data.voice_duration,
-                            channel_id: currentChannel
+                            channel_id: currentChannel,
+                            is_encrypted: true,
+                            encryption_key: exportedKey,
+                            original_type: file.type
                         });
                     } else {
                         socket.emit('message', {
                             text: `Shared a file: ${file.name}`,
                             file_url: data.file_url,
-                            channel_id: currentChannel
+                            channel_id: currentChannel,
+                            is_encrypted: true,
+                            encryption_key: exportedKey,
+                            original_type: file.type,
+                            original_name: file.name
                         });
                     }
                 }
             } catch (error) {
                 console.error('Error uploading file:', error);
+                addMessage({
+                    type: 'system',
+                    text: 'Failed to upload encrypted file: ' + error.message,
+                    timestamp: new Date().toISOString()
+                });
             }
             fileInput.value = '';
         }
@@ -378,25 +404,78 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Handle different message types
-        if (message.voice_url) {
-            messageContent = `
-                <div class="message-content">${message.text}</div>
-                <div class="voice-message">
-                    <audio controls>
-                        <source src="${message.voice_url}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                    ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
-                </div>`;
-        } else if (message.file_url) {
-            messageContent = `
-                <div class="message-content">${message.text}</div>
-                <a href="${message.file_url}" target="_blank" class="file-attachment">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
-                        <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                    </svg>
-                    Download Attachment
-                </a>`;
+        if (message.voice_url || message.file_url) {
+            const url = message.voice_url || message.file_url;
+            const isEncrypted = message.is_encrypted && message.encryption_key;
+
+            if (isEncrypted) {
+                // Create a download handler for encrypted files
+                const downloadHandler = async (e) => {
+                    e.preventDefault();
+                    try {
+                        const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
+                        const response = await fetch(url);
+                        const encryptedBlob = await response.blob();
+                        const decryptedBlob = await CryptoManager.decryptFile(
+                            encryptedBlob,
+                            symmetricKey,
+                            message.original_type
+                        );
+
+                        // Create download link for decrypted file
+                        const downloadUrl = URL.createObjectURL(decryptedBlob);
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = downloadUrl;
+                        downloadLink.download = message.original_name || 'downloaded_file';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        URL.revokeObjectURL(downloadUrl);
+                    } catch (error) {
+                        console.error('Error decrypting file:', error);
+                        alert('Failed to decrypt file: ' + error.message);
+                    }
+                };
+
+                if (message.voice_url) {
+                    messageContent = `
+                        <div class="message-content">${message.text}</div>
+                        <div class="voice-message">
+                            <button class="btn btn-sm btn-terminal" onclick="(${downloadHandler.toString()})(event)">
+                                Download Encrypted Voice Message
+                            </button>
+                            ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
+                        </div>`;
+                } else {
+                    messageContent = `
+                        <div class="message-content">${message.text}</div>
+                        <button class="btn btn-sm btn-terminal" onclick="(${downloadHandler.toString()})(event)">
+                            Download Encrypted File
+                        </button>`;
+                }
+            } else {
+                // Handle unencrypted files as before
+                if (message.voice_url) {
+                    messageContent = `
+                        <div class="message-content">${message.text}</div>
+                        <div class="voice-message">
+                            <audio controls>
+                                <source src="${message.voice_url}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
+                        </div>`;
+                } else {
+                    messageContent = `
+                        <div class="message-content">${message.text}</div>
+                        <a href="${message.file_url}" target="_blank" class="file-attachment">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
+                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+                            </svg>
+                            Download Attachment
+                        </a>`;
+                }
+            }
         }
 
         if (message.type === 'system') {

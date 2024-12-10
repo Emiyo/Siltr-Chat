@@ -127,4 +127,62 @@ class CryptoManager {
             ["encrypt", "decrypt"]
         );
     }
+
+    static async encryptFile(file, symmetricKey) {
+        try {
+            const buffer = await file.arrayBuffer();
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                symmetricKey,
+                buffer
+            );
+
+            const encryptedArray = new Uint8Array(encryptedData);
+            const combined = new Uint8Array(iv.length + encryptedArray.length);
+            combined.set(iv);
+            combined.set(encryptedArray, iv.length);
+
+            // Create a new Blob with the encrypted data
+            const encryptedBlob = new Blob([combined], { type: 'application/octet-stream' });
+            return {
+                blob: encryptedBlob,
+                key: symmetricKey,
+                originalType: file.type,
+                originalName: file.name
+            };
+        } catch (error) {
+            console.error('Error encrypting file:', error);
+            throw new Error('Failed to encrypt file');
+        }
+    }
+
+    static async decryptFile(encryptedBlob, symmetricKey, originalType) {
+        try {
+            const arrayBuffer = await encryptedBlob.arrayBuffer();
+            const combined = new Uint8Array(arrayBuffer);
+            
+            // Extract IV and encrypted data
+            const iv = combined.slice(0, 12);
+            const encryptedData = combined.slice(12);
+
+            const decryptedData = await window.crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                symmetricKey,
+                encryptedData
+            );
+
+            // Create a new Blob with the decrypted data and original type
+            return new Blob([decryptedData], { type: originalType });
+        } catch (error) {
+            console.error('Error decrypting file:', error);
+            throw new Error('Failed to decrypt file');
+        }
+    }
 }
