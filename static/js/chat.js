@@ -539,9 +539,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 downloadLink.download = filename;
                                 downloadLink.type = message.original_type || 'application/octet-stream';
                                 document.body.appendChild(downloadLink);
-                                downloadLink.click();
-                                document.body.removeChild(downloadLink);
-                                URL.revokeObjectURL(downloadUrl);
+
+                                // Force the download with the correct extension
+                                const clickEvent = new MouseEvent('click', {
+                                    view: window,
+                                    bubbles: true,
+                                    cancelable: false
+                                });
+                                downloadLink.dispatchEvent(clickEvent);
+                                
+                                // Clean up
+                                setTimeout(() => {
+                                    document.body.removeChild(downloadLink);
+                                    URL.revokeObjectURL(downloadUrl);
+                                }, 100);
                                 
                                 console.log('File download completed successfully');
                             } catch (error) {
