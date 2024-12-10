@@ -65,38 +65,37 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (currentChannel) {
                     try {
-                        try {
-                            // Get or create symmetric key for the channel
-                            let symmetricKey = channelKeys.get(currentChannel);
-                            if (!symmetricKey) {
-                                symmetricKey = await CryptoManager.generateSymmetricKey();
-                                channelKeys.set(currentChannel, symmetricKey);
-                            }
-
-                            // Encrypt the message
-                            const encryptedMessage = await CryptoManager.encryptMessage(message, symmetricKey);
-                            const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
-
-                            socket.emit('message', {
-                                text: encryptedMessage,
-                                channel_id: currentChannel,
-                                encryption_key: exportedKey,
-                                is_encrypted: true
-                            });
-                        } catch (error) {
-                            console.error('Encryption error details:', error);
-                            addMessage({
-                                type: 'system',
-                                text: 'Failed to encrypt message: ' + error.message,
-                                timestamp: new Date().toISOString()
-                            });
-                            return;
+                        // Get or create symmetric key for the channel
+                        let symmetricKey = channelKeys.get(currentChannel);
+                        if (!symmetricKey) {
+                            symmetricKey = await CryptoManager.generateSymmetricKey();
+                            channelKeys.set(currentChannel, symmetricKey);
                         }
+
+                        // Create message payload
+                        const messagePayload = {
+                            content: message,
+                            timestamp: new Date().toISOString()
+                        };
+
+                        // Encrypt the message payload
+                        const encryptedMessage = await CryptoManager.encryptMessage(
+                            JSON.stringify(messagePayload),
+                            symmetricKey
+                        );
+                        const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+
+                        socket.emit('message', {
+                            text: encryptedMessage,
+                            channel_id: currentChannel,
+                            encryption_key: exportedKey,
+                            is_encrypted: true
+                        });
                     } catch (error) {
                         console.error('Encryption error:', error);
                         addMessage({
                             type: 'system',
-                            text: 'Failed to encrypt message',
+                            text: 'Failed to encrypt message: ' + error.message,
                             timestamp: new Date().toISOString()
                         });
                     }
@@ -342,8 +341,15 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
                 const decryptedContent = await CryptoManager.decryptMessage(message.text, symmetricKey);
+                
                 if (decryptedContent) {
-                    messageContent = decryptedContent;
+                    try {
+                        const messagePayload = JSON.parse(decryptedContent);
+                        messageContent = messagePayload.content;
+                    } catch (parseError) {
+                        console.error('Error parsing decrypted message:', parseError);
+                        messageContent = '[Message format error]';
+                    }
                 } else {
                     console.error('Decryption returned null');
                     messageContent = '[Unable to decrypt message]';
