@@ -647,6 +647,95 @@ document.addEventListener('DOMContentLoaded', () => {
                                 console.log('Checking file type for preview:', {
                                     targetType,
                                     isImage: targetType.startsWith('image/'),
+    // PFS message encryption
+    async function encryptMessagePFS(message, recipientPublicKey) {
+        try {
+            // Get shared secret using recipient's public key
+            const sharedSecret = await pfsManager.getSharedSecret(recipientPublicKey);
+            
+            // Derive encryption key from shared secret
+            const encryptionKey = await window.crypto.subtle.importKey(
+                "raw",
+                sharedSecret,
+                { name: "AES-GCM" },
+                false,
+                ["encrypt"]
+            );
+            
+            // Generate IV
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            
+            // Encrypt the message
+            const encodedMessage = new TextEncoder().encode(message);
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                encryptionKey,
+                encodedMessage
+            );
+            
+            // Combine IV and encrypted data
+            const combined = new Uint8Array(iv.length + encryptedData.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(encryptedData), iv.length);
+            
+            return arrayBufferToBase64(combined.buffer);
+        } catch (error) {
+            console.error('Error encrypting message with PFS:', error);
+            throw error;
+        }
+    }
+
+    // PFS message decryption
+    async function decryptMessagePFS(encryptedMessage, senderPublicKey) {
+        try {
+            // Get shared secret using sender's public key
+            const sharedSecret = await pfsManager.getSharedSecret(senderPublicKey);
+            
+            // Derive decryption key from shared secret
+            const decryptionKey = await window.crypto.subtle.importKey(
+                "raw",
+                sharedSecret,
+                { name: "AES-GCM" },
+                false,
+                ["decrypt"]
+            );
+            
+            // Decode and split IV and encrypted data
+            const combined = base64ToArrayBuffer(encryptedMessage);
+            const iv = combined.slice(0, 12);
+            const encryptedData = combined.slice(12);
+            
+            // Decrypt the message
+            const decryptedData = await window.crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: new Uint8Array(iv)
+                },
+                decryptionKey,
+                encryptedData
+            );
+            
+            return new TextDecoder().decode(decryptedData);
+        } catch (error) {
+            console.error('Error decrypting message with PFS:', error);
+            throw error;
+        }
+    }
+
+    // Handle key rotation notifications
+    socket.on('new_public_key', async (data) => {
+        try {
+            const { sender_id, publicKey } = data;
+            // Store the new public key for the sender
+            userPublicKeys[sender_id] = publicKey;
+            console.log(`Received new public key from user ${sender_id}`);
+        } catch (error) {
+            console.error('Error handling new public key:', error);
+        }
+    });
                                     messageType: message.original_type,
                                     metadataType: message.file_metadata?.type
                                 });
