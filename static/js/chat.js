@@ -52,6 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
+            // Handle commands first
+            if (message.startsWith('/')) {
+                socket.emit('message', {
+                    text: message,
+                    channel_id: currentChannel
+                });
+                messageHistory.push(message);
+                historyIndex = messageHistory.length;
+                messageInput.value = '';
+                return;
+            }
+
+            // Handle private messages
             if (message.startsWith('@')) {
                 const spaceIndex = message.indexOf(' ');
                 if (spaceIndex > 1) {
@@ -62,59 +75,61 @@ document.addEventListener('DOMContentLoaded', () => {
                         text: privateMessage
                     });
                 }
-            } else {
-                if (currentChannel) {
-                    try {
-                        // Get or create symmetric key for the channel
-                        let symmetricKey = channelKeys.get(currentChannel);
-                        if (!symmetricKey) {
-                            symmetricKey = await CryptoManager.generateSymmetricKey();
-                            channelKeys.set(currentChannel, symmetricKey);
-                        }
-
-                        // Create message payload
-                        const messagePayload = {
-                            content: message,
-                            timestamp: new Date().toISOString()
-                        };
-
-                        console.log('Message payload before encryption:', messagePayload);
-                        
-                        // Encrypt the message payload
-                        const encryptedMessage = await CryptoManager.encryptMessage(
-                            JSON.stringify(messagePayload),
-                            symmetricKey
-                        );
-                        console.log('Message encrypted successfully');
-                        
-                        const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
-                        console.log('Symmetric key exported successfully');
-
-                        const messageData = {
-                            text: encryptedMessage,
-                            channel_id: currentChannel,
-                            encryption_key: exportedKey,
-                            is_encrypted: true
-                        };
-                        console.log('Sending encrypted message:', messageData);
-
-                        socket.emit('message', messageData);
-                    } catch (error) {
-                        console.error('Encryption error:', error);
-                        addMessage({
-                            type: 'system',
-                            text: 'Failed to encrypt message: ' + error.message,
-                            timestamp: new Date().toISOString()
-                        });
-                    }
-                } else {
-                    addMessage({
-                        type: 'system',
-                        text: 'Please select a channel first',
-                        timestamp: new Date().toISOString()
-                    });
-                }
+                messageHistory.push(message);
+                historyIndex = messageHistory.length;
+                messageInput.value = '';
+                return;
             }
+
+            // Handle regular messages with encryption
+            if (!currentChannel) {
+                addMessage({
+                    type: 'system',
+                    text: 'Please select a channel first',
+                    timestamp: new Date().toISOString()
+                });
+                return;
+            }
+
+            try {
+                // Get or create symmetric key for the channel
+                let symmetricKey = channelKeys.get(currentChannel);
+                if (!symmetricKey) {
+                    symmetricKey = await CryptoManager.generateSymmetricKey();
+                    channelKeys.set(currentChannel, symmetricKey);
+                }
+
+                // Create message payload
+                const messagePayload = {
+                    content: message,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Encrypt the message payload
+                const encryptedMessage = await CryptoManager.encryptMessage(
+                    JSON.stringify(messagePayload),
+                    symmetricKey
+                );
+                
+                const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+
+                const messageData = {
+                    text: encryptedMessage,
+                    channel_id: currentChannel,
+                    encryption_key: exportedKey,
+                    is_encrypted: true
+                };
+
+                socket.emit('message', messageData);
+            } catch (error) {
+                console.error('Encryption error:', error);
+                addMessage({
+                    type: 'system',
+                    text: 'Failed to encrypt message: ' + error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
             messageHistory.push(message);
             historyIndex = messageHistory.length;
             messageInput.value = '';
@@ -128,64 +143,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            try {
-                // Get or create symmetric key for the channel
-                let symmetricKey = channelKeys.get(currentChannel);
-                if (!symmetricKey) {
-                    symmetricKey = await CryptoManager.generateSymmetricKey();
-                    channelKeys.set(currentChannel, symmetricKey);
-                }
+        if (!file) {
+            return;
+        }
 
-                // Encrypt the file
-                const encryptedFile = await CryptoManager.encryptFile(file, symmetricKey);
-                
-                // Create form data with encrypted file
-                const formData = new FormData();
-                formData.append('file', encryptedFile.blob, `encrypted_${file.name}`);
-                formData.append('original_type', file.type);
-                
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
+        if (!currentChannel) {
+            addMessage({
+                type: 'system',
+                text: 'Please select a channel before uploading files',
+                timestamp: new Date().toISOString()
+            });
+            fileInput.value = '';
+            return;
+        }
+
+        try {
+            // Show upload status
+            addMessage({
+                type: 'system',
+                text: 'Uploading file...',
+                timestamp: new Date().toISOString()
+            });
+
+            // Get or create symmetric key for the channel
+            let symmetricKey = channelKeys.get(currentChannel);
+            if (!symmetricKey) {
+                symmetricKey = await CryptoManager.generateSymmetricKey();
+                channelKeys.set(currentChannel, symmetricKey);
+            }
+
+            // Encrypt the file
+            const encryptedFile = await CryptoManager.encryptFile(file, symmetricKey);
+            
+            // Create form data with encrypted file
+            const formData = new FormData();
+            formData.append('file', encryptedFile.blob, `encrypted_${file.name}`);
+            formData.append('original_type', file.type);
+            
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            if (!data.file_url && !data.voice_url) {
+                throw new Error('Server response missing file URL');
+            }
+
+            const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+            
+            if (file.type.startsWith('audio/')) {
+                socket.emit('message', {
+                    text: 'Voice message',
+                    voice_url: data.voice_url,
+                    voice_duration: data.voice_duration,
+                    channel_id: currentChannel,
+                    is_encrypted: true,
+                    encryption_key: exportedKey,
+                    original_type: file.type
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
-                    
-                    if (file.type.startsWith('audio/')) {
-                        socket.emit('message', {
-                            text: 'Voice message',
-                            voice_url: data.voice_url,
-                            voice_duration: data.voice_duration,
-                            channel_id: currentChannel,
-                            is_encrypted: true,
-                            encryption_key: exportedKey,
-                            original_type: file.type
-                        });
-                    } else {
-                        socket.emit('message', {
-                            text: `Shared a file: ${file.name}`,
-                            file_url: data.file_url,
-                            channel_id: currentChannel,
-                            is_encrypted: true,
-                            encryption_key: exportedKey,
-                            original_type: file.type,
-                            original_name: file.name
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('Error uploading file:', error);
-                addMessage({
-                    type: 'system',
-                    text: 'Failed to upload encrypted file: ' + error.message,
-                    timestamp: new Date().toISOString()
+            } else {
+                socket.emit('message', {
+                    text: `Shared a file: ${file.name}`,
+                    file_url: data.file_url,
+                    channel_id: currentChannel,
+                    is_encrypted: true,
+                    encryption_key: exportedKey,
+                    original_type: file.type,
+                    original_name: file.name
                 });
             }
-            fileInput.value = '';
+
+            addMessage({
+                type: 'system',
+                text: 'File uploaded successfully',
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            addMessage({
+                type: 'system',
+                text: 'Failed to upload file: ' + error.message,
+                timestamp: new Date().toISOString()
+            });
         }
+        fileInput.value = '';
     });
 
     // Command history handling
