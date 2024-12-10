@@ -506,8 +506,32 @@ body {
 .encrypted-download-btn:hover {
     background-color: rgba(74, 158, 255, 0.1);
 }
-    gap: 0.5rem;
-    flex-wrap: wrap;
+
+.encrypted-file {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.encrypted-file svg {
+    flex-shrink: 0;
+    color: #4a9eff;
+}
+
+.encrypted-file span {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.encrypted-file .encrypted-download-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .reaction {
