@@ -1,4 +1,88 @@
 import os
+import base64
+import json
+import logging
+from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message as FlaskMessage
+from itsdangerous import URLSafeTimedSerializer
+from flask import Flask, request, render_template, jsonify, url_for, flash, redirect
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
+from pydub import AudioSegment
+from email_validator import validate_email, EmailNotValidError
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.backends import default_backend
+from cryptography.exceptions import InvalidKey
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Store user public keys and channel encryption keys
+public_keys = {}  # userId -> public_key
+channel_keys = {}  # channelId -> encryption_key
+
+# Encryption Configuration
+RSA_PUBLIC_EXPONENT = 65537
+RSA_KEY_SIZE = 2048
+RSA_PADDING = padding.OAEP(
+    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+    algorithm=hashes.SHA256(),
+    label=None
+)
+
+def generate_channel_key():
+    """Generate a new AES-GCM key for channel encryption"""
+    return AESGCM.generate_key(bit_length=256)
+
+def encrypt_channel_key(channel_key, recipient_public_key):
+    """Encrypt a channel key for a specific recipient"""
+    try:
+        # Decode and load the recipient's public key
+        public_key = serialization.load_pem_public_key(
+            base64.b64decode(recipient_public_key),
+            backend=default_backend()
+        )
+        
+        # Encrypt the channel key
+        encrypted_key = public_key.encrypt(channel_key, RSA_PADDING)
+        return base64.b64encode(encrypted_key).decode('utf-8')
+    except Exception as e:
+        logger.error(f"Error encrypting channel key: {str(e)}")
+        raise
+
+def encrypt_message(plaintext, key, associated_data=None):
+    """Encrypt a message using AES-GCM"""
+    try:
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(12)  # 96-bit nonce for AES-GCM
+        ad = associated_data.encode() if associated_data else None
+        ciphertext = aesgcm.encrypt(nonce, plaintext.encode(), ad)
+        return {
+            'nonce': base64.b64encode(nonce).decode('utf-8'),
+            'ciphertext': base64.b64encode(ciphertext).decode('utf-8')
+        }
+    except Exception as e:
+        logger.error(f"Error encrypting message: {str(e)}")
+        raise
+
+def decrypt_message(encrypted_data, key, associated_data=None):
+    """Decrypt a message using AES-GCM"""
+    try:
+        aesgcm = AESGCM(key)
+        nonce = base64.b64decode(encrypted_data['nonce'])
+        ciphertext = base64.b64decode(encrypted_data['ciphertext'])
+        ad = associated_data.encode() if associated_data else None
+        plaintext = aesgcm.decrypt(nonce, ciphertext, ad)
+        return plaintext.decode()
+    except Exception as e:
+        logger.error(f"Error decrypting message: {str(e)}")
+        raise
 import logging
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
@@ -603,6 +687,89 @@ def encrypt_message(plaintext, key, associated_data=None):
         logger.error(f"Error encrypting message: {str(e)}")
         raise
 
+@socketio.on('share_public_key')
+def handle_public_key(data):
+    try:
+        if request.sid not in active_users:
+            logger.error(f"User not found for session {request.sid}")
+            return
+        
+        user_id = active_users[request.sid]['id']
+        public_key = data.get('publicKey')
+        
+        if not public_key:
+            logger.error(f"No public key provided by user {user_id}")
+            return
+        
+        # Validate the public key format
+        try:
+            decoded_key = base64.b64decode(public_key)
+            serialization.load_pem_public_key(decoded_key, backend=default_backend())
+            logger.info(f"Valid public key received from user {user_id}")
+        except Exception as e:
+            logger.error(f"Invalid public key format from user {user_id}: {str(e)}")
+            return
+        
+        # Store and share the public key
+        public_keys[user_id] = public_key
+        logger.info(f"Stored public key for user {user_id}")
+        
+        # Share this user's public key with others
+        emit('public_key_shared', {
+            'userId': user_id,
+            'publicKey': public_key
+        }, broadcast=True)
+        
+        # Share existing public keys with this user
+        for uid, key in public_keys.items():
+            if uid != user_id:
+                emit('public_key_shared', {
+                    'userId': uid,
+                    'publicKey': key
+                })
+        logger.info(f"Successfully shared public keys for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error handling public key: {str(e)}")
+        emit('error', {'message': 'Error processing public key'})
+
+@socketio.on('request_channel_key')
+def handle_channel_key_request(data):
+    """Handle channel key requests from users"""
+    if request.sid not in active_users:
+        logger.error("Unauthorized channel key request")
+        emit('error', {'message': 'Unauthorized'})
+        return
+    
+    channel_id = data.get('channelId')
+    if not channel_id:
+        logger.error("Missing channel ID in key request")
+        emit('error', {'message': 'Invalid channel ID'})
+        return
+    
+    user_data = active_users[request.sid]
+    
+    # Generate new channel key if it doesn't exist
+    if channel_id not in channel_keys:
+        channel_keys[channel_id] = generate_channel_key()
+        logger.info(f"Generated new key for channel {channel_id}")
+    
+    # Get user's public key
+    public_key = public_keys.get(user_data['id'])
+    if not public_key:
+        logger.error(f"Public key not found for user {user_data['id']}")
+        emit('error', {'message': 'Public key not found'})
+        return
+    
+    try:
+        encrypted_key = encrypt_channel_key(channel_keys[channel_id], public_key)
+        emit('channel_key', {
+            'channelId': channel_id,
+            'encryptedKey': encrypted_key
+        })
+        logger.info(f"Successfully shared channel key with user {user_data['id']}")
+    except Exception as e:
+        logger.error(f"Error sharing channel key: {str(e)}")
+        emit('error', {'message': 'Error sharing channel key'})
 @socketio.on('connect')
 def handle_connect():
     logger.info(f"Client connected: {request.sid}")
@@ -695,6 +862,7 @@ def handle_join(data):
 
 @socketio.on('message')
 def handle_message(data):
+    """Handle incoming chat messages with encryption support"""
     logger.debug(f"Received message data: {data}")
     
     if request.sid not in active_users:
@@ -713,40 +881,58 @@ def handle_message(data):
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
     
-    # For encrypted messages, we store and forward the encrypted data
+    # Process encrypted messages
     text = '[Encrypted message]'
     if encrypted_data:
-        # Validate encrypted data format
-        if not all(k in encrypted_data for k in ('nonce', 'ciphertext')):
-            emit('error', {'message': 'Invalid encrypted message format'})
-            return
-        # Store the encrypted data for forwarding
-        text = json.dumps(encrypted_data)
-    
-    # Check if user is muted
-    user = User.query.get(user_data['id'])
-    if user.is_muted():
-        emit('error', {'message': f'You are muted until {user.muted_until}'})
-        return
-    
-    # Handle commands
-    if text.startswith('/'):
-        handle_command(text, user_data, user)
-        return
-    
-    # Create and save message
-    message = Message(
-        type='public',
-        sender_id=user_data['id'],
-        channel_id=channel_id,
-        text=text,
-        file_url=file_url,
-        voice_url=voice_url,
-        voice_duration=voice_duration,
-        reactions={}
-    )
-    db.session.add(message)
-    db.session.commit()
+        try:
+            # Validate encrypted data format
+            if not isinstance(encrypted_data, dict) or not all(k in encrypted_data for k in ('nonce', 'ciphertext')):
+                logger.error("Invalid encrypted message format")
+                emit('error', {'message': 'Invalid encrypted message format'})
+                return
+            
+            # Store the encrypted data as JSON string for forwarding
+            text = json.dumps(encrypted_data)
+            logger.debug("Successfully processed encrypted message")
+            
+            # Check if user is muted
+            user = User.query.get(user_data['id'])
+            if user.is_muted():
+                emit('error', {'message': f'You are muted until {user.muted_until}'})
+                return
+            
+            # Handle commands (decrypt first for command processing)
+            if encrypted_data.get('isCommand'):
+                try:
+                    channel_key = channel_keys.get(channel_id)
+                    if not channel_key:
+                        logger.error("Channel key not found")
+                        emit('error', {'message': 'Channel key not found'})
+                        return
+                    
+                    decrypted_text = decrypt_message(encrypted_data, channel_key)
+                    if decrypted_text.startswith('/'):
+                        handle_command(decrypted_text, user_data, user)
+                        return
+                except Exception as e:
+                    logger.error(f"Error processing command: {str(e)}")
+                    emit('error', {'message': 'Error processing command'})
+                    return
+            
+            # Create and save message with encrypted content
+            message = Message(
+                type='public',
+                sender_id=user_data['id'],
+                channel_id=channel_id,
+                text=text,  # Store encrypted data
+                file_url=file_url,
+                voice_url=voice_url,
+                voice_duration=voice_duration,
+                reactions={},
+                is_encrypted=True
+            )
+            db.session.add(message)
+            db.session.commit()
     
     # Prepare message for broadcast
     message_dict = message.to_dict()
@@ -809,21 +995,41 @@ def handle_reaction(data):
 
 @socketio.on('join_channel')
 def handle_join_channel(data):
+    """Handle channel join requests with encryption key distribution"""
     if request.sid not in active_users:
+        logger.error("Unauthorized channel join attempt")
+        emit('error', {'message': 'Unauthorized'})
         return
     
     channel_id = data.get('channel_id')
     channel = Channel.query.get(channel_id)
     if not channel:
+        logger.error(f"Channel not found: {channel_id}")
         emit('error', {'message': 'Channel not found'})
         return
     
     # Join the channel room
     join_room(f'channel_{channel_id}')
+    logger.info(f"User joined channel {channel_id}")
     
     # Ensure channel has an encryption key
     if channel_id not in channel_keys:
-        channel_keys[channel_id] = os.urandom(32)  # 256-bit key for AES-GCM
+        channel_keys[channel_id] = generate_channel_key()
+        logger.info(f"Generated new encryption key for channel {channel_id}")
+    
+    # Share channel key with the joining user
+    user_id = active_users[request.sid]['id']
+    if user_id in public_keys:
+        try:
+            encrypted_key = encrypt_channel_key(channel_keys[channel_id], public_keys[user_id])
+            emit('channel_key', {
+                'channelId': channel_id,
+                'encryptedKey': encrypted_key
+            })
+            logger.info(f"Shared channel key with user {user_id}")
+        except Exception as e:
+            logger.error(f"Error sharing channel key: {str(e)}")
+            emit('error', {'message': 'Error sharing channel key'})
     
     # Share channel key with the joining user
     user_id = active_users[request.sid]['id']
@@ -1036,6 +1242,18 @@ if __name__ == '__main__':
         from flask_migrate import Migrate
         migrate = Migrate(app, db)
         db.create_all()  # Create tables based on models
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+        
+        try:
+            # Run the Flask-SocketIO server with appropriate configuration
+            socketio.run(
+                app,
+                host='0.0.0.0',
+                port=5000,
+                debug=True,
+                allow_unsafe_werkzeug=True,
+                use_reloader=True,
+                log_output=True
+            )
+        except Exception as e:
+            logger.error(f"Failed to start server: {str(e)}")
+            raise
