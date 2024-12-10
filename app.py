@@ -245,6 +245,7 @@ class Message(db.Model):
     voice_url = db.Column(db.String(200))  # For voice messages
     voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
     reactions = db.Column(db.JSON, default=dict)
+    encrypted = db.Column(db.Boolean, default=False)
 
     def to_dict(self):
         return {
@@ -258,7 +259,8 @@ class Message(db.Model):
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': {} if self.reactions is None else self.reactions
+            'reactions': {} if self.reactions is None else self.reactions,
+            'encrypted': self.encrypted
         }
 
 @login_manager.user_loader
@@ -598,11 +600,13 @@ def handle_message(data):
         return
     
     logger.info(f"Processing message from user: {user_data['username']}")
-    text = data.get('text', '').strip()
+    message_data = data.get('text', '')
+    text = message_data if isinstance(message_data, str) else json.dumps(message_data)
     channel_id = data.get('channel_id')
     file_url = data.get('file_url')
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
+    is_encrypted = data.get('encrypted', False)
     
     # Check if user is muted
     user = User.query.get(user_data['id'])
@@ -620,11 +624,12 @@ def handle_message(data):
         type='public',
         sender_id=user_data['id'],
         channel_id=channel_id,
-        text=text,
+        text=text.strip() if isinstance(text, str) else text,
         file_url=file_url,
         voice_url=voice_url,
         voice_duration=voice_duration,
-        reactions={}
+        reactions={},
+        encrypted=is_encrypted
     )
     db.session.add(message)
     db.session.commit()
@@ -879,9 +884,11 @@ def handle_command(text, user_data, db_user):
                 # Update user list to reflect changes
                 emit('user_list', {'users': list(active_users.values())}, broadcast=True)
 
+# Initialize Flask-Migrate
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
+
 if __name__ == '__main__':
     with app.app_context():
-        from flask_migrate import Migrate
-        migrate = Migrate(app, db)
         db.create_all()  # Create tables based on models
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
