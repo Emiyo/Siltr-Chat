@@ -475,10 +475,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${message.voice_duration ? `<span class="voice-duration">${message.voice_duration.toFixed(1)}s</span>` : ''}
                         </div>`;
                 } else if (message.original_type && message.original_type.startsWith('image/')) {
+                    const imageId = `image-${downloadId}`;
+                    console.log('Creating image preview container with ID:', imageId);
                     messageContent = `
                         <div class="message-content">${message.text}</div>
                         <div class="image-preview">
-                            <div id="image-${downloadId}" class="encrypted-image-placeholder">
+                            <div id="${imageId}" class="encrypted-image-placeholder">
+                                <div class="loading-spinner"></div>
                                 Loading encrypted image...
                             </div>
                         </div>
@@ -571,17 +574,43 @@ document.addEventListener('DOMContentLoaded', () => {
                                 
                                 // If it's an image, create a preview
                                 if (message.original_type && message.original_type.startsWith('image/')) {
+                                    console.log('Processing image preview');
                                     const imagePreview = document.getElementById(`image-${downloadId}`);
                                     if (imagePreview) {
-                                        const img = document.createElement('img');
-                                        img.src = downloadUrl;
-                                        img.classList.add('embedded-image');
-                                        img.alt = message.original_name || 'Decrypted image';
-                                        imagePreview.innerHTML = '';
-                                        imagePreview.appendChild(img);
-                                        
-                                        // Don't revoke URL for images that are being displayed
+                                        try {
+                                            const img = document.createElement('img');
+                                            img.src = downloadUrl;
+                                            img.classList.add('embedded-image');
+                                            img.alt = message.original_name || 'Decrypted image';
+                                            
+                                            // Clear the loading placeholder
+                                            imagePreview.innerHTML = '';
+                                            imagePreview.appendChild(img);
+                                            
+                                            // Handle image load success
+                                            img.onload = () => {
+                                                console.log('Image loaded successfully');
+                                                document.body.removeChild(downloadLink);
+                                            };
+                                            
+                                            // Handle image load error
+                                            img.onerror = (error) => {
+                                                console.error('Failed to load image:', error);
+                                                imagePreview.innerHTML = 'Failed to load image';
+                                                // Clean up on error
+                                                document.body.removeChild(downloadLink);
+                                                URL.revokeObjectURL(downloadUrl);
+                                            };
+                                        } catch (previewError) {
+                                            console.error('Error creating image preview:', previewError);
+                                            imagePreview.innerHTML = 'Error displaying image';
+                                            document.body.removeChild(downloadLink);
+                                            URL.revokeObjectURL(downloadUrl);
+                                        }
+                                    } else {
+                                        console.error('Image preview element not found');
                                         document.body.removeChild(downloadLink);
+                                        URL.revokeObjectURL(downloadUrl);
                                     }
                                 } else {
                                     // Clean up for non-image files
