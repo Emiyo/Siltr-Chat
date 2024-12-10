@@ -46,14 +46,14 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.String(200))
-    permissions = db.relationship('Permission', secondary='role_permissions', backref=db.backref('roles', lazy='dynamic')) #Retained from original
+    permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
     users = db.relationship('User', secondary='user_roles', back_populates='roles')
 
 class Permission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.String(200))
-    roles = db.relationship('Role', secondary='role_permissions', backref=db.backref('permissions', lazy='dynamic')) #Retained from original
+    roles = db.relationship('Role', secondary='role_permissions', back_populates='permissions')
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
