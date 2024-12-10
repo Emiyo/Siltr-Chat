@@ -75,10 +75,27 @@ class CryptoManager {
                 throw new Error('Missing encrypted message or decryption key');
             }
 
-            // Decode base64 to get the combined IV + encrypted data
-            const combined = Uint8Array.from(atob(encryptedMessage), c => c.charCodeAt(0));
+            // Safely decode base64 with proper error handling
+            let decodedData;
+            try {
+                // Remove any whitespace and validate base64 string
+                const cleanBase64 = encryptedMessage.replace(/\s/g, '');
+                if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanBase64)) {
+                    throw new Error('Invalid base64 format');
+                }
+                decodedData = atob(cleanBase64);
+            } catch (base64Error) {
+                throw new Error('Invalid base64 encoding: ' + base64Error.message);
+            }
+
+            // Convert decoded string to Uint8Array
+            const combined = new Uint8Array(decodedData.split('').map(c => c.charCodeAt(0)));
             
-            // Extract IV (first 12 bytes) and encrypted data
+            if (combined.length <= 12) {
+                throw new Error('Encrypted data too short');
+            }
+
+            // Extract IV and encrypted data
             const iv = combined.slice(0, 12);
             const encryptedData = combined.slice(12);
 
