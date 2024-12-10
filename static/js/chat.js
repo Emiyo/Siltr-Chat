@@ -666,22 +666,33 @@ document.addEventListener('DOMContentLoaded', () => {
                                         type: targetType || message.original_type
                                     });
                                     
-                                    // Create preview container if it doesn't exist
-                                    let imagePreview = document.getElementById(`image-${downloadId}`);
-                                    if (!imagePreview) {
-                                        imagePreview = document.createElement('div');
-                                        imagePreview.id = `image-${downloadId}`;
-                                        imagePreview.className = 'image-preview';
-                                        messageDiv.appendChild(imagePreview);
+                                    // Create the message content first
+                                    messageContent = `<div class="message-content">${message.text || ''}</div>
+                                                    <div id="image-${downloadId}" class="image-preview">
+                                                        <div class="encrypted-image-placeholder">
+                                                            <div class="loading-spinner"></div>
+                                                            Loading encrypted image...
+                                                        </div>
+                                                    </div>`;
+                                    
+                                    // Update message div with content
+                                    if (message.type === 'system') {
+                                        messageDiv.innerHTML = `
+                                            <div class="message-timestamp">${timestamp}</div>
+                                            ${messageContent}`;
+                                    } else {
+                                        messageDiv.innerHTML = `
+                                            <div class="message-timestamp">
+                                                <span class="message-username">${message.sender_username || username}</span> • ${timestamp}
+                                            </div>
+                                            ${messageContent}`;
                                     }
-                                    console.log('Preview container:', imagePreview ? 'created/found' : 'missing');
-                                        try {
-                                            // Clear any existing content and show loading state
-                                            imagePreview.innerHTML = `
-                                                <div class="encrypted-image-placeholder">
-                                                    <div class="loading-spinner"></div>
-                                                    Loading encrypted image...
-                                                </div>`;
+                                    
+                                    // Now get the preview container
+                                    const imagePreview = document.getElementById(`image-${downloadId}`);
+                                    console.log('Preview container:', imagePreview ? 'found' : 'missing');
+                                    
+                                    try {
                                             
                                             const img = document.createElement('img');
                                             
@@ -696,15 +707,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 });
                                                 
                                                 // Clear loading state and show image
-                                                imagePreview.innerHTML = '';
-                                                imagePreview.appendChild(img);
+                                                if (imagePreview) {
+                                                    imagePreview.innerHTML = '';
+                                                    imagePreview.appendChild(img);
+                                                    console.log('Image preview created successfully');
+                                                } else {
+                                                    console.error('Image preview container not found after load');
+                                                }
                                                 
                                                 // Clean up download link after successful load
                                                 if (document.body.contains(downloadLink)) {
                                                     document.body.removeChild(downloadLink);
                                                 }
-                                                
-                                                console.log('Image preview created successfully');
                                             };
                                             
                                             img.onerror = (error) => {
