@@ -517,7 +517,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const downloadUrl = URL.createObjectURL(decryptedBlob);
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = downloadUrl;
-                                downloadLink.download = message.original_name || 'downloaded_file';
+                                // Ensure we preserve the original filename with extension
+                                const filename = message.original_name || `downloaded_file${message.original_type ? '.' + message.original_type.split('/')[1] : ''}`;
+                                downloadLink.download = filename;
                                 document.body.appendChild(downloadLink);
                                 downloadLink.click();
                                 document.body.removeChild(downloadLink);
