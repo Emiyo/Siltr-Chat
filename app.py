@@ -2,7 +2,8 @@ import os
 import logging
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from flask_mail import Mail, Message
+from flask_mail import Mail
+from flask_mail import Message as FlaskMessage
 from datetime import datetime, timedelta
 from itsdangerous import URLSafeTimedSerializer
 import os
@@ -50,19 +51,25 @@ def verify_reset_token(token, expiration=3600):
         return None
 
 def send_password_reset_email(user):
-    token = generate_reset_token(user.email)
-    reset_url = url_for('reset_password', token=token, _external=True)
-    
-    msg = Message(
-        subject='Password Reset Request',
-        recipients=[user.email],
-        body=f'''To reset your password, visit the following link:
+    try:
+        token = generate_reset_token(user.email)
+        reset_url = url_for('reset_password', token=token, _external=True)
+        
+        msg = FlaskMessage(
+            subject='Password Reset Request',
+            recipients=[user.email],
+            body=f'''To reset your password, visit the following link:
 {reset_url}
 
 If you did not make this request, please ignore this email.
 '''
-    )
-    mail.send(msg)
+        )
+        mail.send(msg)
+        logger.info(f"Password reset email sent to {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {str(e)}")
+        return False
 
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -348,9 +355,11 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
         
         if user:
-            send_password_reset_email(user)
-            flash('An email has been sent with instructions to reset your password.', 'info')
-            return redirect(url_for('login'))
+            if send_password_reset_email(user):
+                flash('An email has been sent with instructions to reset your password.', 'info')
+                return redirect(url_for('login'))
+            else:
+                flash('There was an error sending the password reset email. Please try again later.', 'error')
         else:
             flash('No account found with that email address.', 'error')
     
