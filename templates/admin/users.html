@@ -1,29 +1,54 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h2>User Management</h2>
+<div class="admin-container">
+    <div class="admin-header">
+        <h2>User Management</h2>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <div class="users-list">
         {% for user in users %}
         <div class="user-card">
-            <h3>{{ user.username }}</h3>
+            <h3>
+                {{ user.username }}
+                {% if user.is_moderator %}
+                <span class="badge badge-moderator">Moderator</span>
+                {% endif %}
+            </h3>
             <p>Email: {{ user.email }}</p>
+            <p>Member since: {{ user.created_at.strftime('%B %d, %Y') }}</p>
+            
             <div class="current-roles">
-                <h4>Current Roles:</h4>
+                <h4>Current Roles</h4>
                 <ul>
                     {% for role in user.roles %}
                     <li>
-                        {{ role.name|title }}
+                        <span>{{ role.name|title }}</span>
                         <form class="inline-form" action="{{ url_for('remove_role') }}" method="POST">
                             <input type="hidden" name="user_id" value="{{ user.id }}">
                             <input type="hidden" name="role_name" value="{{ role.name }}">
-                            <button type="submit" class="btn-small">Remove</button>
+                            <button type="submit" class="btn-small" {% if role.name == 'user' %}disabled{% endif %} 
+                                    title="{% if role.name == 'user' %}Cannot remove basic user role{% endif %}">
+                                Remove
+                            </button>
                         </form>
                     </li>
                     {% endfor %}
+                    {% if not user.roles %}
+                    <li>No roles assigned</li>
+                    {% endif %}
                 </ul>
             </div>
+            
             <div class="add-role">
-                <h4>Add Role:</h4>
+                <h4>Add Role</h4>
                 <form action="{{ url_for('assign_role') }}" method="POST">
                     <input type="hidden" name="user_id" value="{{ user.id }}">
                     <select name="role_name" required>
@@ -39,6 +64,11 @@
             </div>
         </div>
         {% endfor %}
+        {% if not users %}
+        <div class="user-card">
+            <p>No users available</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
