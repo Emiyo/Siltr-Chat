@@ -297,6 +297,48 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/profile', methods=['GET'])
+@login_required
+def profile():
+    return render_template('profile.html')
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    if 'avatar' in request.files:
+        file = request.files['avatar']
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+            
+            if filename.split('.')[-1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                current_user.avatar = url_for('static', filename=f'uploads/{filename}')
+    
+    username = request.form.get('username')
+    status = request.form.get('status')
+    
+    if username and username != current_user.username:
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken', 'error')
+            return redirect(url_for('profile'))
+        current_user.username = username
+    
+    if status is not None:
+        current_user.status = status[:100]  # Limit status to 100 characters
+    
+    try:
+        db.session.commit()
+        flash('Profile updated successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error updating profile', 'error')
+        logger.error(f"Profile update error: {str(e)}")
+    
+    return redirect(url_for('profile'))
+
 
 @app.route('/admin/roles', methods=['GET'])
 @login_required

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Application</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -16,6 +17,7 @@
             <a href="{{ url_for('list_users') }}">Users</a>
             <a href="{{ url_for('list_roles') }}">Roles</a>
             {% endif %}
+            <a href="{{ url_for('profile') }}">Profile</a>
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
         {% endif %}

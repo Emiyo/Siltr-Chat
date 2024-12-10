@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Profile Settings</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="profile-container">
+        <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+            <div class="profile-section">
+                <h3>Profile Picture</h3>
+                <div class="avatar-container">
+                    {% if current_user.avatar %}
+                    <img src="{{ current_user.avatar }}" alt="Current avatar" class="current-avatar">
+                    {% else %}
+                    <div class="avatar-placeholder">No avatar set</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="avatar">Update Profile Picture:</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/*">
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" value="{{ current_user.email }}" readonly>
+                    <small class="form-text text-muted">Email cannot be changed</small>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status Message:</label>
+                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" maxlength="100">
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Account Information</h3>
+                <p>Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                <p>Roles: 
+                    {% for role in current_user.roles %}
+                    <span class="role-badge">{{ role.name }}</span>
+                    {% endfor %}
+                </p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
