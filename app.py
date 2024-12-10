@@ -2,10 +2,13 @@ import os
 import logging
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from flask import Flask, request, render_template, jsonify, url_for
+from flask import Flask, request, render_template, jsonify, url_for, flash, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
 from pydub import AudioSegment
+from email_validator import validate_email, EmailNotValidError
 import json
 
 # Configure logging
@@ -26,7 +29,15 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Active users storage
 active_users = {}
@@ -66,14 +77,22 @@ class Channel(db.Model):
             'is_private': self.is_private
         }
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(60), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
     avatar = db.Column(db.String(200))
     status = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime, nullable=True)
+    
+    def set_password(self, password):
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+    
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
 
     def is_muted(self):
         if self.muted_until and self.muted_until > datetime.utcnow():
@@ -147,7 +166,76 @@ class Message(db.Model):
         }
 
 # Routes (Mostly from modified)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if not all([username, email, password]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('register'))
+        
+        try:
+            valid = validate_email(email)
+            email = valid.email
+        except EmailNotValidError:
+            flash('Invalid email address', 'error')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken', 'error')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'error')
+            return redirect(url_for('register'))
+        
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if not all([email, password]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('login'))
+        
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid email or password', 'error')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
