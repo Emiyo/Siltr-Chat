@@ -245,6 +245,8 @@ class Message(db.Model):
     voice_url = db.Column(db.String(200))  # For voice messages
     voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
     reactions = db.Column(db.JSON, default=dict)
+    is_encrypted = db.Column(db.Boolean, default=True)  # Whether the message is encrypted
+    encryption_key = db.Column(db.Text, nullable=True)  # Encrypted symmetric key for the message
 
     def to_dict(self):
         return {
@@ -879,9 +881,11 @@ def handle_command(text, user_data, db_user):
                 # Update user list to reflect changes
                 emit('user_list', {'users': list(active_users.values())}, broadcast=True)
 
+# Initialize Flask-Migrate
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
+
 if __name__ == '__main__':
     with app.app_context():
-        from flask_migrate import Migrate
-        migrate = Migrate(app, db)
         db.create_all()  # Create tables based on models
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)

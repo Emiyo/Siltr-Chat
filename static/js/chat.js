@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let categories = [];
     let messageHistory = [];
     let historyIndex = -1;
+    
+    // Encryption state
+    let keyPair = null;
+    let channelKeys = new Map();  // Store symmetric keys for each channel
 
     // Show login modal on page load
     usernameModal.show();
@@ -44,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(fileInput);
 
     // Message form handling
-    messageForm.addEventListener('submit', (e) => {
+    messageForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = messageInput.value.trim();
         if (message) {
@@ -60,10 +64,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 if (currentChannel) {
-                    socket.emit('message', {
-                        text: message,
-                        channel_id: currentChannel
-                    });
+                    try {
+                        // Get or create symmetric key for the channel
+                        let symmetricKey = channelKeys.get(currentChannel);
+                        if (!symmetricKey) {
+                            symmetricKey = await CryptoManager.generateSymmetricKey();
+                            channelKeys.set(currentChannel, symmetricKey);
+                        }
+
+                        // Encrypt the message
+                        const encryptedMessage = await CryptoManager.encryptMessage(message, symmetricKey);
+                        const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+
+                        socket.emit('message', {
+                            text: encryptedMessage,
+                            channel_id: currentChannel,
+                            encryption_key: exportedKey,
+                            is_encrypted: true
+                        });
+                    } catch (error) {
+                        console.error('Encryption error:', error);
+                        addMessage({
+                            type: 'system',
+                            text: 'Failed to encrypt message',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
                 } else {
                     addMessage({
                         type: 'system',
@@ -295,11 +321,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addMessage(message) {
+    async function addMessage(message) {
         const messageDiv = document.createElement('div');
         const timestamp = new Date(message.timestamp).toLocaleTimeString();
         let messageContent = message.text;
         let messageHeader = '';
+
+        // Handle encrypted messages
+        if (message.is_encrypted && message.encryption_key) {
+            try {
+                const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
+                messageContent = await CryptoManager.decryptMessage(message.text, symmetricKey);
+                if (!messageContent) {
+                    messageContent = '[Unable to decrypt message]';
+                }
+            } catch (error) {
+                console.error('Decryption error:', error);
+                messageContent = '[Unable to decrypt message]';
+            }
+        }
 
         // Handle different message types
         if (message.voice_url) {
