@@ -173,7 +173,7 @@ class CryptoManager {
         );
     }
 
-    static async encryptFile(file, symmetricKey) {
+    static async encryptFile(file, symmetricKey, onProgress = null) {
         try {
             console.log('Starting file encryption process');
             console.log('File details:', {
@@ -190,8 +190,32 @@ class CryptoManager {
                 throw new Error('Cannot encrypt empty file');
             }
 
+            // Validate file size (50MB limit)
+            const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+            if (file.size > MAX_FILE_SIZE) {
+                throw new Error('File size exceeds the maximum limit of 50MB');
+            }
+
+            // Report initial progress
+            if (onProgress) {
+                onProgress({
+                    phase: 'loading',
+                    progress: 0,
+                    message: 'Loading file...'
+                });
+            }
+
             const buffer = await file.arrayBuffer();
             console.log('File loaded into buffer successfully, size:', buffer.byteLength);
+
+            // Report loading complete
+            if (onProgress) {
+                onProgress({
+                    phase: 'encrypting',
+                    progress: 0,
+                    message: 'Starting encryption...'
+                });
+            }
 
             const iv = window.crypto.getRandomValues(new Uint8Array(12));
             console.log('Generated IV for encryption');
@@ -222,6 +246,15 @@ class CryptoManager {
                 originalType: file.type
             });
 
+            // Report completion
+            if (onProgress) {
+                onProgress({
+                    phase: 'complete',
+                    progress: 100,
+                    message: 'Encryption complete'
+                });
+            }
+
             return {
                 blob: encryptedBlob,
                 key: symmetricKey,
@@ -231,11 +264,31 @@ class CryptoManager {
         } catch (error) {
             console.error('Detailed encryption error:', error);
             console.error('Error stack:', error.stack);
-            throw new Error(`Failed to encrypt file: ${error.message}`);
+            
+            // Report error through progress callback
+            if (onProgress) {
+                onProgress({
+                    phase: 'error',
+                    progress: 0,
+                    message: `Encryption failed: ${error.message}`
+                });
+            }
+            
+            // Provide more user-friendly error messages
+            let errorMessage = 'Failed to encrypt file';
+            if (error.message.includes('maximum limit')) {
+                errorMessage = 'File is too large. Maximum size is 50MB.';
+            } else if (error.message.includes('key')) {
+                errorMessage = 'Encryption key error. Please try again.';
+            } else if (error.name === 'QuotaExceededError') {
+                errorMessage = 'Not enough storage space available.';
+            }
+            
+            throw new Error(errorMessage);
         }
     }
 
-    static async decryptFile(encryptedBlob, symmetricKey, originalType) {
+    static async decryptFile(encryptedBlob, symmetricKey, originalType, onProgress = null) {
         try {
             console.log('Starting file decryption');
             console.log('Input blob:', {
@@ -244,8 +297,26 @@ class CryptoManager {
                 targetType: originalType
             });
 
+            // Report initial progress
+            if (onProgress) {
+                onProgress({
+                    phase: 'loading',
+                    progress: 0,
+                    message: 'Loading encrypted file...'
+                });
+            }
+
             const arrayBuffer = await encryptedBlob.arrayBuffer();
             console.log('Blob loaded into buffer, size:', arrayBuffer.byteLength);
+
+            // Report decryption start
+            if (onProgress) {
+                onProgress({
+                    phase: 'decrypting',
+                    progress: 25,
+                    message: 'Decrypting file...'
+                });
+            }
 
             const combined = new Uint8Array(arrayBuffer);
             console.log('Combined data size:', combined.length);
@@ -280,11 +351,39 @@ class CryptoManager {
                 type: decryptedBlob.type,
                 expectedType: originalType
             });
+
+            // Report completion
+            if (onProgress) {
+                onProgress({
+                    phase: 'complete',
+                    progress: 100,
+                    message: 'Decryption complete'
+                });
+            }
+
             return decryptedBlob;
         } catch (error) {
             console.error('Detailed decryption error:', error);
             console.error('Error stack:', error.stack);
-            throw new Error('Failed to decrypt file: ' + error.message);
+
+            // Report error through progress callback
+            if (onProgress) {
+                onProgress({
+                    phase: 'error',
+                    progress: 0,
+                    message: `Decryption failed: ${error.message}`
+                });
+            }
+
+            // Provide user-friendly error messages
+            let errorMessage = 'Failed to decrypt file';
+            if (error.name === 'OperationError') {
+                errorMessage = 'Invalid encryption key or corrupted file.';
+            } else if (error.message.includes('IV')) {
+                errorMessage = 'File appears to be corrupted or not properly encrypted.';
+            }
+
+            throw new Error(errorMessage);
         }
     }
 }
