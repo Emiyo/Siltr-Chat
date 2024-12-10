@@ -177,9 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Create form data with encrypted file
             const formData = new FormData();
-            formData.append('file', encryptedFile.blob, file.name); // Keep original filename
+            formData.append('file', encryptedFile.blob, file.name);
             formData.append('original_type', file.type);
             formData.append('original_name', file.name);
+            
+            console.log('Uploading file with metadata:', {
+                name: file.name,
+                type: file.type,
+                size: encryptedFile.blob.size
+            });
             
             const response = await fetch('/upload', {
                 method: 'POST',
@@ -520,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 downloadLink.href = downloadUrl;
                                 
                                 // Ensure we preserve the original filename with extension
+                                // Get the original filename and type
                                 let filename;
                                 if (message.original_name) {
                                     filename = message.original_name;
@@ -530,13 +537,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                     filename = `downloaded_file${extension}`;
                                 }
                                 
-                                console.log('Downloading file:', {
-                                    filename,
-                                    type: message.original_type,
-                                    size: decryptedBlob.size
+                                console.log('Preparing download:', {
+                                    originalName: message.original_name,
+                                    originalType: message.original_type,
+                                    filename: filename,
+                                    blobType: decryptedBlob.type,
+                                    blobSize: decryptedBlob.size
                                 });
                                 
-                                downloadLink.download = filename;
+                                // Set download attributes
+                                downloadLink.setAttribute('download', filename);
                                 downloadLink.type = message.original_type || 'application/octet-stream';
                                 document.body.appendChild(downloadLink);
 

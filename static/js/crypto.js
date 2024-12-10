@@ -223,7 +223,13 @@ class CryptoManager {
             );
 
             // Create a new Blob with the decrypted data and original type
-            return new Blob([decryptedData], { type: originalType });
+            console.log('Creating decrypted blob with type:', originalType);
+            const decryptedBlob = new Blob([decryptedData], { type: originalType });
+            console.log('Decrypted blob created:', {
+                size: decryptedBlob.size,
+                type: decryptedBlob.type
+            });
+            return decryptedBlob;
         } catch (error) {
             console.error('Error decrypting file:', error);
             throw new Error('Failed to decrypt file');
