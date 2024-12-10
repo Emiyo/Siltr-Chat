@@ -23,21 +23,7 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app and extensions
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-# Get database URL and modify it to handle SSL properly
-database_url = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL'))
-if database_url:
-    # Convert postgres:// to postgresql:// if needed
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    # Add SSL mode if not already specified
-    if '?' not in database_url:
-        database_url += '?sslmode=require'
-    elif 'sslmode=' not in database_url.lower():
-        database_url += '&sslmode=require'
-    logger.info("Configured database URL with SSL settings")
-else:
-    logger.error("No DATABASE_URL provided in environment variables")
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL')) #Using os.getenv as per modified code, but keeping original method as fallback
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -88,61 +74,14 @@ If you did not make this request, please ignore this email.
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Initialize extensions with retry logic for database connection
-import time
-from sqlalchemy.exc import OperationalError
-
-# Initialize database without connecting
-from sqlalchemy import text
+# Initialize extensions
 db = SQLAlchemy(app)
-
-def init_db_with_retry(retries=5, delay=2):
-    """Initialize database connection with retry logic"""
-    for attempt in range(retries):
-        try:
-            # Test the connection with a simple query
-            with app.app_context():
-                db.session.execute(text('SELECT 1'))
-                db.session.commit()  # Ensure we can commit transactions
-                logger.info("Database connection established successfully")
-                return True
-        except OperationalError as e:
-            if attempt < retries - 1:
-                logger.warning(f"Database connection attempt {attempt + 1}/{retries} failed: {str(e)}")
-                logger.warning(f"Retrying in {delay} seconds...")
-                time.sleep(delay)
-                # Increase delay for next attempt
-                delay = min(delay * 2, 10)  # Cap at 10 seconds
-            else:
-                logger.error(f"Failed to connect to database after {retries} attempts: {str(e)}")
-                raise
-        except Exception as e:
-            logger.error(f"Unexpected error during database initialization: {str(e)}")
-            logger.error(f"Error type: {type(e).__name__}")
-            raise
-    return False
-
-# Initialize other extensions
 socketio = SocketIO(app, cors_allowed_origins="*")
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-# Initialize connection with retry logic in the main execution
-# Initialize connection with retry logic in the main execution
-if __name__ == '__main__':
-    with app.app_context():
-        if not init_db_with_retry():
-            logger.error("Failed to initialize database. Exiting.")
-            exit(1)
-        socketio.run(app, host='0.0.0.0', port=5000)
-else:
-    # Initialize database when imported as a module
-    with app.app_context():
-        init_db_with_retry()
-
 login_manager.login_view = 'login'
-login_manager.login_message_category = 'info'  # Retained from original
+login_manager.login_message_category = 'info' # Retained from original
 
 
 # Constants
