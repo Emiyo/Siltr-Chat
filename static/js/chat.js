@@ -456,21 +456,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isEncrypted) {
                 // Create a download handler for encrypted files
-                const downloadHandler = async (e) => {
+                const downloadHandler = ((msg, fileUrl) => async (e) => {
                     e.preventDefault();
                     try {
                         console.log('Starting file download process');
-                        console.log('Encryption key:', message.encryption_key);
+                        console.log('Encryption key:', msg.encryption_key);
                         
-                        if (!message.encryption_key) {
+                        if (!msg.encryption_key) {
                             throw new Error('Missing encryption key');
                         }
 
-                        const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
+                        const symmetricKey = await CryptoManager.importSymmetricKey(msg.encryption_key);
                         console.log('Symmetric key imported successfully');
 
-                        console.log('Fetching encrypted file from:', url);
-                        const response = await fetch(url);
+                        console.log('Fetching encrypted file from:', fileUrl);
+                        const response = await fetch(fileUrl);
                         if (!response.ok) {
                             throw new Error(`Failed to fetch file: ${response.statusText}`);
                         }
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const decryptedBlob = await CryptoManager.decryptFile(
                             encryptedBlob,
                             symmetricKey,
-                            message.original_type || 'application/octet-stream'
+                            msg.original_type || 'application/octet-stream'
                         );
                         console.log('File decrypted successfully');
 
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const downloadUrl = URL.createObjectURL(decryptedBlob);
                         const downloadLink = document.createElement('a');
                         downloadLink.href = downloadUrl;
-                        downloadLink.download = message.original_name || 'downloaded_file';
+                        downloadLink.download = msg.original_name || 'downloaded_file';
                         document.body.appendChild(downloadLink);
                         downloadLink.click();
                         document.body.removeChild(downloadLink);
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Error stack:', error.stack);
                         alert(`Failed to decrypt file: ${error.message}\nPlease check the browser console for more details.`);
                     }
-                };
+                })(message, url);
 
                 if (message.voice_url) {
                     messageContent = `

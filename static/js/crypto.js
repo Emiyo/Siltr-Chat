@@ -61,10 +61,11 @@ class CryptoManager {
             combined.set(iv);
             combined.set(encryptedArray, iv.length);
 
-            return btoa(String.fromCharCode(...combined));
+            // Convert to base64 safely
+            return btoa(String.fromCharCode.apply(null, combined));
         } catch (error) {
             console.error('Error encrypting message:', error);
-            throw new Error('Failed to encrypt message');
+            throw new Error('Failed to encrypt message: ' + error.message);
         }
     }
 
