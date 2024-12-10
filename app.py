@@ -77,6 +77,28 @@ class Channel(db.Model):
             'is_private': self.is_private
         }
 
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    permissions = db.relationship('Permission', secondary='role_permissions',
+                                backref=db.backref('roles', lazy='dynamic'))
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+
+role_permissions = db.Table('role_permissions',
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'), primary_key=True)
+)
+
+user_roles = db.Table('user_roles',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
+)
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -87,6 +109,7 @@ class User(db.Model, UserMixin):
     status = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime, nullable=True)
+    roles = db.relationship('Role', secondary=user_roles, backref=db.backref('users', lazy='dynamic'))
     
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -94,30 +117,59 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
+    def has_permission(self, permission_name):
+        """Check if user has a specific permission through any of their roles"""
+        return any(
+            any(p.name == permission_name for p in role.permissions)
+            for role in self.roles
+        )
+
+    def has_role(self, role_name):
+        """Check if user has a specific role"""
+        return any(role.name == role_name for role in self.roles)
+
+    def add_role(self, role_name):
+        """Add a role to the user"""
+        role = Role.query.filter_by(name=role_name).first()
+        if role and role not in self.roles:
+            self.roles.append(role)
+            return f'Role {role_name} added to {self.username}'
+        return f'Role {role_name} not found or already assigned'
+
+    def remove_role(self, role_name):
+        """Remove a role from the user"""
+        role = Role.query.filter_by(name=role_name).first()
+        if role and role in self.roles:
+            self.roles.remove(role)
+            return f'Role {role_name} removed from {self.username}'
+        return f'Role {role_name} not found or not assigned'
+
     def is_muted(self):
         if self.muted_until and self.muted_until > datetime.utcnow():
             return True
         return False
 
     def mute_user(self, minutes=10):
+        if not self.has_permission('mute_users'):
+            return 'Permission denied'
         self.muted_until = datetime.utcnow() + timedelta(minutes=minutes)
         return f'User {self.username} has been muted for {minutes} minutes'
 
     def unmute_user(self):
+        if not self.has_permission('mute_users'):
+            return 'Permission denied'
         self.muted_until = None
         return f'User {self.username} has been unmuted'
 
     def promote_to_moderator(self):
-        if not self.is_moderator:
-            self.is_moderator = True
-            return f'User {self.username} has been promoted to moderator'
-        return f'User {self.username} is already a moderator'
+        if not self.has_permission('manage_roles'):
+            return 'Permission denied'
+        return self.add_role('moderator')
 
     def demote_from_moderator(self):
-        if self.is_moderator:
-            self.is_moderator = False
-            return f'User {self.username} has been demoted from moderator'
-        return f'User {self.username} is not a moderator'
+        if not self.has_permission('manage_roles'):
+            return 'Permission denied'
+        return self.remove_role('moderator')
 
     def update_profile(self, status=None, avatar=None):
         if status is not None:
@@ -197,6 +249,12 @@ def register():
         
         user = User(username=username, email=email)
         user.set_password(password)
+        
+        # Assign default user role
+        default_role = Role.query.filter_by(name='user').first()
+        if default_role:
+            user.roles.append(default_role)
+        
         db.session.add(user)
         db.session.commit()
         
@@ -481,9 +539,10 @@ def handle_create_category(data):
     if request.sid not in active_users:
         return
     
-    user = active_users[request.sid]
-    if not user.get('is_moderator'):
-        emit('error', {'message': 'Only moderators can create categories'})
+    user_data = active_users[request.sid]
+    user = User.query.get(user_data['id'])
+    if not user.has_permission('manage_channels'):
+        emit('error', {'message': 'Permission denied: Cannot create categories'})
         return
     
     name = data.get('name')
@@ -504,9 +563,10 @@ def handle_create_channel(data):
     if request.sid not in active_users:
         return
     
-    user = active_users[request.sid]
-    if not user.get('is_moderator'):
-        emit('error', {'message': 'Only moderators can create channels'})
+    user_data = active_users[request.sid]
+    user = User.query.get(user_data['id'])
+    if not user.has_permission('create_channels'):
+        emit('error', {'message': 'Permission denied: Cannot create channels'})
         return
     
     category_id = data.get('category_id')
