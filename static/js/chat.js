@@ -579,36 +579,45 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (imagePreview) {
                                         try {
                                             const img = document.createElement('img');
-                                            img.src = downloadUrl;
-                                            img.classList.add('embedded-image');
-                                            img.alt = message.original_name || 'Decrypted image';
                                             
-                                            // Clear the loading placeholder
-                                            imagePreview.innerHTML = '';
-                                            imagePreview.appendChild(img);
-                                            
-                                            // Handle image load success
+                                            // Set up event handlers before setting src
                                             img.onload = () => {
                                                 console.log('Image loaded successfully');
+                                                imagePreview.innerHTML = ''; // Clear loading spinner
+                                                imagePreview.appendChild(img);
                                                 document.body.removeChild(downloadLink);
+                                                console.log('Image preview created successfully');
                                             };
                                             
-                                            // Handle image load error
                                             img.onerror = (error) => {
                                                 console.error('Failed to load image:', error);
                                                 imagePreview.innerHTML = 'Failed to load image';
-                                                // Clean up on error
                                                 document.body.removeChild(downloadLink);
                                                 URL.revokeObjectURL(downloadUrl);
                                             };
+                                            
+                                            // Configure image properties
+                                            img.classList.add('embedded-image');
+                                            img.alt = message.original_name || 'Decrypted image';
+                                            img.src = downloadUrl; // Set src last to trigger loading
+                                            
+                                            console.log('Image element created with URL:', {
+                                                alt: img.alt,
+                                                classes: img.className,
+                                                previewId: `image-${downloadId}`
+                                            });
                                         } catch (previewError) {
                                             console.error('Error creating image preview:', previewError);
+                                            console.error('Error details:', {
+                                                error: previewError.message,
+                                                stack: previewError.stack
+                                            });
                                             imagePreview.innerHTML = 'Error displaying image';
                                             document.body.removeChild(downloadLink);
                                             URL.revokeObjectURL(downloadUrl);
                                         }
                                     } else {
-                                        console.error('Image preview element not found');
+                                        console.error('Image preview element not found:', `image-${downloadId}`);
                                         document.body.removeChild(downloadLink);
                                         URL.revokeObjectURL(downloadUrl);
                                     }

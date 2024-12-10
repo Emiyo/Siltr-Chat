@@ -149,8 +149,11 @@ class CryptoManager {
     static async encryptFile(file, symmetricKey) {
         try {
             console.log('Starting file encryption process');
-            console.log('File type:', file.type);
-            console.log('File size:', file.size);
+            console.log('File details:', {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
 
             if (!file || !symmetricKey) {
                 throw new Error('Missing file or encryption key');
@@ -161,7 +164,7 @@ class CryptoManager {
             }
 
             const buffer = await file.arrayBuffer();
-            console.log('File loaded into buffer successfully');
+            console.log('File loaded into buffer successfully, size:', buffer.byteLength);
 
             const iv = window.crypto.getRandomValues(new Uint8Array(12));
             console.log('Generated IV for encryption');
@@ -175,20 +178,21 @@ class CryptoManager {
                 symmetricKey,
                 buffer
             );
-            console.log('File encrypted successfully');
+            console.log('File encrypted successfully, size:', encryptedData.byteLength);
 
             const encryptedArray = new Uint8Array(encryptedData);
             const combined = new Uint8Array(iv.length + encryptedArray.length);
             combined.set(iv);
             combined.set(encryptedArray, iv.length);
-            console.log('Combined IV and encrypted data');
+            console.log('Combined IV and encrypted data, total size:', combined.length);
 
             // Create a new Blob with the encrypted data and preserve the original type
             const encryptedBlob = new Blob([combined], { type: file.type });
             console.log('Created encrypted blob:', {
                 size: encryptedBlob.size,
                 type: encryptedBlob.type,
-                originalName: file.name
+                originalName: file.name,
+                originalType: file.type
             });
 
             return {
@@ -206,12 +210,30 @@ class CryptoManager {
 
     static async decryptFile(encryptedBlob, symmetricKey, originalType) {
         try {
+            console.log('Starting file decryption');
+            console.log('Input blob:', {
+                size: encryptedBlob.size,
+                type: encryptedBlob.type,
+                targetType: originalType
+            });
+
             const arrayBuffer = await encryptedBlob.arrayBuffer();
+            console.log('Blob loaded into buffer, size:', arrayBuffer.byteLength);
+
             const combined = new Uint8Array(arrayBuffer);
+            console.log('Combined data size:', combined.length);
             
+            if (combined.length <= 12) {
+                throw new Error('Invalid encrypted data: too short');
+            }
+
             // Extract IV and encrypted data
             const iv = combined.slice(0, 12);
             const encryptedData = combined.slice(12);
+            console.log('Extracted IV and encrypted data:', {
+                ivSize: iv.length,
+                encryptedSize: encryptedData.length
+            });
 
             const decryptedData = await window.crypto.subtle.decrypt(
                 {
@@ -221,18 +243,21 @@ class CryptoManager {
                 symmetricKey,
                 encryptedData
             );
+            console.log('Data decrypted successfully, size:', decryptedData.byteLength);
 
             // Create a new Blob with the decrypted data and original type
             console.log('Creating decrypted blob with type:', originalType);
             const decryptedBlob = new Blob([decryptedData], { type: originalType });
             console.log('Decrypted blob created:', {
                 size: decryptedBlob.size,
-                type: decryptedBlob.type
+                type: decryptedBlob.type,
+                expectedType: originalType
             });
             return decryptedBlob;
         } catch (error) {
-            console.error('Error decrypting file:', error);
-            throw new Error('Failed to decrypt file');
+            console.error('Detailed decryption error:', error);
+            console.error('Error stack:', error.stack);
+            throw new Error('Failed to decrypt file: ' + error.message);
         }
     }
 }
