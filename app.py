@@ -538,10 +538,40 @@ def upload_file():
         else:
             return jsonify({'error': 'File type not allowed'}), 400
 
-# Socket Events
+import base64
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.backends import default_backend
+
+# Socket Events and Key Management
+public_keys = {}  # Store user public keys (format: {user_id: serialized_public_key})
+channel_keys = {}  # Store channel encryption keys (format: {channel_id: bytes})
+
 @socketio.on('connect')
 def handle_connect():
     logger.info(f"Client connected: {request.sid}")
+
+@socketio.on('share_public_key')
+def handle_public_key(data):
+    if request.sid in active_users:
+        user_id = active_users[request.sid]['id']
+        public_key = data.get('publicKey')
+        if public_key:
+            public_keys[user_id] = public_key
+            # Share this user's public key with others
+            emit('public_key_shared', {
+                'userId': user_id,
+                'publicKey': public_key
+            }, broadcast=True)
+            # Share existing public keys with this user
+            for uid, key in public_keys.items():
+                if uid != user_id:
+                    emit('public_key_shared', {
+                        'userId': uid,
+                        'publicKey': key
+                    })
 
 @socketio.on('join')
 def handle_join(data):
@@ -598,11 +628,15 @@ def handle_message(data):
         return
     
     logger.info(f"Processing message from user: {user_data['username']}")
-    text = data.get('text', '').strip()
+    encrypted = data.get('encrypted')
+    iv = data.get('iv')
     channel_id = data.get('channel_id')
     file_url = data.get('file_url')
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
+    
+    # For encrypted messages, we pass through the encrypted data
+    text = '[Encrypted message]' if encrypted else data.get('text', '').strip()
     
     # Check if user is muted
     user = User.query.get(user_data['id'])
@@ -701,6 +735,39 @@ def handle_join_channel(data):
     
     # Join the channel room
     join_room(f'channel_{channel_id}')
+    
+    # Ensure channel has an encryption key
+    if channel_id not in channel_keys:
+        channel_keys[channel_id] = os.urandom(32)  # 256-bit key for AES-GCM
+    
+    # Share channel key with the joining user
+    user_id = active_users[request.sid]['id']
+    if user_id in public_keys:
+        try:
+            # Load the user's public key
+            public_key = serialization.load_pem_public_key(
+                base64.b64decode(public_keys[user_id]),
+                backend=default_backend()
+            )
+            
+            # Encrypt the channel key with the user's public key
+            encrypted_key = public_key.encrypt(
+                channel_keys[channel_id],
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
+            )
+            
+            # Send encrypted channel key to the user
+            emit('channel_key', {
+                'channelId': channel_id,
+                'encryptedKey': base64.b64encode(encrypted_key).decode('utf-8')
+            })
+        except Exception as e:
+            logger.error(f"Error sharing channel key: {str(e)}")
+            emit('error', {'message': 'Error sharing channel key'})
     
     # Get recent messages for this channel
     recent_messages = Message.query\
