@@ -78,19 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             timestamp: new Date().toISOString()
                         };
 
+                        console.log('Message payload before encryption:', messagePayload);
+                        
                         // Encrypt the message payload
                         const encryptedMessage = await CryptoManager.encryptMessage(
                             JSON.stringify(messagePayload),
                             symmetricKey
                         );
+                        console.log('Message encrypted successfully');
+                        
                         const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+                        console.log('Symmetric key exported successfully');
 
-                        socket.emit('message', {
+                        const messageData = {
                             text: encryptedMessage,
                             channel_id: currentChannel,
                             encryption_key: exportedKey,
                             is_encrypted: true
-                        });
+                        };
+                        console.log('Sending encrypted message:', messageData);
+
+                        socket.emit('message', messageData);
                     } catch (error) {
                         console.error('Encryption error:', error);
                         addMessage({
@@ -339,12 +347,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle encrypted messages
         if (message.is_encrypted && message.encryption_key) {
             try {
+                console.log('Attempting to decrypt message:', {
+                    encryptedText: message.text,
+                    hasKey: !!message.encryption_key
+                });
+                
                 const symmetricKey = await CryptoManager.importSymmetricKey(message.encryption_key);
+                console.log('Symmetric key imported successfully');
+                
                 const decryptedContent = await CryptoManager.decryptMessage(message.text, symmetricKey);
+                console.log('Decrypted content:', decryptedContent);
                 
                 if (decryptedContent) {
                     try {
                         const messagePayload = JSON.parse(decryptedContent);
+                        console.log('Parsed message payload:', messagePayload);
                         messageContent = messagePayload.content;
                     } catch (parseError) {
                         console.error('Error parsing decrypted message:', parseError);
