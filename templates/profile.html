@@ -120,14 +120,47 @@
             </div>
 
             <div class="profile-section">
-                <h3>Account Information</h3>
-                <p>Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
-                <p>Last seen: {{ current_user.last_seen.strftime('%B %d, %Y %H:%M:%S') if current_user.last_seen else 'Never' }}</p>
-                <p>Roles: 
-                    {% for role in current_user.roles %}
-                    <span class="role-badge">{{ role.name }}</span>
-                    {% endfor %}
-                </p>
+                <h3>Account Security</h3>
+                <div class="security-actions">
+                    <a href="{{ url_for('change_password') }}" class="btn btn-primary">Change Password</a>
+                </div>
+                <div class="account-info">
+                    <p>Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                    <p>Last seen: {{ current_user.last_seen.strftime('%B %d, %Y %H:%M:%S') if current_user.last_seen else 'Never' }}</p>
+                    <p>Roles: 
+                        {% for role in current_user.roles %}
+                        <span class="role-badge">{{ role.name }}</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Privacy Settings</h3>
+                <div class="form-group">
+                    <label for="profile_visibility">Profile Visibility:</label>
+                    <select id="profile_visibility" name="profile_visibility">
+                        <option value="public" {% if current_user.preferences and current_user.preferences.profile_visibility == 'public' %}selected{% endif %}>Public</option>
+                        <option value="registered" {% if current_user.preferences and current_user.preferences.profile_visibility == 'registered' %}selected{% endif %}>Registered Users Only</option>
+                        <option value="private" {% if current_user.preferences and current_user.preferences.profile_visibility == 'private' %}selected{% endif %}>Private</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="online_status">Online Status Visibility:</label>
+                    <select id="online_status" name="online_status">
+                        <option value="show" {% if current_user.preferences and current_user.preferences.online_status == 'show' %}selected{% endif %}>Show to Everyone</option>
+                        <option value="friends" {% if current_user.preferences and current_user.preferences.online_status == 'friends' %}selected{% endif %}>Show to Friends Only</option>
+                        <option value="hide" {% if current_user.preferences and current_user.preferences.online_status == 'hide' %}selected{% endif %}>Hidden</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message_privacy">Message Privacy:</label>
+                    <select id="message_privacy" name="message_privacy">
+                        <option value="everyone" {% if current_user.preferences and current_user.preferences.message_privacy == 'everyone' %}selected{% endif %}>Accept from Everyone</option>
+                        <option value="friends" {% if current_user.preferences and current_user.preferences.message_privacy == 'friends' %}selected{% endif %}>Friends Only</option>
+                        <option value="none" {% if current_user.preferences and current_user.preferences.message_privacy == 'none' %}selected{% endif %}>No Direct Messages</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-actions">

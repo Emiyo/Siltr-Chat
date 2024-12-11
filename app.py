@@ -221,10 +221,27 @@ class User(UserMixin, db.Model):
     received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
 
     def set_password(self, password):
+        if not self.validate_password_strength(password):
+            raise ValueError("Password does not meet strength requirements")
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
     
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
+    
+    @staticmethod
+    def validate_password_strength(password):
+        """Validate password strength"""
+        if len(password) < 8:
+            return False
+        if not any(c.isupper() for c in password):
+            return False
+        if not any(c.islower() for c in password):
+            return False
+        if not any(c.isdigit() for c in password):
+            return False
+        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+            return False
+        return True
 
     def has_permission(self, permission_name):
         return any(
@@ -569,12 +586,15 @@ def update_profile():
         current_user.location = location[:100] if location else None
         current_user.timezone = timezone[:50] if timezone else None
 
-        # Update preferences
+        # Update preferences and privacy settings
         current_user.preferences = {
             'notifications': request.form.get('notifications', 'all'),
             'theme': request.form.get('theme', 'dark'),
             'message_display': request.form.get('message_display', 'compact'),
-            'language': request.form.get('language', 'en')
+            'language': request.form.get('language', 'en'),
+            'profile_visibility': request.form.get('profile_visibility', 'public'),
+            'online_status': request.form.get('online_status', 'show'),
+            'message_privacy': request.form.get('message_privacy', 'everyone')
         }
 
         # Update contact information
@@ -592,6 +612,61 @@ def update_profile():
 
         # Save changes
         db.session.commit()
+
+        flash('Profile updated successfully', 'success')
+
+        # Update active users list if in chat
+        if hasattr(request, 'sid') and request.sid in active_users:
+            active_users[request.sid].update({
+                'username': current_user.username,
+                'status': current_user.status,
+                'display_name': current_user.display_name
+            })
+            emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Profile update error: {str(e)}")
+        flash('Error updating profile. Please try again.', 'error')
+
+    return redirect(url_for('profile'))
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not all([current_password, new_password, confirm_password]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('change_password'))
+        
+        if not current_user.check_password(current_password):
+            flash('Current password is incorrect', 'error')
+            return redirect(url_for('change_password'))
+            
+        if new_password != confirm_password:
+            flash('New passwords do not match', 'error')
+            return redirect(url_for('change_password'))
+            
+        try:
+            current_user.set_password(new_password)
+            db.session.commit()
+            flash('Password changed successfully', 'success')
+            # Force user to login again with new password
+            logout_user()
+            return redirect(url_for('login'))
+        except ValueError as e:
+            flash(str(e), 'error')
+            return redirect(url_for('change_password'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred. Please try again.', 'error')
+            logger.error(f"Password change error: {str(e)}")
+            return redirect(url_for('change_password'))
+    
+    return render_template('change_password.html')
         flash('Profile updated successfully', 'success')
 
         # Update active users list if in chat
