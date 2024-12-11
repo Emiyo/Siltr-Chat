@@ -758,15 +758,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 // Clear loading state and show image
                                                 imagePreview.innerHTML = '';
                                                 imagePreview.appendChild(img);
-                                            };
-                                                
+                                            console.log('Image preview created successfully');
+
                                                 // Clean up download link after successful load
                                                 if (document.body.contains(downloadLink)) {
                                                     document.body.removeChild(downloadLink);
                                                 }
-                                                
-                                                console.log('Image preview created successfully');
-                                            };
+                                            });
                                             
                                             img.onerror = (error) => {
                                                 console.error('Failed to load image:', error);
