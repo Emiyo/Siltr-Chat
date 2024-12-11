@@ -740,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             imagePreview.innerHTML = `
                                                 <div class="encrypted-image-placeholder">
                                                     <div class="loading-spinner"></div>
-                                                    Loading encrypted image...
+                                                    <span>Loading encrypted image...</span>
                                                 </div>`;
                                             
                                             const img = document.createElement('img');
@@ -758,6 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 // Clear loading state and show image
                                                 imagePreview.innerHTML = '';
                                                 imagePreview.appendChild(img);
+                                            };
                                                 
                                                 // Clean up download link after successful load
                                                 if (document.body.contains(downloadLink)) {
