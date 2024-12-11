@@ -1,16 +1,42 @@
 // User profile functionality is loaded from profile.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io();
+    // Initialize socket with explicit config
+    const socket = io({
+        transports: ['websocket'],
+        upgrade: false,
+        reconnection: true,
+        reconnectionAttempts: 5
+    });
     
     // DOM Elements
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
     const messageContainer = document.getElementById('messageContainer');
     const userList = document.getElementById('userList');
+    const categoryList = document.getElementById('categoryList');
     const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
         backdrop: 'static',
         keyboard: false
+    });
+    
+    // Debug socket connection
+    socket.on('connect', () => {
+        console.log('Socket connected successfully');
+        addMessage({
+            type: 'system',
+            text: 'Connected to server',
+            timestamp: new Date().toISOString()
+        });
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        addMessage({
+            type: 'system',
+            text: 'Connection error: ' + error.message,
+            timestamp: new Date().toISOString()
+        });
     });
 
     // State variables
@@ -319,17 +345,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateUserList(users) {
-        const userList = document.getElementById('userList');
-        if (!userList || !Array.isArray(users)) return;
+        if (!userList || !Array.isArray(users)) {
+            console.error('Invalid users data or missing userList element');
+            return;
+        }
         
-        userList.innerHTML = users.map(user => `
-            <div class="user-item ${user.presence_state || 'offline'}">
-                <span class="user-status"></span>
-                <span class="user-name">${user.display_name || user.username}</span>
-                ${user.status ? `<div class="user-activity">${user.status_emoji || ''} ${user.status}</div>` : ''}
-                ${user.roles ? `<div class="user-roles">${user.roles.map(role => `<span class="role-badge ${role.name}">${role.name}</span>`).join('')}</div>` : ''}
-            </div>
-        `).join('');
+        console.log('Updating user list with:', users);
+        
+        userList.innerHTML = users.map(user => {
+            const rolesBadges = user.roles ? 
+                user.roles.map(role => `<span class="role-badge ${role.name}">${role.name}</span>`).join('') : '';
+            
+            return `
+                <div class="user-item ${user.presence_state || 'offline'}" data-user-id="${user.id}">
+                    <span class="user-status"></span>
+                    <span class="user-name">${user.display_name || user.username}</span>
+                    ${user.status ? `<div class="user-activity">${user.status_emoji || ''} ${user.status}</div>` : ''}
+                    ${rolesBadges ? `<div class="user-roles">${rolesBadges}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        console.log('User list updated');
     }
 
     // Categories and Channels
@@ -373,8 +410,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper Functions
     function updateCategoryList() {
-        const categoryList = document.getElementById('categoryList');
-        if (!categoryList || !Array.isArray(categories)) return;
+        if (!categoryList || !Array.isArray(categories)) {
+            console.error('Invalid categories data or missing categoryList element');
+            return;
+        }
+        
+        console.log('Updating category list with:', categories);
         
         categoryList.innerHTML = categories.map(group => {
             const channels = group.channels || [];
@@ -401,6 +442,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }).join('');
+        
+        // Reattach click handlers for channels
+        document.querySelectorAll('.channel-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const channelId = parseInt(item.dataset.channelId);
+                if (currentChannel !== channelId) {
+                    if (currentChannel) {
+                        socket.emit('leave_channel', { channel_id: currentChannel });
+                    }
+                    currentChannel = channelId;
+                    messageContainer.innerHTML = '';
+                    addMessage({
+                        type: 'system',
+                        text: `Joined channel #${item.textContent.trim()}`,
+                        timestamp: new Date().toISOString()
+                    });
+                    socket.emit('join_channel', { channel_id: channelId });
+                    document.querySelectorAll('.channel-item').forEach(ch => 
+                        ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
+                    );
+                }
+            });
+        });
+        
+        console.log('Category list updated');
+    }
 
         // Add event listeners
         document.querySelectorAll('.category-header').forEach(header => {
