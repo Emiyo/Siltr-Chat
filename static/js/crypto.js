@@ -345,11 +345,16 @@ class CryptoManager {
 
             // Create a new Blob with the decrypted data and original type
             console.log('Creating decrypted blob with type:', originalType);
-            const decryptedBlob = new Blob([decryptedData], { type: originalType });
+            // Ensure we have a valid MIME type
+            const safeType = originalType || 'application/octet-stream';
+            console.log('Creating blob with type:', safeType);
+            
+            const decryptedBlob = new Blob([decryptedData], { type: safeType });
             console.log('Decrypted blob created:', {
                 size: decryptedBlob.size,
                 type: decryptedBlob.type,
-                expectedType: originalType
+                expectedType: safeType,
+                mimeCategory: safeType.split('/')[0]
             });
 
             // Report completion

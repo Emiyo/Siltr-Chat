@@ -651,11 +651,28 @@ document.addEventListener('DOMContentLoaded', () => {
                                     metadataType: message.file_metadata?.type
                                 });
                                 
-                                if (targetType.startsWith('image/')) {
-                                    console.log('Processing image preview for type:', targetType);
+                                if (targetType && targetType.startsWith('image/')) {
+                                    console.log('Processing image preview:', {
+                                        type: targetType,
+                                        originalType: message.original_type,
+                                        metadataType: message.file_metadata?.type,
+                                        downloadId: downloadId
+                                    });
+                                    
                                     const imagePreview = document.getElementById(`image-${downloadId}`);
                                     console.log('Found preview container:', imagePreview ? 'yes' : 'no');
-                                    if (imagePreview) {
+                                    
+                                    if (!imagePreview) {
+                                        console.error('Image preview container not found:', `image-${downloadId}`);
+                                        return;
+                                    }
+                                    
+                                    // Clear any existing content
+                                    imagePreview.innerHTML = `
+                                        <div class="encrypted-image-placeholder">
+                                            <div class="loading-spinner"></div>
+                                            Loading encrypted image...
+                                        </div>`;
                                         try {
                                             // Clear any existing content and show loading state
                                             imagePreview.innerHTML = `
@@ -783,6 +800,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 console.error('Error stack:', error.stack);
                                 alert(`Failed to decrypt file: ${error.message}\nPlease check the browser console for more details.`);
                             }
+                            
+                            // Clean up resources on error
+                            if (document.body.contains(downloadLink)) {
+                                document.body.removeChild(downloadLink);
+                            }
+                            URL.revokeObjectURL(downloadUrl);
                         });
                     }
                 }, 0);
