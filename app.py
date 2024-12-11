@@ -41,7 +41,15 @@ logger.setLevel(logging.INFO)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 mail = Mail(app)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    logger=True,
+    engineio_logger=True,
+    manage_session=True,
+    ping_timeout=5000,
+    ping_interval=25000
+)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
