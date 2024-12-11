@@ -96,13 +96,11 @@ class User(UserMixin, db.Model):
     avatar = db.Column(db.String(200), nullable=True)
     display_name = db.Column(db.String(100), nullable=True)
     status = db.Column(db.String(200), nullable=True)
-    accent_color = db.Column(db.String(7), nullable=True)
+    accent_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
     theme = db.Column(db.String(20), nullable=False, server_default='dark')
     bio = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(100), nullable=True)
     banner_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
-    custom_status = db.Column(db.String(128), nullable=True)
-    status_emoji = db.Column(db.String(32), nullable=True)
     last_seen = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
     
@@ -184,7 +182,7 @@ class Channel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     is_private = db.Column(db.Boolean, default=False)
-    messages = db.relationship('Message', backref='channel', lazy=True)
+    messages = db.relationship('Message', backref=db.backref('channel', lazy=True), lazy=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
@@ -204,9 +202,12 @@ class Message(db.Model):
     channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
     is_encrypted = db.Column(db.Boolean, default=False)
     encryption_key = db.Column(db.Text, nullable=True)
-    file_url = db.Column(db.String(200))
-    voice_url = db.Column(db.String(200))
-    voice_duration = db.Column(db.Float)
+    file_url = db.Column(db.String(200), nullable=True)
+    audio_url = db.Column(db.String(200), nullable=True)
+    audio_duration = db.Column(db.Float, nullable=True)
+    
+    # Add relationship with User only, Channel relationship is handled by backref
+    user = db.relationship('User', backref=db.backref('messages', lazy=True))
 
     def to_dict(self):
         return {
@@ -432,8 +433,15 @@ def handle_connect():
         user_data = current_user.to_dict()
         users = User.query.all()
         users_data = [user.to_dict() for user in users]
+        
+        # Get categories with their channels
         categories = Category.query.all()
-        categories_data = [category.to_dict() for category in categories]
+        categories_data = []
+        for category in categories:
+            category_dict = category.to_dict()
+            channels = Channel.query.filter_by(category_id=category.id).all()
+            category_dict['channels'] = [channel.to_dict() for channel in channels]
+            categories_data.append(category_dict)
         
         # Emit initial data
         emit('user_connected', user_data)

@@ -1,14 +1,61 @@
-2024-12-11 19:58:31,856 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:572]
-2024-12-11 19:58:31,924 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:579]
-2024-12-11 19:58:34,440 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:58:35,028 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:58:37,085 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:58:37,662 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:58:38,547 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:58:39,123 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:58:40,444 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:58:41,023 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:59:26,453 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:59:27,029 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 20:03:17,713 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:458]
-2024-12-11 20:03:17,714 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:461]
+2024-12-11 20:10:39,708 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
+2024-12-11 20:10:40,293 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
+2024-12-11 20:10:56,444 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
+2024-12-11 20:10:57,027 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
+2024-12-11 20:12:23,853 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 20:12:25,363 ERROR: Database initialization error: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]' [in /home/runner/TornadoChatRoom/app.py:583]
+2024-12-11 20:12:25,363 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:588]
+2024-12-11 20:12:27,756 ERROR: Error in handle_connect: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Channel(channel)]'. Original exception was: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]' [in /home/runner/TornadoChatRoom/app.py:458]
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 834, in _handle_event
+    ret = handler(auth)
+          ^^^^^^^^^^^^^
+TypeError: handle_connect() takes 0 positional arguments but 1 was given
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 423, in handle_connect
+    if not current_user.is_authenticated:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/app.py", line 229, in load_user
+    return User.query.get(int(id))
+           ^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
+    return cls.query_class(
+           ^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 287, in _set_entities
+    self._raw_columns = [
+                        ^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
+    insp._post_inspect
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1253, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2722, in _post_inspect
+    self._check_configure()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2399, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4215, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4252, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Channel(channel)]'. Original exception was: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]'
