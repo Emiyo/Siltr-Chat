@@ -46,23 +46,40 @@ class User(UserMixin, db.Model):
     display_name = db.Column(db.String(50))
     avatar = db.Column(db.String(200))
     banner = db.Column(db.String(200))
+    banner_color = db.Column(db.String(7))
     bio = db.Column(db.String(500))
     
     # Rich presence and status
     status = db.Column(db.String(100))
     status_emoji = db.Column(db.String(20))
+    custom_status_expires_at = db.Column(db.DateTime)
     presence_state = db.Column(db.String(20), default='offline')
     presence_details = db.Column(db.JSON)
+    activity_status = db.Column(db.String(50))
+    activity_type = db.Column(db.String(20))
+    activity_details = db.Column(db.JSON)
     last_seen = db.Column(db.DateTime)
     
     # Customization
     theme = db.Column(db.String(20), default='dark')
     accent_color = db.Column(db.String(7), default='#5865F2')
+    profile_badges = db.Column(db.JSON, default=list)
+    connections = db.Column(db.JSON, default=dict)
+    privacy_settings = db.Column(db.JSON, default=lambda: {
+        'show_current_activity': True,
+        'show_status': True,
+        'who_can_message': 'everyone',  # everyone, friends, none
+        'friend_request_setting': 'everyone'  # everyone, mutual_friends, none
+    })
     preferences = db.Column(db.JSON, default=lambda: {
         'notifications': True,
         'message_display': 'cozy',
         'emoji_style': 'native',
-        'language': 'en'
+        'language': 'en',
+        'theme_sync': True,  # sync with system theme
+        'developer_mode': False,
+        'animate_emojis': True,
+        'animate_stickers': True
     })
     
     # System fields
@@ -110,25 +127,38 @@ class User(UserMixin, db.Model):
             logger.error(f"Error checking password for user {self.username}: {str(e)}")
             return False
 
-    def update_presence(self, state='online', details=None):
-        """Update user's presence state and details"""
+    def update_presence(self, state='online', details=None, activity_type=None, activity_status=None):
+        """Update user's presence state and details with rich presence support"""
         try:
             valid_states = {'online', 'idle', 'dnd', 'offline', 'invisible'}
+            valid_activities = {'playing', 'listening', 'watching', 'streaming', None}
+            
             if state not in valid_states:
                 raise ValueError(f"Invalid presence state. Must be one of: {', '.join(valid_states)}")
+            if activity_type and activity_type not in valid_activities:
+                raise ValueError(f"Invalid activity type. Must be one of: {', '.join(valid_activities)}")
             
             self.presence_state = state
-            if details:
-                self.presence_details = details
             self.last_seen = datetime.utcnow()
             
-            logger.info(f"Updated presence for user {self.username}: {state}")
+            if details:
+                self.presence_details = details
+            if activity_type:
+                self.activity_type = activity_type
+                self.activity_status = activity_status
+                self.activity_details = {
+                    'type': activity_type,
+                    'status': activity_status,
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+            
+            logger.info(f"Updated presence for user {self.username}: {state} ({activity_type if activity_type else 'no activity'})")
         except Exception as e:
             logger.error(f"Error updating presence for user {self.username}: {str(e)}")
             raise
 
-    def set_status(self, text=None, emoji=None):
-        """Set custom status message with emoji support"""
+    def set_status(self, text=None, emoji=None, expires_at=None):
+        """Set custom status message with emoji support and expiration"""
         try:
             if text and len(text) > 100:
                 raise ValueError("Status message cannot exceed 100 characters")
@@ -136,10 +166,63 @@ class User(UserMixin, db.Model):
             self.status = text
             if emoji:
                 self.status_emoji = emoji
-                
+            self.custom_status_expires_at = expires_at
+            
             logger.info(f"Updated status for user {self.username}")
         except Exception as e:
             logger.error(f"Error setting status for user {self.username}: {str(e)}")
+            raise
+
+    def add_badge(self, badge_id, badge_data):
+        """Add a profile badge"""
+        try:
+            if not self.profile_badges:
+                self.profile_badges = []
+            
+            badge = {
+                'id': badge_id,
+                'data': badge_data,
+                'awarded_at': datetime.utcnow().isoformat()
+            }
+            self.profile_badges.append(badge)
+            logger.info(f"Added badge {badge_id} to user {self.username}")
+        except Exception as e:
+            logger.error(f"Error adding badge for user {self.username}: {str(e)}")
+            raise
+
+    def update_connection(self, platform, connection_data):
+        """Update or add a platform connection"""
+        try:
+            if not self.connections:
+                self.connections = {}
+            
+            self.connections[platform] = {
+                **connection_data,
+                'updated_at': datetime.utcnow().isoformat()
+            }
+            logger.info(f"Updated {platform} connection for user {self.username}")
+        except Exception as e:
+            logger.error(f"Error updating connection for user {self.username}: {str(e)}")
+            raise
+
+    def update_privacy_settings(self, settings):
+        """Update user privacy settings"""
+        try:
+            valid_message_settings = {'everyone', 'friends', 'none'}
+            valid_friend_request_settings = {'everyone', 'mutual_friends', 'none'}
+            
+            if 'who_can_message' in settings:
+                if settings['who_can_message'] not in valid_message_settings:
+                    raise ValueError(f"Invalid message privacy setting. Must be one of: {', '.join(valid_message_settings)}")
+            
+            if 'friend_request_setting' in settings:
+                if settings['friend_request_setting'] not in valid_friend_request_settings:
+                    raise ValueError(f"Invalid friend request setting. Must be one of: {', '.join(valid_friend_request_settings)}")
+            
+            self.privacy_settings.update(settings)
+            logger.info(f"Updated privacy settings for user {self.username}")
+        except Exception as e:
+            logger.error(f"Error updating privacy settings for user {self.username}: {str(e)}")
             raise
 
     def has_permission(self, permission_name):

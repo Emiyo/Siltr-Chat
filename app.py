@@ -1,62 +1,47 @@
 import os
-from datetime import datetime, timedelta
-import logging
-from logging.handlers import RotatingFileHandler
-import random
-import string
 import time
-import functools
+import logging
+from datetime import datetime, timedelta
 from functools import wraps
 
-# Flask and extensions
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import (
+    Flask, request, jsonify, render_template, redirect,
+    url_for, flash, send_from_directory, session
+)
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import (
+    LoginManager, UserMixin, login_user,
+    logout_user, current_user, login_required
+)
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from itsdangerous import URLSafeTimedSerializer
 from email_validator import validate_email, EmailNotValidError
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 
-# Configure logging
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
-handler.setFormatter(logging.Formatter(
-    '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-))
-logger.addHandler(handler)
 
 # Initialize Flask app
-def allowed_file(filename, allowed_extensions):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
 app = Flask(__name__)
 
-# Configure app with secure defaults
+# Load configuration
 app.config.update(
-    SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+    SECRET_KEY=os.environ.get('SECRET_KEY', 'your-secret-key'),
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///chat.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     UPLOAD_FOLDER=os.path.join('static', 'uploads'),
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max file size
+    MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50MB max file size
     MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
-    # Login configuration
-    LOGIN_DISABLED=False,
-    LOGIN_MESSAGE="Please log in to access this page.",
-    LOGIN_MESSAGE_CATEGORY="info",
-    SESSION_PROTECTION="strong"
+    MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER')
 )
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 from extensions import db, migrate, socketio, bcrypt, mail, login_manager, init_app
@@ -86,7 +71,10 @@ except Exception as e:
 # Configure login manager
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
-login_manager.session_protection = 'strong'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def logout_required(f):
     @wraps(f)
@@ -96,120 +84,120 @@ def logout_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def retry_on_db_error(max_retries=5, initial_delay=0.1):
-    def decorator(f):
-        @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            retries = 0
-            while retries < max_retries:
-                try:
-                    if retries > 0:
-                        db.session.remove()
-                        db.engine.dispose()
-                    return f(*args, **kwargs)
-                except (OperationalError, SQLAlchemyError) as e:
-                    retries += 1
-                    if retries == max_retries:
-                        logger.error(f"Database operation failed after {max_retries} retries: {str(e)}")
-                        raise
-                    delay = initial_delay * (2 ** (retries - 1))
-                    logger.warning(f"Database operation failed, attempt {retries} of {max_retries}, retrying in {delay:.2f}s: {str(e)}")
-                    time.sleep(delay)
-            return None
-        return wrapper
-    return decorator
-
-# Import models
-from models import User, Message, Channel, Role, Permission
-
-# User loader callback for Flask-Login
-@login_manager.user_loader
-def load_user(user_id):
-    """Load user by ID."""
-    try:
-        user = User.query.get(int(user_id))
-        if user:
-            user.last_seen = datetime.utcnow()
-            db.session.commit()
-        return user
-    except Exception as e:
-        logger.error(f"Error loading user {user_id}: {str(e)}")
-        return None
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 def generate_reset_token(email):
     return serializer.dumps(email, salt='password-reset-salt')
 
 def verify_reset_token(token, expiration=3600):
     try:
-        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+        email = serializer.loads(
+            token,
+            salt='password-reset-salt',
+            max_age=expiration
+        )
         return email
     except:
         return None
 
 def send_password_reset_email(user):
+    token = generate_reset_token(user.email)
+    reset_url = url_for('reset_password', token=token, _external=True)
+    
     try:
-        token = generate_reset_token(user.email)
-        reset_url = url_for('reset_password', token=token, _external=True)
-        msg = Message(
-            subject='Password Reset Request',
-            recipients=[user.email],
-            body=f'''To reset your password, visit the following link:
+        msg = Message('Password Reset Request',
+                     recipients=[user.email])
+        msg.body = f'''To reset your password, visit the following link:
 {reset_url}
 
-If you did not make this request, please ignore this email.
+If you did not make this request, simply ignore this email and no changes will be made.
 '''
-        )
         mail.send(msg)
-        logger.info(f"Password reset email sent to {user.email}")
         return True
     except Exception as e:
         logger.error(f"Failed to send password reset email: {str(e)}")
         return False
 
-# Routes
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html')
-
-@app.route('/profile')
-@login_required
-def profile():
-    """Render user's profile page"""
-    return render_template('profile.html', user=current_user)
-
+# Profile routes
 @app.route('/api/profile', methods=['GET', 'PATCH'])
 @login_required
 def manage_profile():
-    """Get or update user profile"""
-    if request.method == 'GET':
-        return jsonify(current_user.to_dict(include_private=True))
-    
+    """Get or update user profile with enhanced customization"""
     try:
-        data = request.get_json()
+        if request.method == 'GET':
+            return jsonify(current_user.to_dict(include_private=True))
         
-        # Update allowed fields
-        allowed_fields = ['display_name', 'bio', 'theme', 'accent_color']
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # Update allowed fields with enhanced customization
+        allowed_fields = [
+            'display_name', 'bio', 'theme', 'accent_color',
+            'banner_color', 'preferences', 'privacy_settings'
+        ]
+        
+        updated_fields = []
         for field in allowed_fields:
             if field in data:
-                setattr(current_user, field, data[field])
+                if field == 'privacy_settings':
+                    current_user.update_privacy_settings(data[field])
+                elif field == 'preferences':
+                    if not isinstance(data[field], dict):
+                        return jsonify({'error': 'Preferences must be an object'}), 400
+                    current_user.preferences.update(data[field])
+                else:
+                    setattr(current_user, field, data[field])
+                updated_fields.append(field)
         
+        if not updated_fields:
+            return jsonify({'error': 'No valid fields to update'}), 400
+            
         db.session.commit()
+        logger.info(f"Profile updated for user {current_user.username}: {', '.join(updated_fields)}")
         return jsonify(current_user.to_dict()), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         db.session.rollback()
         logger.error(f"Profile update error: {str(e)}")
         return jsonify({'error': 'Failed to update profile'}), 500
 
-@app.route('/api/profile/presence', methods=['PATCH'])
+@app.route('/api/profile/presence', methods=['POST'])
 @login_required
 def update_presence():
-    """Update user's presence state"""
+    """Update user's presence and activity status with rich presence support"""
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         state = data.get('state', 'online')
-        current_user.update_presence(state=state)
+        details = data.get('details', {})
+        activity_type = data.get('activity_type')
+        activity_status = data.get('activity_status')
+        
+        # Validate presence state
+        valid_states = {'online', 'idle', 'dnd', 'offline', 'invisible'}
+        if state not in valid_states:
+            return jsonify({'error': f'Invalid state. Must be one of: {", ".join(valid_states)}'}), 400
+            
+        # Validate activity type if provided
+        if activity_type:
+            valid_activities = {'playing', 'listening', 'watching', 'streaming'}
+            if activity_type not in valid_activities:
+                return jsonify({'error': f'Invalid activity type. Must be one of: {", ".join(valid_activities)}'}), 400
+        
+        current_user.update_presence(
+            state=state,
+            details=details,
+            activity_type=activity_type,
+            activity_status=activity_status
+        )
         db.session.commit()
+        logger.info(f"Presence updated for user {current_user.username}: {state} ({activity_type or 'no activity'})")
         return jsonify(current_user.to_dict())
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -218,15 +206,30 @@ def update_presence():
         logger.error(f"Presence update error: {str(e)}")
         return jsonify({'error': 'Failed to update presence'}), 500
 
-@app.route('/api/profile/status', methods=['PATCH'])
+@app.route('/api/profile/status', methods=['POST'])
 @login_required
 def update_status():
-    """Update user's custom status"""
+    """Update user's custom status with emoji and expiration support"""
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         text = data.get('status')
-        current_user.set_status(text=text)
+        emoji = data.get('emoji')
+        expires_at = None
+        
+        if 'expires_in' in data:
+            try:
+                expires_in = int(data['expires_in'])
+                if expires_in > 0:
+                    expires_at = datetime.utcnow() + timedelta(minutes=expires_in)
+            except (TypeError, ValueError):
+                return jsonify({'error': 'Invalid expiration time'}), 400
+        
+        current_user.set_status(text=text, emoji=emoji, expires_at=expires_at)
         db.session.commit()
+        logger.info(f"Status updated for user {current_user.username}")
         return jsonify(current_user.to_dict())
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -234,6 +237,63 @@ def update_status():
         db.session.rollback()
         logger.error(f"Status update error: {str(e)}")
         return jsonify({'error': 'Failed to update status'}), 500
+
+@app.route('/api/profile/connections', methods=['GET', 'POST', 'DELETE'])
+@login_required
+def manage_connections():
+    """Manage user's platform connections"""
+    if request.method == 'GET':
+        return jsonify(current_user.connections or {})
+    
+    try:
+        data = request.get_json()
+        if request.method == 'POST':
+            platform = data.get('platform')
+            connection_data = data.get('connection_data')
+            if not platform or not connection_data:
+                return jsonify({'error': 'Platform and connection data required'}), 400
+            
+            current_user.update_connection(platform, connection_data)
+            db.session.commit()
+            return jsonify(current_user.connections)
+            
+        elif request.method == 'DELETE':
+            platform = data.get('platform')
+            if not platform:
+                return jsonify({'error': 'Platform required'}), 400
+            
+            if platform in current_user.connections:
+                del current_user.connections[platform]
+                db.session.commit()
+            return jsonify(current_user.connections)
+            
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Connection management error: {str(e)}")
+        return jsonify({'error': 'Failed to manage connections'}), 500
+
+@app.route('/api/profile/badges', methods=['GET', 'POST'])
+@login_required
+def manage_badges():
+    """Manage user's profile badges"""
+    if request.method == 'GET':
+        return jsonify(current_user.profile_badges or [])
+    
+    try:
+        data = request.get_json()
+        badge_id = data.get('badge_id')
+        badge_data = data.get('badge_data')
+        
+        if not badge_id or not badge_data:
+            return jsonify({'error': 'Badge ID and data required'}), 400
+        
+        current_user.add_badge(badge_id, badge_data)
+        db.session.commit()
+        return jsonify(current_user.profile_badges)
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Badge management error: {str(e)}")
+        return jsonify({'error': 'Failed to manage badges'}), 500
 
 @app.route('/api/profile/avatar', methods=['POST'])
 @login_required
@@ -264,6 +324,7 @@ def update_avatar():
             
     return jsonify({'error': 'Invalid file type'}), 400
 
+# Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -342,15 +403,9 @@ def register():
             flash('Email already registered.', 'error')
             return render_template('register.html')
 
-        if not User.validate_password_strength(password):
-            flash('Password must be at least 6 characters and contain at least 2 of the following: uppercase letters, lowercase letters, numbers', 'error')
-            return render_template('register.html')
-
         new_user = User(
             username=username,
-            email=email,
-            presence_state='online',
-            status='Available'
+            email=email
         )
         new_user.set_password(password)
         
@@ -460,43 +515,5 @@ def get_user_profile_by_id(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict(include_private=False))
 
-# Routes moved and consolidated under /api/profile/ namespace
-
-@app.route('/api/user/update_theme', methods=['POST'])
-@login_required
-def update_theme():
-    data = request.get_json()
-    current_user.theme = data.get('theme')
-    current_user.accent_color = data.get('accent_color')
-    db.session.commit()
-    return jsonify(current_user.to_dict())
-
-@app.route('/api/user/update_connections', methods=['POST'])
-@login_required
-def update_connections():
-    data = request.get_json()
-    current_user.connections = data
-    db.session.commit()
-    return jsonify(current_user.to_dict())
-
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Create a test user if none exists
-        if not User.query.filter_by(email='test@example.com').first():
-            test_user = User(
-                username='testuser',
-                email='test@example.com',
-                presence_state='online',
-                bio='Test user account',
-                status='Available'
-            )
-            test_user.set_password('Test123')  # Meets requirements: uppercase, lowercase, and numbers
-            db.session.add(test_user)
-            try:
-                db.session.commit()
-                logger.info("Created test user: test@example.com / Test123")
-            except Exception as e:
-                db.session.rollback()
-                logger.error(f"Failed to create test user: {str(e)}")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
