@@ -278,22 +278,39 @@ body {
 }
 
 .message-actions {
-    visibility: hidden;
     opacity: 0;
     position: absolute;
     right: 0.75rem;
     top: 50%;
-    transform: translate(1rem, -50%) scale(0.95);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-50%);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     gap: 0.5rem;
     align-items: center;
 }
 
 .message:hover .message-actions {
-    visibility: visible;
     opacity: 1;
-    transform: translate(0, -50%) scale(1);
+}
+
+.reply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    color: #4a9eff;
+    background-color: rgba(74, 158, 255, 0.1);
+    border: 1px solid #4a9eff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 0 rgba(74, 158, 255, 0);
+}
+
+.reply-btn:hover {
+    background-color: rgba(74, 158, 255, 0.2);
+    box-shadow: 0 0 15px rgba(74, 158, 255, 0.4);
 }
 
 .reply-btn {
