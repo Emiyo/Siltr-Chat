@@ -47,15 +47,37 @@
                 <div class="theme-customization">
                     <h4>Theme Customization</h4>
                     <div class="form-group">
-                        <label for="banner_color">Profile Banner Color</label>
-                        <input type="color" id="banner_color" name="banner_color" 
-                               value="{{ current_user.banner_color or '#5865F2' }}" class="form-control color-picker">
+                        <label for="theme">Theme</label>
+                        <select id="theme" name="theme" class="form-control">
+                            <option value="dark" {% if current_user.theme == 'dark' %}selected{% endif %}>Dark</option>
+                            <option value="light" {% if current_user.theme == 'light' %}selected{% endif %}>Light</option>
+                            <option value="custom" {% if current_user.theme == 'custom' %}selected{% endif %}>Custom</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="accent_color">Accent Color</label>
-                        <input type="color" id="accent_color" name="accent_color" 
-                               value="{{ current_user.accent_color or '#4a9eff' }}" class="form-control color-picker">
+                    <div class="custom-theme-options" {% if current_user.theme != 'custom' %}style="display: none;"{% endif %}>
+                        <div class="form-group">
+                            <label for="banner_color">Profile Banner Color</label>
+                            <input type="color" id="banner_color" name="banner_color" 
+                                   value="{{ current_user.banner_color or '#5865F2' }}" class="form-control color-picker">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="accent_color">Accent Color</label>
+                            <input type="color" id="accent_color" name="accent_color" 
+                                   value="{{ current_user.accent_color or '#4a9eff' }}" class="form-control color-picker">
+                        </div>
+                    </div>
+
+                    <div class="theme-preview">
+                        <h5>Preview</h5>
+                        <div class="preview-container">
+                            <div class="preview-message preview-own">Your message</div>
+                            <div class="preview-message preview-other">Other's message</div>
+                            <div class="preview-input">
+                                <input type="text" readonly placeholder="Message #general" class="preview-message-input">
+                            </div>
+                        </div>
                     </div>
                 </div>
 

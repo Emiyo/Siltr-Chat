@@ -199,3 +199,76 @@ input[type="file"]::file-selector-button {
 input[type="file"]::file-selector-button:hover {
     background-color: #4752c4;
 }
+
+/* Theme Preview Styles */
+.theme-preview {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+}
+
+.theme-preview h5 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.preview-container {
+    background-color: var(--background-primary);
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: var(--elevation-low);
+}
+
+.preview-message {
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    border-radius: 4px;
+    color: var(--text-color);
+}
+
+.preview-own {
+    background-color: var(--message-own-bg);
+    margin-left: auto;
+    width: fit-content;
+}
+
+.preview-other {
+    background-color: var(--message-other-bg);
+    margin-right: auto;
+    width: fit-content;
+}
+
+.preview-input {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: var(--channeltextarea-background);
+    border-radius: 4px;
+}
+
+.preview-message-input {
+    width: 100%;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.preview-message-input::placeholder {
+    color: var(--text-light);
+}
+
+.custom-theme-options {
+    padding: 1rem;
+    margin: 1rem 0;
+    background-color: var(--background-secondary);
+    border-radius: 6px;
+    transition: opacity 0.3s ease;
+}
+
+.custom-theme-options.hidden {
+    display: none;
+    opacity: 0;
+}
