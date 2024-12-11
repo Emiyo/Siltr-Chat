@@ -1,5 +1,92 @@
-// Crypto utilities for E2E encryption
+// Crypto utilities for E2E encryption with Perfect Forward Secrecy
 class CryptoManager {
+    // Generate ECDH key pair for Perfect Forward Secrecy
+    static async generateDHKeyPair() {
+        try {
+            return await window.crypto.subtle.generateKey(
+                {
+                    name: "ECDH",
+                    namedCurve: "P-256" // Using NIST P-256 curve for good security/performance balance
+                },
+                true, // extractable
+                ["deriveKey", "deriveBits"] // Key usage
+            );
+        } catch (error) {
+            console.error('Error generating DH key pair:', error);
+            throw new Error('Failed to generate DH key pair');
+        }
+    }
+
+    // Export public DH key for sharing
+    static async exportDHPublicKey(publicKey) {
+        try {
+            const exported = await window.crypto.subtle.exportKey(
+                "spki",
+                publicKey
+            );
+            return btoa(String.fromCharCode(...new Uint8Array(exported)));
+        } catch (error) {
+            console.error('Error exporting DH public key:', error);
+            throw new Error('Failed to export DH public key');
+        }
+    }
+
+    // Import peer's public DH key
+    static async importDHPublicKey(publicKeyBase64) {
+        try {
+            const binaryDerString = atob(publicKeyBase64);
+            const binaryDer = new Uint8Array(binaryDerString.length);
+            for (let i = 0; i < binaryDerString.length; i++) {
+                binaryDer[i] = binaryDerString.charCodeAt(i);
+            }
+
+            return await window.crypto.subtle.importKey(
+                "spki",
+                binaryDer,
+                {
+                    name: "ECDH",
+                    namedCurve: "P-256"
+                },
+                true,
+                [] // No key usage needed for public key
+            );
+        } catch (error) {
+            console.error('Error importing DH public key:', error);
+            throw new Error('Failed to import DH public key');
+        }
+    }
+
+    // Derive shared secret using our private key and peer's public key
+    static async deriveDHSharedKey(privateKey, peerPublicKey) {
+        try {
+            // Derive shared bits
+            const sharedBits = await window.crypto.subtle.deriveBits(
+                {
+                    name: "ECDH",
+                    public: peerPublicKey
+                },
+                privateKey,
+                256 // Generate 256 bits for AES-256
+            );
+
+            // Convert shared bits to AES key
+            return await window.crypto.subtle.importKey(
+                "raw",
+                sharedBits,
+                {
+                    name: "AES-GCM",
+                    length: 256
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+        } catch (error) {
+            console.error('Error deriving shared key:', error);
+            throw new Error('Failed to derive shared key');
+        }
+    }
+
+    // Legacy RSA key pair generation (kept for compatibility)
     static async generateKeyPair() {
         const keyPair = await window.crypto.subtle.generateKey(
             {

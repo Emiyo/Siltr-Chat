@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Encryption state
     let keyPair = null;
     let channelKeys = new Map();  // Store symmetric keys for each channel
+    let dhKeyPairs = new Map();   // Store DH key pairs for each channel
+    let peerPublicKeys = new Map(); // Store peer public keys for each channel
+    const KEY_ROTATION_MESSAGE_COUNT = 100; // Rotate keys every 100 messages
+    const messageCounters = new Map(); // Track message counts for key rotation
 
     // Show login modal on page load
     usernameModal.show();
@@ -92,26 +96,59 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // Get or create symmetric key for the channel
-                let symmetricKey = channelKeys.get(currentChannel);
-                if (!symmetricKey) {
-                    symmetricKey = await CryptoManager.generateSymmetricKey();
-                    channelKeys.set(currentChannel, symmetricKey);
+                // Get current channel's shared key from DH key exchange
+                let sharedKey = channelKeys.get(currentChannel);
+                if (!sharedKey) {
+                    console.error('No shared key available for channel');
+                    addMessage({
+                        type: 'system',
+                        text: 'Secure connection not established. Please try again.',
+                        timestamp: new Date().toISOString()
+                    });
+                    return;
                 }
 
-                // Create message payload
+                // Increment message counter for this channel
+                let msgCount = messageCounters.get(currentChannel) || 0;
+                msgCount++;
+                messageCounters.set(currentChannel, msgCount);
+
+                // Check if key rotation is needed
+                if (msgCount >= KEY_ROTATION_MESSAGE_COUNT) {
+                    try {
+                        // Generate new DH key pair
+                        const newDHKeyPair = await CryptoManager.generateDHKeyPair();
+                        dhKeyPairs.set(currentChannel, newDHKeyPair);
+                        
+                        // Export public key for sharing
+                        const publicKeyBase64 = await CryptoManager.exportDHPublicKey(newDHKeyPair.publicKey);
+                        
+                        // Notify others about key rotation
+                        socket.emit('key_rotation_request', {
+                            channel_id: currentChannel,
+                            public_key: publicKeyBase64
+                        });
+                        
+                        console.log('Initiated key rotation for channel:', currentChannel);
+                    } catch (error) {
+                        console.error('Key rotation error:', error);
+                    }
+                }
+
+                // Create message payload with timestamp
                 const messagePayload = {
                     content: message,
                     timestamp: new Date().toISOString()
                 };
 
-                // Encrypt the message payload
+                // Encrypt the message with current shared key
                 const encryptedMessage = await CryptoManager.encryptMessage(
                     JSON.stringify(messagePayload),
-                    symmetricKey
+                    sharedKey
                 );
                 
-                const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+                // Export the current shared key for message recipients
+                const exportedKey = await CryptoManager.exportSymmetricKey(sharedKey);
 
                 const messageData = {
                     text: encryptedMessage,
@@ -419,12 +456,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     currentChannel = channelId;
                     messageContainer.innerHTML = '';
-                    addMessage({
-                        type: 'system',
-                        text: `Joined channel #${item.textContent.trim()}`,
-                        timestamp: new Date().toISOString()
-                    });
-                    socket.emit('join_channel', { channel_id: channelId });
+                    
+                    // Initialize ECDH key pair for the new channel
+                    try {
+                        const dhKeyPair = await CryptoManager.generateDHKeyPair();
+                        dhKeyPairs.set(channelId, dhKeyPair);
+                        
+                        // Export public key for sharing
+                        const publicKeyBase64 = await CryptoManager.exportDHPublicKey(dhKeyPair.publicKey);
+                        
+                        addMessage({
+                            type: 'system',
+                            text: `Joined channel #${item.textContent.trim()} - Initializing secure connection...`,
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        // Join channel with our public key
+                        socket.emit('join_channel', {
+                            channel_id: channelId,
+                            public_key: publicKeyBase64
+                        });
+                        
+                        // Initialize message counter for this channel
+                        messageCounters.set(channelId, 0);
+                    } catch (error) {
+                        console.error('Failed to initialize secure channel:', error);
+                        addMessage({
+                            type: 'system',
+                            text: 'Failed to establish secure connection. Please try again.',
+                            timestamp: new Date().toISOString()
+                        });
+                    }
                     document.querySelectorAll('.channel-item').forEach(ch => 
                         ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
                     );
@@ -830,6 +892,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${messageContent}`;
         } else {
             const isOwnMessage = message.sender_id === user_id;
+    // Handle key exchange when users join/leave channels
+    socket.on('user_key_exchange', async ({ channel_id, user_id, public_key }) => {
+        try {
+            console.log('Received key exchange from user:', user_id);
+            
+            // Import peer's public key
+            const peerPublicKey = await CryptoManager.importDHPublicKey(public_key);
+            
+            // Store peer's public key
+            if (!peerPublicKeys.has(channel_id)) {
+                peerPublicKeys.set(channel_id, new Map());
+            }
+            peerPublicKeys.get(channel_id).set(user_id, peerPublicKey);
+            
+            // Derive shared key using our private key and peer's public key
+            const dhKeyPair = dhKeyPairs.get(channel_id);
+            if (dhKeyPair) {
+                const sharedKey = await CryptoManager.deriveDHSharedKey(
+                    dhKeyPair.privateKey,
+                    peerPublicKey
+                );
+                
+                // Store the shared key for this channel
+                channelKeys.set(channel_id, sharedKey);
+                
+                console.log('Established secure connection with user:', user_id);
+            }
+        } catch (error) {
+            console.error('Key exchange error:', error);
+        }
+    });
+
+    // Handle key rotation
+    socket.on('key_rotation_request', async ({ channel_id, initiator_id, public_key }) => {
+        try {
+            console.log('Received key rotation request from:', initiator_id);
+            
+            // Generate new DH key pair
+            const newDHKeyPair = await CryptoManager.generateDHKeyPair();
+            dhKeyPairs.set(channel_id, newDHKeyPair);
+            
+            // Export our new public key
+            const publicKeyBase64 = await CryptoManager.exportDHPublicKey(newDHKeyPair.publicKey);
+            
+            // Send our new public key
+            socket.emit('key_rotation_response', {
+                channel_id,
+                public_key: publicKeyBase64
+            });
+            
+            // Import peer's new public key and derive new shared key
+            const peerPublicKey = await CryptoManager.importDHPublicKey(public_key);
+            const sharedKey = await CryptoManager.deriveDHSharedKey(
+                newDHKeyPair.privateKey,
+                peerPublicKey
+            );
+            
+            // Update channel key
+            channelKeys.set(channel_id, sharedKey);
+            
+            // Reset message counter
+            messageCounters.set(channel_id, 0);
+            
+            console.log('Key rotation completed for channel:', channel_id);
+        } catch (error) {
+            console.error('Key rotation error:', error);
+        }
+    });
             messageDiv.className = `message ${isOwnMessage ? 'message-own' : 'message-other'}`;
             messageHeader = isOwnMessage ? 
                 `<div class="message-timestamp">${timestamp}</div>` :

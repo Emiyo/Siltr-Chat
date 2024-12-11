@@ -700,13 +700,24 @@ def handle_join_channel(data):
         return
     
     channel_id = data.get('channel_id')
+    public_key = data.get('public_key')  # Get user's public key
+    
     channel = Channel.query.get(channel_id)
     if not channel:
         emit('error', {'message': 'Channel not found'})
         return
     
+    user_data = active_users[request.sid]
+    
     # Join the channel room
     join_room(f'channel_{channel_id}')
+    
+    # Broadcast the new user's public key to all users in the channel
+    emit('user_key_exchange', {
+        'channel_id': channel_id,
+        'user_id': user_data['id'],
+        'public_key': public_key
+    }, room=f'channel_{channel_id}')
     
     # Get recent messages for this channel
     recent_messages = Message.query\
