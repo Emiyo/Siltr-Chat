@@ -3,14 +3,16 @@ class CryptoManager {
     // Generate ECDH key pair for Perfect Forward Secrecy
     static async generateDHKeyPair() {
         try {
-            return await window.crypto.subtle.generateKey(
+            const keyPair = await window.crypto.subtle.generateKey(
                 {
                     name: "ECDH",
-                    namedCurve: "P-256" // Using NIST P-256 curve for good security/performance balance
+                    namedCurve: "P-256" // Using NIST P-256 curve
                 },
                 true, // extractable
                 ["deriveKey", "deriveBits"] // Key usage
             );
+            console.log('Generated new DH key pair');
+            return keyPair;
         } catch (error) {
             console.error('Error generating DH key pair:', error);
             throw new Error('Failed to generate DH key pair');
@@ -18,31 +20,28 @@ class CryptoManager {
     }
 
     // Export public DH key for sharing
-    static async exportDHPublicKey(publicKey) {
+    static async exportPublicKey(publicKey) {
         try {
             const exported = await window.crypto.subtle.exportKey(
                 "spki",
                 publicKey
             );
-            return btoa(String.fromCharCode(...new Uint8Array(exported)));
+            const base64Key = btoa(String.fromCharCode(...new Uint8Array(exported)));
+            console.log('Exported public key successfully');
+            return base64Key;
         } catch (error) {
-            console.error('Error exporting DH public key:', error);
-            throw new Error('Failed to export DH public key');
+            console.error('Error exporting public key:', error);
+            throw new Error('Failed to export public key');
         }
     }
 
     // Import peer's public DH key
-    static async importDHPublicKey(publicKeyBase64) {
+    static async importPublicKey(base64Key) {
         try {
-            const binaryDerString = atob(publicKeyBase64);
-            const binaryDer = new Uint8Array(binaryDerString.length);
-            for (let i = 0; i < binaryDerString.length; i++) {
-                binaryDer[i] = binaryDerString.charCodeAt(i);
-            }
-
-            return await window.crypto.subtle.importKey(
+            const binaryKey = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+            const importedKey = await window.crypto.subtle.importKey(
                 "spki",
-                binaryDer,
+                binaryKey,
                 {
                     name: "ECDH",
                     namedCurve: "P-256"
@@ -50,27 +49,29 @@ class CryptoManager {
                 true,
                 [] // No key usage needed for public key
             );
+            console.log('Imported peer public key successfully');
+            return importedKey;
         } catch (error) {
-            console.error('Error importing DH public key:', error);
-            throw new Error('Failed to import DH public key');
+            console.error('Error importing public key:', error);
+            throw new Error('Failed to import public key');
         }
     }
 
-    // Derive shared secret using our private key and peer's public key
-    static async deriveDHSharedKey(privateKey, peerPublicKey) {
+    // Derive shared secret using private key and peer's public key
+    static async deriveSharedSecret(privateKey, peerPublicKey) {
         try {
-            // Derive shared bits
+            // Generate shared bits
             const sharedBits = await window.crypto.subtle.deriveBits(
                 {
                     name: "ECDH",
                     public: peerPublicKey
                 },
                 privateKey,
-                256 // Generate 256 bits for AES-256
+                256 // Generate 256 bits
             );
 
-            // Convert shared bits to AES key
-            return await window.crypto.subtle.importKey(
+            // Convert to AES key
+            const sharedKey = await window.crypto.subtle.importKey(
                 "raw",
                 sharedBits,
                 {
@@ -80,9 +81,63 @@ class CryptoManager {
                 true,
                 ["encrypt", "decrypt"]
             );
+            console.log('Derived shared secret successfully');
+            return sharedKey;
         } catch (error) {
-            console.error('Error deriving shared key:', error);
-            throw new Error('Failed to derive shared key');
+            console.error('Error deriving shared secret:', error);
+            throw new Error('Failed to derive shared secret');
+        }
+    }
+
+    // Encrypt message using shared key
+    static async encryptMessage(message, sharedKey) {
+        try {
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encodedMessage = new TextEncoder().encode(message);
+
+            const encryptedData = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                sharedKey,
+                encodedMessage
+            );
+
+            // Combine IV and encrypted data
+            const combined = new Uint8Array(iv.length + encryptedData.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(encryptedData), iv.length);
+
+            return btoa(String.fromCharCode(...combined));
+        } catch (error) {
+            console.error('Error encrypting message:', error);
+            throw new Error('Failed to encrypt message');
+        }
+    }
+
+    // Decrypt message using shared key
+    static async decryptMessage(encryptedMessage, sharedKey) {
+        try {
+            const combined = Uint8Array.from(atob(encryptedMessage), c => c.charCodeAt(0));
+            
+            // Extract IV and encrypted data
+            const iv = combined.slice(0, 12);
+            const encryptedData = combined.slice(12);
+
+            const decryptedData = await window.crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                sharedKey,
+                encryptedData
+            );
+
+            return new TextDecoder().decode(decryptedData);
+        } catch (error) {
+            console.error('Error decrypting message:', error);
+            throw new Error('Failed to decrypt message');
         }
     }
 
