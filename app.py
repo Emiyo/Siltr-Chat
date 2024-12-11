@@ -81,10 +81,21 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def set_password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        if not password:
+            raise ValueError("Password cannot be empty")
+        hashed = bcrypt.generate_password_hash(password)
+        self.password_hash = hashed.decode('utf-8') if isinstance(hashed, bytes) else hashed
+        logger.info(f"Password hash generated, length: {len(self.password_hash)}")
 
     def check_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
+        if not self.password_hash:
+            logger.error("No password hash stored for user")
+            return False
+        try:
+            return bcrypt.check_password_hash(self.password_hash, password)
+        except Exception as e:
+            logger.error(f"Error checking password: {str(e)}")
+            return False
 
     def to_dict(self):
         """Convert user object to dictionary with only existing columns"""
@@ -144,12 +155,23 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user:
-            if user.check_password(password):
-                login_user(user)
-                logger.info(f"User {user.username} logged in successfully")
-                return redirect(url_for('index'))
-            else:
-                logger.warning(f"Login failed: Invalid password for user {user.username}")
+            logger.info(f"Found user {user.username}, verifying password")
+            stored_hash = user.password_hash
+            logger.info(f"Stored hash length: {len(stored_hash) if stored_hash else 'None'}")
+            
+            try:
+                is_valid = user.check_password(password)
+                logger.info(f"Password verification result: {is_valid}")
+                if is_valid:
+                    login_user(user)
+                    logger.info(f"User {user.username} logged in successfully")
+                    return redirect(url_for('index'))
+                else:
+                    logger.warning(f"Login failed: Invalid password for user {user.username}")
+            except Exception as e:
+                logger.error(f"Password verification error: {str(e)}")
+                flash('An error occurred during login', 'error')
+                return redirect(url_for('login'))
         else:
             logger.warning(f"Login failed: No user found with email {email}")
 

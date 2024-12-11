@@ -6,3 +6,13 @@
 [2024-12-11 17:18:22,437] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
 [2024-12-11 17:18:28,502] INFO in app: Login attempt for email: etoiyoiky@gmail.com
 [2024-12-11 17:18:28,630] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
+[2024-12-11 17:25:11,971] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:25:13,852] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
+[2024-12-11 17:25:32,093] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:25:32,231] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
+[2024-12-11 17:26:03,264] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:26:04,391] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
+[2024-12-11 17:27:17,657] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:27:18,044] WARNING in app: Login failed: Invalid password for user Apple
+[2024-12-11 17:27:30,861] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:27:31,248] WARNING in app: Login failed: Invalid password for user Apple
