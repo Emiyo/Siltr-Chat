@@ -228,33 +228,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const fiveMinutesAgo = new Date(now - 5 * 60 * 1000);
         
-        const sortedUsers = users.sort((a, b) => {
-            const aOnline = a.last_seen && new Date(a.last_seen) > fiveMinutesAgo;
-            const bOnline = b.last_seen && new Date(b.last_seen) > fiveMinutesAgo;
-            
-            if (aOnline === bOnline) {
-                return (a.display_name || a.username).localeCompare(b.display_name || b.username);
-            }
-            return aOnline ? -1 : 1;
-        });
-
-        userList.innerHTML = sortedUsers.map(user => {
-            if (!user || !user.username) return '';
-            
+        const onlineUsers = [];
+        const offlineUsers = [];
+        
+        users.forEach(user => {
+            if (!user || !user.username) return;
             const isOnline = user.last_seen && new Date(user.last_seen) > fiveMinutesAgo;
-            const displayName = user.display_name || user.username;
-            
-            return `
-                <div class="user-item" onclick="window.fetchAndDisplayUserProfile('${user.id}')">
-                    <div class="user-info">
-                        <span class="username ${isOnline ? 'online' : 'offline'}">
-                            ${displayName}
-                        </span>
-                        ${user.status ? `<div class="user-status">${user.status}</div>` : ''}
+            (isOnline ? onlineUsers : offlineUsers).push(user);
+        });
+        
+        // Sort each group alphabetically
+        const sortByName = (a, b) => (a.display_name || a.username).localeCompare(b.display_name || b.username);
+        onlineUsers.sort(sortByName);
+        offlineUsers.sort(sortByName);
+
+        // Generate HTML with separators
+        userList.innerHTML = `
+            <div class="user-section">
+                <div class="user-section-header">Online — ${onlineUsers.length}</div>
+                ${onlineUsers.map(user => `
+                    <div class="user-item" onclick="window.fetchAndDisplayUserProfile(${user.id})">
+                        <div class="user-info">
+                            <span class="username online">
+                                ${user.display_name || user.username}
+                            </span>
+                            ${user.status ? `<div class="user-status">${user.status}</div>` : ''}
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `).join('')}
+            </div>
+            <div class="user-section">
+                <div class="user-section-header">Offline — ${offlineUsers.length}</div>
+                ${offlineUsers.map(user => `
+                    <div class="user-item" onclick="window.fetchAndDisplayUserProfile(${user.id})">
+                        <div class="user-info">
+                            <span class="username offline">
+                                ${user.display_name || user.username}
+                            </span>
+                            ${user.status ? `<div class="user-status">${user.status}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     // Navigation bar event listeners
