@@ -111,9 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
         socket.on('connect', () => {
             console.log('Profile socket connected successfully');
             reconnectAttempts = 0;
-            // Request initial data
-            socket.emit('get_categories');
-            socket.emit('get_user_list');
         });
 
         socket.on('disconnect', () => {
@@ -124,10 +121,15 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Profile connection error:', error);
         });
 
-        // Handle incoming socket events
+        socket.on('user_connected', (userData) => {
+            console.log('User connected:', userData);
+        });
+
         socket.on('categories_list', (data) => {
             console.log('Received categories:', data);
-            // Handle categories data here
+            if (data.categories) {
+                updateCategories(data.categories);
+            }
         });
 
         socket.on('user_list', (data) => {
@@ -139,7 +141,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
         socket.on('error', (data) => {
             console.error('Socket error:', data);
+            // Display error message to user if needed
         });
+
+        function updateCategories(categories) {
+            const categoryList = document.getElementById('categoryList');
+            if (!categoryList) return;
+
+            categoryList.innerHTML = '';
+            categories.forEach(category => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.innerHTML = `
+                    <div class="category-header">
+                        <span>${category.name}</span>
+                    </div>
+                    ${category.channels ? `
+                        <div class="channel-list">
+                            ${category.channels.map(channel => `
+                                <div class="channel-item ${channel.is_private ? 'channel-private' : ''}">
+                                    <span>#${channel.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `;
+                categoryList.appendChild(categoryItem);
+            });
+        }
     }
 
     function updateUserList(users) {

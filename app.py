@@ -7,6 +7,7 @@ from flask_mail import Mail, Message
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeTimedSerializer
+from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
 import os
@@ -39,6 +40,7 @@ logger.setLevel(logging.INFO)
 
 # Initialize extensions
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 mail = Mail(app)
 socketio = SocketIO(
@@ -349,40 +351,40 @@ def update_avatar():
 
 # Socket event handlers
 @socketio.on('connect')
-def handle_connect(auth=None):
+def handle_connect():
     """Handle client connection"""
     try:
-        logger.info("Client connecting with auth: %s", auth)
         if not current_user.is_authenticated:
             logger.warning("Unauthenticated client attempting to connect")
             return False
         
         logger.info("Authenticated user connecting: %s", current_user.username)
-        join_room(f'user_{current_user.id}')
         
-        try:
-            # Send initial user data
-            emit('user_connected', current_user.to_dict())
-            
-            # Send initial user list
-            users = User.query.all()
-            logger.info("Sending user list with %d users", len(users))
-            emit('user_list', {'users': [user.to_dict() for user in users]})
-            
-            # Send categories list
-            categories = Category.query.all()
-            logger.info("Sending categories list with %d categories", len(categories))
-            emit('categories_list', {'categories': [category.to_dict() for category in categories]})
-            
-            logger.info("Client connected successfully: %s", current_user.username)
-            return True
-        except Exception as e:
-            logger.error("Error sending initial data: %s", str(e), exc_info=True)
-            emit('error', {'message': 'Error loading initial data'})
-            return False
-            
+        # Send initial user data
+        user_data = current_user.to_dict()
+        logger.info("Sending user data: %s", user_data)
+        emit('user_connected', user_data)
+        
+        # Send initial user list
+        users = User.query.all()
+        users_data = [user.to_dict() for user in users]
+        logger.info("Sending user list with %d users", len(users_data))
+        emit('user_list', {'users': users_data})
+        
+        # Send categories list
+        categories = Category.query.all()
+        categories_data = [category.to_dict() for category in categories]
+        logger.info("Sending categories list with %d categories", len(categories_data))
+        emit('categories_list', {'categories': categories_data})
+        
+        # Join user's room
+        join_room(f'user_{current_user.id}')
+        logger.info("Client connected successfully: %s", current_user.username)
+        return True
+        
     except Exception as e:
         logger.error("Error in handle_connect: %s", str(e), exc_info=True)
+        emit('error', {'message': 'Failed to initialize connection'})
         return False
 
 @socketio.on('disconnect')
