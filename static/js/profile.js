@@ -207,43 +207,7 @@ const MAX_RECONNECT_ATTEMPTS = 3;
 document.addEventListener('DOMContentLoaded', function() {
     const presenceSelector = document.getElementById('presenceSelector');
     
-    if (presenceSelector) {
-        presenceSelector.addEventListener('change', async event => {
-            const newPresence = event.target.value;
-            if (socket && socket.connected) {
-                try {
-                    // Emit presence update
-                    socket.emit('update_presence', { presence_state: newPresence });
-                    
-                    // Listen for confirmation
-                    socket.once('presence_updated', (data) => {
-                        if (data.success) {
-                            // Update local UI only after server confirms
-                            const currentUserPresence = document.querySelector('.user-item[data-self="true"] .presence-indicator');
-                            if (currentUserPresence) {
-                                currentUserPresence.className = `presence-indicator ${data.presence_state}`;
-                            }
-                            // Store in localStorage as backup
-                            localStorage.setItem('lastPresenceState', data.presence_state);
-                            console.log('Presence updated successfully:', data.presence_state);
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error updating presence:', error);
-                }
-            }
-        });
-        
-        // Initialize presence from localStorage if available
-        const savedPresence = localStorage.getItem('lastPresenceState');
-        if (savedPresence) {
-            presenceSelector.value = savedPresence;
-            const currentUserPresence = document.querySelector('.user-item[data-self="true"] .presence-indicator');
-            if (currentUserPresence) {
-                currentUserPresence.className = `presence-indicator ${savedPresence}`;
-            }
-        }
-    }
+    
 
     function initializeSocket() {
         if (!socket) {

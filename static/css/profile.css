@@ -37,39 +37,7 @@
     object-fit: cover;
 }
 
-.presence-indicator {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 4px solid var(--terminal-bg);
-    transition: background-color 0.3s ease;
-}
 
-/* Discord-style presence indicators with transitions */
-.presence-indicator.online { 
-    background-color: #43b581 !important;
-    box-shadow: 0 0 0 2px #43b581;
-}
-.presence-indicator.idle { 
-    background-color: #faa61a !important;
-    box-shadow: 0 0 0 2px #faa61a;
-}
-.presence-indicator.dnd { 
-    background-color: #f04747 !important;
-    box-shadow: 0 0 0 2px #f04747;
-}
-.presence-indicator.offline { 
-    background-color: #747f8d !important;
-    box-shadow: 0 0 0 2px #747f8d;
-}
-
-/* Add transition for smooth color changes */
-.presence-indicator {
-    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
-}
 
 .profile-username-container {
     padding-bottom: 10px;

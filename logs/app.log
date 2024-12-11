@@ -1,49 +1,35 @@
-2024-12-11 19:28:41,930 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:451]
-2024-12-11 19:28:43,174 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:28:44,806 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:636]
-2024-12-11 19:28:44,869 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:643]
-2024-12-11 19:28:46,602 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:435]
-2024-12-11 19:28:46,926 INFO: Sending user data: {'id': 2, 'username': 'Hollow', 'email': 'etoiyoiki@gmail.com', 'is_verified': False, 'is_moderator': False, 'avatar': '/static/uploads/avatar_2_1733941723.png', 'display_name': 'Hollow', 'status': 'Hi', 'presence_state': 'online', 'accent_color': '#4d0000', 'bio': '', 'location': '', 'last_seen': '2024-12-11T19:28:46.602418', 'created_at': '2024-12-11T17:48:42.495047', 'roles': []} [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:28:47,059 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:451]
-2024-12-11 19:28:47,191 INFO: Sending categories list with 1 categories [in /home/runner/TornadoChatRoom/app.py:457]
-2024-12-11 19:28:47,192 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:462]
-2024-12-11 19:28:47,777 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:435]
-2024-12-11 19:28:48,097 INFO: Sending user data: {'id': 2, 'username': 'Hollow', 'email': 'etoiyoiki@gmail.com', 'is_verified': False, 'is_moderator': False, 'avatar': '/static/uploads/avatar_2_1733941723.png', 'display_name': 'Hollow', 'status': 'Hi', 'presence_state': 'online', 'accent_color': '#4d0000', 'bio': '', 'location': '', 'last_seen': '2024-12-11T19:28:47.778196', 'created_at': '2024-12-11T17:48:42.495047', 'roles': []} [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:28:48,225 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:451]
-2024-12-11 19:28:48,352 INFO: Sending categories list with 1 categories [in /home/runner/TornadoChatRoom/app.py:457]
-2024-12-11 19:28:48,353 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:462]
-2024-12-11 19:28:49,744 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:435]
-2024-12-11 19:28:50,061 INFO: Sending user data: {'id': 2, 'username': 'Hollow', 'email': 'etoiyoiki@gmail.com', 'is_verified': False, 'is_moderator': False, 'avatar': '/static/uploads/avatar_2_1733941723.png', 'display_name': 'Hollow', 'status': 'Hi', 'presence_state': 'online', 'accent_color': '#4d0000', 'bio': '', 'location': '', 'last_seen': '2024-12-11T19:28:49.744540', 'created_at': '2024-12-11T17:48:42.495047', 'roles': []} [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:28:50,190 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:451]
-2024-12-11 19:28:50,317 INFO: Sending categories list with 1 categories [in /home/runner/TornadoChatRoom/app.py:457]
-2024-12-11 19:28:50,318 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:462]
-2024-12-11 19:29:25,826 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:475]
-2024-12-11 19:29:25,826 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:478]
-2024-12-11 19:37:26,430 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:37:28,121 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:634]
-2024-12-11 19:37:28,185 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:641]
-2024-12-11 19:37:29,299 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:37:30,286 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:435]
-2024-12-11 19:37:30,620 INFO: Sending user data: {'id': 2, 'username': 'Hollow', 'email': 'etoiyoiki@gmail.com', 'is_verified': False, 'is_moderator': False, 'avatar': '/static/uploads/avatar_2_1733941723.png', 'display_name': 'Hollow', 'status': 'Hi', 'presence_state': 'online', 'accent_color': '#4d0000', 'bio': '', 'location': '', 'last_seen': '2024-12-11T19:37:30.287983', 'created_at': '2024-12-11T17:48:42.495047', 'roles': []} [in /home/runner/TornadoChatRoom/app.py:443]
-2024-12-11 19:37:30,755 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:449]
-2024-12-11 19:37:30,889 INFO: Sending categories list with 1 categories [in /home/runner/TornadoChatRoom/app.py:455]
-2024-12-11 19:37:30,890 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:460]
-2024-12-11 19:37:30,943 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:634]
-2024-12-11 19:37:31,008 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:641]
-2024-12-11 19:37:32,180 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:37:33,807 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:634]
-2024-12-11 19:37:33,870 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:641]
-2024-12-11 19:37:36,155 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:435]
-2024-12-11 19:37:36,490 INFO: Sending user data: {'id': 2, 'username': 'Hollow', 'email': 'etoiyoiki@gmail.com', 'is_verified': False, 'is_moderator': False, 'avatar': '/static/uploads/avatar_2_1733941723.png', 'display_name': 'Hollow', 'status': 'Hi', 'presence_state': 'online', 'accent_color': '#4d0000', 'bio': '', 'location': '', 'last_seen': '2024-12-11T19:37:36.155384', 'created_at': '2024-12-11T17:48:42.495047', 'roles': []} [in /home/runner/TornadoChatRoom/app.py:443]
-2024-12-11 19:37:36,624 INFO: Sending user list with 2 users [in /home/runner/TornadoChatRoom/app.py:449]
-2024-12-11 19:37:36,756 INFO: Sending categories list with 1 categories [in /home/runner/TornadoChatRoom/app.py:455]
-2024-12-11 19:37:36,757 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:460]
-2024-12-11 19:38:54,588 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:38:56,257 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:637]
-2024-12-11 19:38:56,321 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:644]
-2024-12-11 19:38:57,391 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:38:59,032 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:637]
-2024-12-11 19:38:59,096 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:644]
-2024-12-11 19:39:00,153 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:39:01,766 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:637]
-2024-12-11 19:39:01,829 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:644]
+2024-12-11 19:41:02,155 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:578]
+2024-12-11 19:41:02,221 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:585]
+2024-12-11 19:41:03,419 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 19:41:05,043 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:578]
+2024-12-11 19:41:05,107 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:585]
+2024-12-11 19:41:05,637 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
+2024-12-11 19:41:05,984 ERROR: Error in handle_connect: 'User' object has no attribute 'presence_state' [in /home/runner/TornadoChatRoom/app.py:455]
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 834, in _handle_event
+    ret = handler(auth)
+          ^^^^^^^^^^^^^
+TypeError: handle_connect() takes 0 positional arguments but 1 was given
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 430, in handle_connect
+    logger.info(f"Current presence state for {current_user.username}: {current_user.presence_state}")
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'presence_state'
+2024-12-11 19:41:08,026 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
+2024-12-11 19:41:08,347 ERROR: Error in handle_connect: 'User' object has no attribute 'presence_state' [in /home/runner/TornadoChatRoom/app.py:455]
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 834, in _handle_event
+    ret = handler(auth)
+          ^^^^^^^^^^^^^
+TypeError: handle_connect() takes 0 positional arguments but 1 was given
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 430, in handle_connect
+    logger.info(f"Current presence state for {current_user.username}: {current_user.presence_state}")
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'presence_state'
