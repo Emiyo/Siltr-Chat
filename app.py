@@ -733,7 +733,17 @@ def handle_join(data):
     # Get or create user
     user = User.query.filter_by(username=username).first()
     if not user:
-        user = User(username=username)
+        # Generate a temporary email for system-created users
+        temp_email = f"{username.lower()}@temp.com"
+        user = User(
+            username=username,
+            email=temp_email,
+            created_at=datetime.utcnow(),
+            last_seen=datetime.utcnow(),
+            preferences={'theme': 'dark', 'notifications': 'all', 'message_display': 'comfortable'},
+            contact_info={'email_visibility': 'private', 'social_links': {}}
+        )
+        user.set_password('temporary')  # Set a temporary password
         db.session.add(user)
         db.session.commit()
     
