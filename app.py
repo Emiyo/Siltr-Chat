@@ -13,6 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from pydub import AudioSegment
+from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
 import json
 
@@ -76,6 +77,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
@@ -155,9 +157,15 @@ class User(UserMixin, db.Model):
     is_moderator = db.Column(db.Boolean, default=False)
     avatar = db.Column(db.String(200))
     status = db.Column(db.String(100))
+    bio = db.Column(db.String(500))  # User biography
+    display_name = db.Column(db.String(50))  # Display name (can be different from username)
+    last_seen = db.Column(db.DateTime)  # Track user's last activity
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime)
+    warning_count = db.Column(db.Integer, default=0)  # Track number of warnings
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
+    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
+    received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -235,7 +243,7 @@ class User(UserMixin, db.Model):
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice'
+    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice', 'reply', 'forward'
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
     channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'))  # Channel where message was sent
@@ -247,6 +255,18 @@ class Message(db.Model):
     reactions = db.Column(db.JSON, default=dict)
     is_encrypted = db.Column(db.Boolean, default=True)  # Whether the message is encrypted
     encryption_key = db.Column(db.Text, nullable=True)  # Encrypted symmetric key for the message
+    reply_to_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For reply functionality
+    forwarded_from_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For forwarding functionality
+    thread_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For message threading
+    is_edited = db.Column(db.Boolean, default=False)  # Track if message has been edited
+
+    # Add relationships for replies and forwarded messages
+    replies = db.relationship('Message', backref=db.backref('reply_to', remote_side=[id]),
+                            foreign_keys=[reply_to_id])
+    forwarded_messages = db.relationship('Message', backref=db.backref('forwarded_from', remote_side=[id]),
+                                       foreign_keys=[forwarded_from_id])
+    thread_messages = db.relationship('Message', backref=db.backref('thread_parent', remote_side=[id]),
+                                    foreign_keys=[thread_id])
 
     def to_dict(self):
         return {
@@ -262,7 +282,13 @@ class Message(db.Model):
             'voice_duration': self.voice_duration,
             'reactions': {} if self.reactions is None else self.reactions,
             'is_encrypted': self.is_encrypted,
-            'encryption_key': self.encryption_key if self.is_encrypted else None
+            'encryption_key': self.encryption_key if self.is_encrypted else None,
+            'reply_to_id': self.reply_to_id,
+            'forwarded_from_id': self.forwarded_from_id,
+            'thread_id': self.thread_id,
+            'is_edited': self.is_edited,
+            'reply_to': self.reply_to.to_dict() if self.reply_to_id and self.reply_to else None,
+            'forwarded_from': self.forwarded_from.to_dict() if self.forwarded_from_id and self.forwarded_from else None
         }
 
 @login_manager.user_loader
@@ -422,6 +448,8 @@ def update_profile():
     
     username = request.form.get('username')
     status = request.form.get('status')
+    bio = request.form.get('bio')
+    display_name = request.form.get('display_name')
     
     if username and username != current_user.username:
         if User.query.filter_by(username=username).first():
@@ -431,16 +459,101 @@ def update_profile():
     
     if status is not None:
         current_user.status = status[:100]  # Limit status to 100 characters
+        
+    if bio is not None:
+        current_user.bio = bio[:500]  # Limit bio to 500 characters
+        
+    if display_name is not None:
+        current_user.display_name = display_name[:50]  # Limit display name to 50 characters
     
     try:
         db.session.commit()
         flash('Profile updated successfully', 'success')
+        
+        # Update active users list with new information
+        if request.sid in active_users:
+            active_users[request.sid].update({
+                'username': current_user.username,
+                'status': current_user.status,
+                'display_name': current_user.display_name
+            })
+            emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+            
     except Exception as e:
         db.session.rollback()
         flash('Error updating profile', 'error')
         logger.error(f"Profile update error: {str(e)}")
     
     return redirect(url_for('profile'))
+
+@app.route('/moderation/delete-message/<int:message_id>', methods=['POST'])
+@login_required
+def delete_message(message_id):
+    if not current_user.has_permission('delete_messages'):
+        return jsonify({'error': 'Permission denied'}), 403
+    
+    message = Message.query.get_or_404(message_id)
+    message.text = '[Message deleted by moderator]'
+    message.file_url = None
+    message.voice_url = None
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/moderation/warn-user/<int:user_id>', methods=['POST'])
+@login_required
+def warn_user(user_id):
+    if not current_user.has_permission('warn_users'):
+        return jsonify({'error': 'Permission denied'}), 403
+    
+    user = User.query.get_or_404(user_id)
+    warning_message = request.form.get('warning')
+    
+    if not warning_message:
+        return jsonify({'error': 'Warning message required'}), 400
+    
+    # Create a system message for the warning
+    warning = Message(
+        type='system',
+        sender_id=current_user.id,
+        receiver_id=user.id,
+        text=f'WARNING: {warning_message}',
+        is_encrypted=False
+    )
+    db.session.add(warning)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/moderation/ban-user/<int:user_id>', methods=['POST'])
+@login_required
+def ban_user(user_id):
+    if not current_user.has_permission('ban_users'):
+        return jsonify({'error': 'Permission denied'}), 403
+    
+    user = User.query.get_or_404(user_id)
+    duration = request.form.get('duration', 24)  # Default 24 hours
+    reason = request.form.get('reason', 'No reason provided')
+    
+    try:
+        duration = int(duration)
+    except ValueError:
+        return jsonify({'error': 'Invalid duration'}), 400
+    
+    user.muted_until = datetime.utcnow() + timedelta(hours=duration)
+    
+    # Create a system message for the ban
+    ban_message = Message(
+        type='system',
+        sender_id=current_user.id,
+        receiver_id=user.id,
+        text=f'BANNED: {reason} (Duration: {duration} hours)',
+        is_encrypted=False
+    )
+    db.session.add(ban_message)
+    db.session.commit()
+    
+    return jsonify({'success': True})
 
 
 @app.route('/admin/roles', methods=['GET'])
@@ -608,6 +721,13 @@ def handle_message(data):
     voice_url = data.get('voice_url')
     voice_duration = float(data.get('voice_duration', 0)) if data.get('voice_duration') else None
     
+    # Get additional message properties
+    reply_to_id = data.get('reply_to_id')
+    forwarded_from_id = data.get('forwarded_from_id')
+    thread_id = data.get('thread_id')
+    receiver_id = data.get('receiver_id')  # For private messages
+    message_type = data.get('type', 'public')
+    
     # Check if user is muted
     user = User.query.get(user_data['id'])
     if user.is_muted():
@@ -619,10 +739,26 @@ def handle_message(data):
         handle_command(text, user_data, user)
         return
     
+    # Validate reply_to_id and forwarded_from_id if provided
+    if reply_to_id and not Message.query.get(reply_to_id):
+        emit('error', {'message': 'Original message not found'})
+        return
+        
+    if forwarded_from_id and not Message.query.get(forwarded_from_id):
+        emit('error', {'message': 'Message to forward not found'})
+        return
+    
+    # Handle private messages
+    if message_type == 'private':
+        if not receiver_id or not User.query.get(receiver_id):
+            emit('error', {'message': 'Invalid recipient for private message'})
+            return
+    
     # Create and save message
     message = Message(
-        type='public',
+        type=message_type,
         sender_id=user_data['id'],
+        receiver_id=receiver_id,
         channel_id=channel_id,
         text=text,
         file_url=file_url,
@@ -630,7 +766,10 @@ def handle_message(data):
         voice_duration=voice_duration,
         reactions={},
         is_encrypted=data.get('is_encrypted', False),
-        encryption_key=data.get('encryption_key')
+        encryption_key=data.get('encryption_key'),
+        reply_to_id=reply_to_id,
+        forwarded_from_id=forwarded_from_id,
+        thread_id=thread_id
     )
     db.session.add(message)
     db.session.commit()
@@ -639,10 +778,21 @@ def handle_message(data):
     message_dict = message.to_dict()
     message_dict['sender_username'] = user_data['username']
     
-    # Broadcast to channel if specified, otherwise broadcast to all
-    if channel_id:
+    if receiver_id:
+        receiver = User.query.get(receiver_id)
+        message_dict['receiver_username'] = receiver.username
+    
+    # Determine the recipients of the message
+    if message_type == 'private':
+        # Send to sender and receiver only
+        for sid, user in active_users.items():
+            if user['id'] in [user_data['id'], receiver_id]:
+                emit('new_message', message_dict, room=sid)
+    elif channel_id:
+        # Send to channel
         emit('new_message', message_dict, room=f'channel_{channel_id}')
     else:
+        # Broadcast public message
         emit('new_message', message_dict, broadcast=True)
 
 @socketio.on('add_reaction')
