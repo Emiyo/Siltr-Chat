@@ -50,7 +50,16 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     is_moderator = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(100), default='')
-    messages = db.relationship('Message', backref='author', lazy=True)
+    # Messages sent by this user
+    messages = db.relationship('Message',
+                             foreign_keys='Message.sender_id',
+                             backref='author',
+                             lazy=True)
+    # Messages received by this user
+    received_messages = db.relationship('Message',
+                                      foreign_keys='Message.receiver_id',
+                                      backref='recipient',
+                                      lazy=True)
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -120,18 +129,32 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=True)
     type = db.Column(db.String(20), default='text')  # text, system, private
+    file_url = db.Column(db.String(200), nullable=True)
+    voice_url = db.Column(db.String(200), nullable=True)
+    voice_duration = db.Column(db.Float, nullable=True)
+    reactions = db.Column(db.JSON, default=dict)
+    is_encrypted = db.Column(db.Boolean, default=False)
+    encryption_key = db.Column(db.Text, nullable=True)
     
     def to_dict(self):
         return {
             'id': self.id,
             'text': self.text,
             'timestamp': self.timestamp.isoformat(),
-            'user_id': self.user_id,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
             'channel_id': self.channel_id,
             'type': self.type,
+            'file_url': self.file_url,
+            'voice_url': self.voice_url,
+            'voice_duration': self.voice_duration,
+            'reactions': self.reactions,
+            'is_encrypted': self.is_encrypted,
+            'encryption_key': self.encryption_key,
             'username': self.author.username if self.author else None
         }
 
@@ -163,7 +186,9 @@ def handle_disconnect():
         leave_message = Message(
             type='system',
             text=f'{username} has left the chat',
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
+            sender_id=None,
+            channel_id=None
         )
         db.session.add(leave_message)
         db.session.commit()
