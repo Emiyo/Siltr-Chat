@@ -87,13 +87,15 @@ class User(UserMixin, db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def to_dict(self):
+        """Convert user object to dictionary with only existing columns"""
         return {
             'id': self.id,
             'username': self.username,
+            'email': self.email,
             'avatar': self.avatar,
             'status': self.status,
             'presence_state': self.presence_state,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 class Message(db.Model):

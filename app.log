@@ -2,3 +2,7 @@
 [2024-12-11 16:53:10,533] INFO in app: Login attempt for email: etoiyoiky@gmail.com
 [2024-12-11 16:53:11,934] INFO in app: User Apple logged in successfully
 [2024-12-11 16:57:12,340] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:18:21,292] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:18:22,437] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
+[2024-12-11 17:18:28,502] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:18:28,630] WARNING in app: Login failed: No user found with email etoiyoiky@gmail.com
