@@ -2,24 +2,22 @@
 import eventlet
 eventlet.monkey_patch(os=True, select=True, socket=True, thread=True, time=True)
 
-import logging
 import os
+import logging
 import json
 from datetime import datetime
-
-# Flask imports after monkey patch
 from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session, abort, current_app
 from logging.handlers import RotatingFileHandler
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_bcrypt import Bcrypt
-from flask_mail import Mail, Message
+from flask_login import login_user, login_required, logout_user, current_user
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeTimedSerializer
 from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
+
+# Import extensions
+from extensions import db, login_manager, bcrypt, mail, Message
 import os
 import json
 from datetime import datetime
@@ -52,13 +50,24 @@ file_handler.setLevel(logging.INFO)
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
-# Initialize extensions
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-bcrypt = Bcrypt(app)
-mail = Mail(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+# Initialize Flask-SQLAlchemy
+db.init_app(app)
+
+with app.app_context():
+    # Initialize other extensions
+    login_manager.init_app(app)
+    bcrypt.init_app(app)
+    mail.init_app(app)
+    login_manager.login_view = 'login'
+
+    # Initialize migrations
+    migrate = Migrate(app, db, compare_type=True)
+
+    # Import models after db initialization
+    from models import User, Role, Category, Channel, Message
+
+    # Create tables
+    db.create_all()
 
 # Initialize SocketIO after Flask app and extensions
 socketio = SocketIO(
@@ -80,168 +89,7 @@ socketio = SocketIO(
 logger.info('Application startup')
 
 
-# User roles association table
-user_roles = db.Table('user_roles',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('role_id', db.Integer, db.ForeignKey('role.id'), primary_key=True)
-)
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
-    is_verified = db.Column(db.Boolean, default=False)
-    is_moderator = db.Column(db.Boolean, default=False)
-    avatar = db.Column(db.String(200), nullable=True)
-    display_name = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.String(200), nullable=True)
-    accent_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
-    theme = db.Column(db.String(20), nullable=False, server_default='dark')
-    bio = db.Column(db.Text, nullable=True)
-    location = db.Column(db.String(100), nullable=True)
-    banner_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
-    last_seen = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
-    
-    # Connection integrations
-    github_id = db.Column(db.String(100), nullable=True, unique=True)
-    github_username = db.Column(db.String(100), nullable=True)
-    spotify_id = db.Column(db.String(100), nullable=True, unique=True)
-    spotify_display_name = db.Column(db.String(100), nullable=True)
-    discord_id = db.Column(db.String(100), nullable=True, unique=True)
-    discord_username = db.Column(db.String(100), nullable=True)
-    
-    roles = db.relationship('Role', secondary=user_roles, lazy='subquery',
-                          backref=db.backref('users', lazy=True))
-    
-    def has_role(self, role_name):
-        return any(role.name == role_name for role in self.roles)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'is_verified': self.is_verified,
-            'is_moderator': self.is_moderator,
-            'avatar': self.avatar,
-            'display_name': self.display_name or self.username,
-            'status': self.status or '',
-            'accent_color': self.accent_color or '#5865F2',
-            'bio': self.bio or '',
-            'location': self.location or '',
-            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'created_at': self.created_at.isoformat(),
-            'roles': [role.name for role in self.roles]
-        }
-
-    def set_password(self, password):
-        if not password:
-            raise ValueError("Password cannot be empty")
-        hashed = bcrypt.generate_password_hash(password)
-        self.password_hash = hashed.decode('utf-8') if isinstance(hashed, bytes) else hashed
-        logger.info(f"Password hash generated, length: {len(self.password_hash)}")
-
-    def check_password(self, password):
-        if not self.password_hash:
-            logger.error("No password hash stored for user")
-            return False
-        try:
-            return bcrypt.check_password_hash(self.password_hash, password)
-        except Exception as e:
-            logger.error(f"Error checking password: {str(e)}")
-            return False
-
-class Role(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name
-        }
-
-class Category(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    channels = db.relationship('Channel', backref='category', lazy=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'channels': [channel.to_dict() for channel in self.channels],
-            'created_at': self.created_at.isoformat()
-        }
-
-class Channel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    is_private = db.Column(db.Boolean, default=False)
-    messages = db.relationship('Message', backref=db.backref('channel', lazy=True), lazy=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'category_id': self.category_id,
-            'is_private': self.is_private,
-            'created_at': self.created_at.isoformat()
-        }
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
-    is_encrypted = db.Column(db.Boolean, default=False)
-    encryption_key = db.Column(db.Text, nullable=True)
-    file_url = db.Column(db.String(200), nullable=True)
-    audio_url = db.Column(db.String(200), nullable=True)
-    audio_duration = db.Column(db.Float, nullable=True)
-    parent_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)
-    type = db.Column(db.String(20), nullable=True)  # 'system', 'private', etc.
-    
-    # Add relationship with User and self-referential relationship for threading
-    user = db.relationship('User', backref=db.backref('messages', lazy=True))
-    parent = db.relationship('Message', remote_side=[id], backref=db.backref('replies', lazy=True))
-
-    def to_dict(self):
-        data = {
-            'id': self.id,
-            'content': self.content,
-            'text': self.content,  # For frontend compatibility
-            'timestamp': self.timestamp.isoformat(),
-            'user_id': self.user_id,
-            'channel_id': self.channel_id,
-            'is_encrypted': self.is_encrypted,
-            'encryption_key': self.encryption_key,
-            'file_url': self.file_url,
-            'audio_url': self.audio_url,
-            'audio_duration': self.audio_duration,
-            'type': self.type,
-            'parent_id': self.parent_id
-        }
-        
-        # Include user data for regular messages
-        if not self.type == 'system':
-            data['user'] = self.user.to_dict() if self.user else None
-            
-        # Include parent message data for replies
-        if self.parent_id:
-            data['parent'] = {
-                'id': self.parent.id,
-                'content': self.parent.content,
-                'user': self.parent.user.to_dict() if self.parent.user else None
-            }
-            
-        return data
+from models import User, Role, Category, Channel, Message
 
 @login_manager.user_loader
 def load_user(id):
