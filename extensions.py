@@ -21,21 +21,29 @@ socketio = SocketIO()
 def init_app(app):
     """Initialize Flask extensions"""
     try:
-        # Initialize database and migrations
+        # Initialize core database first
         db.init_app(app)
-        migrate.init_app(app, db)
+        logger.info('Database initialized')
         
-        # Initialize authentication
+        # Initialize authentication components
         bcrypt.init_app(app)
         login_manager.init_app(app)
         login_manager.login_view = 'login'
         login_manager.login_message_category = 'info'
+        login_manager.session_protection = 'strong'
+        logger.info('Authentication components initialized')
         
-        # Initialize communication
+        # Initialize migrations after database
+        migrate.init_app(app, db)
+        logger.info('Database migrations initialized')
+        
+        # Initialize communication components last
         mail.init_app(app)
-        socketio.init_app(app, async_mode='eventlet', cors_allowed_origins="*")
+        socketio.init_app(app, async_mode='eventlet', cors_allowed_origins="*", logger=True)
+        logger.info('Communication components initialized')
         
         logger.info('All Flask extensions initialized successfully')
+        return True
     except Exception as e:
         logger.error(f'Error initializing extensions: {str(e)}')
         raise

@@ -33,9 +33,10 @@ logger.addHandler(handler)
 # Initialize Flask app
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
 app = Flask(__name__)
 
-# Configure app
+# Configure app with secure defaults
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///chat.db'),
@@ -46,7 +47,12 @@ app.config.update(
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
-    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD')
+    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
+    # Login configuration
+    LOGIN_DISABLED=False,
+    LOGIN_MESSAGE="Please log in to access this page.",
+    LOGIN_MESSAGE_CATEGORY="info",
+    SESSION_PROTECTION="strong"
 )
 
 # Ensure upload directory exists
@@ -54,10 +60,33 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 from extensions import db, migrate, socketio, bcrypt, mail, login_manager, init_app
-init_app(app)
+from models import User
 
-# Configure token serializer for password reset
-serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+# Initialize the application and its extensions
+try:
+    # Ensure the upload directory exists
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
+    # Initialize all Flask extensions
+    if init_app(app):
+        logger.info("Flask extensions initialized successfully")
+    
+    # Configure token serializer for password reset
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    
+    # Create database tables within app context if they don't exist
+    with app.app_context():
+        db.create_all()
+        logger.info("Database tables created successfully")
+        
+except Exception as e:
+    logger.error(f"Application initialization failed: {str(e)}")
+    raise
+
+# Configure login manager
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
+login_manager.session_protection = 'strong'
 
 def logout_required(f):
     @wraps(f)
@@ -96,7 +125,16 @@ from models import User, Message, Channel, Role, Permission
 # User loader callback for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    """Load user by ID."""
+    try:
+        user = User.query.get(int(user_id))
+        if user:
+            user.last_seen = datetime.utcnow()
+            db.session.commit()
+        return user
+    except Exception as e:
+        logger.error(f"Error loading user {user_id}: {str(e)}")
+        return None
 
 def generate_reset_token(email):
     return serializer.dumps(email, salt='password-reset-salt')
@@ -242,19 +280,40 @@ def login():
             flash('All fields are required', 'error')
             return redirect(url_for('login'))
 
-        user = User.query.filter_by(email=email).first()
-        if user:
+        try:
+            user = User.query.filter_by(email=email).first()
+            
+            if user is None:
+                logger.warning(f"Login failed: No user found with email {email}")
+                time.sleep(1)  # Security delay to prevent timing attacks
+                flash('Invalid email or password', 'error')
+                return render_template('login.html')
+
+            if not user.is_active:
+                logger.warning(f"Login attempt for inactive user: {email}")
+                flash('Account is inactive. Please contact support.', 'error')
+                return render_template('login.html')
+            
             if user.check_password(password):
                 login_user(user)
+                user.last_seen = datetime.utcnow()
+                db.session.commit()
                 logger.info(f"User {user.username} logged in successfully")
-                return redirect(url_for('index'))
-            else:
-                logger.warning(f"Login failed: Invalid password for user {user.username}")
-        else:
-            logger.warning(f"Login failed: No user found with email {email}")
+                
+                next_page = request.args.get('next')
+                if not next_page or not next_page.startswith('/'):
+                    next_page = url_for('index')
+                return redirect(next_page)
+            
+            logger.warning(f"Login failed: Invalid password for user {user.username}")
+            flash('Invalid email or password', 'error')
+            return render_template('login.html')
 
-        flash('Invalid email or password', 'error')
-        return redirect(url_for('login'))
+        except Exception as e:
+            logger.error(f"Login error: {str(e)}")
+            db.session.rollback()
+            flash('An error occurred during login. Please try again.', 'error')
+            return render_template('login.html')
 
     return render_template('login.html')
 

@@ -1,7 +1,6 @@
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from extensions import db, logger
+from extensions import db, logger, bcrypt
 
 # Association tables for roles and permissions
 role_permissions = db.Table('role_permissions',
@@ -44,22 +43,22 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     
     # Profile fields
-    display_name = db.Column(db.String(50), nullable=True)
-    avatar = db.Column(db.String(200), nullable=True)
-    banner = db.Column(db.String(200), nullable=True)
-    bio = db.Column(db.String(500), nullable=True)
+    display_name = db.Column(db.String(50))
+    avatar = db.Column(db.String(200))
+    banner = db.Column(db.String(200))
+    bio = db.Column(db.String(500))
     
     # Rich presence and status
-    status = db.Column(db.String(100), nullable=True)
-    status_emoji = db.Column(db.String(20), nullable=True)
-    presence_state = db.Column(db.String(20), nullable=False, default='offline')
-    presence_details = db.Column(db.JSON, nullable=True)  # For activity details
-    last_seen = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(100))
+    status_emoji = db.Column(db.String(20))
+    presence_state = db.Column(db.String(20), default='offline')
+    presence_details = db.Column(db.JSON)
+    last_seen = db.Column(db.DateTime)
     
     # Customization
-    theme = db.Column(db.String(20), nullable=False, default='dark')
-    accent_color = db.Column(db.String(7), nullable=True, default='#5865F2')
-    preferences = db.Column(db.JSON, nullable=True, default=lambda: {
+    theme = db.Column(db.String(20), default='dark')
+    accent_color = db.Column(db.String(7), default='#5865F2')
+    preferences = db.Column(db.JSON, default=lambda: {
         'notifications': True,
         'message_display': 'cozy',
         'emoji_style': 'native',
@@ -67,10 +66,10 @@ class User(UserMixin, db.Model):
     })
     
     # System fields
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
-    is_verified = db.Column(db.Boolean, nullable=False, default=False)
-    warning_count = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    warning_count = db.Column(db.Integer, default=0)
     
     # Relationships
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
@@ -88,9 +87,11 @@ class User(UserMixin, db.Model):
     def set_password(self, password):
         """Set password with proper hashing"""
         try:
-            if not self.validate_password_strength(password):
-                raise ValueError("Password must be at least 8 characters and include numbers and letters")
-            self.password_hash = generate_password_hash(password)
+            if not password or len(password) < 8:
+                raise ValueError("Password must be at least 8 characters")
+            # Use bcrypt instead of pbkdf2
+            self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+            logger.info(f"Password set successfully for user {self.username}")
         except Exception as e:
             logger.error(f"Error setting password for user {self.username}: {str(e)}")
             raise
@@ -98,19 +99,16 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         """Verify password hash"""
         try:
-            return check_password_hash(self.password_hash, password)
+            if not self.password_hash:
+                logger.error(f"No password hash found for user {self.username}")
+                return False
+            # Use bcrypt for verification
+            is_valid = bcrypt.check_password_hash(self.password_hash.encode('utf-8'), password)
+            logger.info(f"Password check {'successful' if is_valid else 'failed'} for user {self.username}")
+            return is_valid
         except Exception as e:
             logger.error(f"Error checking password for user {self.username}: {str(e)}")
             return False
-
-    @staticmethod
-    def validate_password_strength(password):
-        """Ensure password meets security requirements"""
-        if len(password) < 8:
-            return False
-        has_digit = any(c.isdigit() for c in password)
-        has_alpha = any(c.isalpha() for c in password)
-        return has_digit and has_alpha
 
     def update_presence(self, state='online', details=None):
         """Update user's presence state and details"""
@@ -156,56 +154,7 @@ class User(UserMixin, db.Model):
             return False
 
     def to_dict(self, include_private=False):
-        """Convert user object to dictionary with profile structure"""
-        data = {
-            'id': self.id,
-            'username': self.username,
-            'display_name': self.display_name or self.username,
-            'avatar': self.avatar,
-            'bio': self.bio,
-            'status': self.status,
-            'presence_state': self.presence_state,
-            'theme': self.theme,
-            'accent_color': self.accent_color,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'is_verified': self.is_verified,
-            'is_active': self.is_active,
-            'roles': [{'id': role.id, 'name': role.name} for role in self.roles]
-        }
-        
-        if include_private:
-            data.update({
-                'email': self.email,
-                'preferences': self.preferences or {},
-                'warning_count': self.warning_count
-            })
-    def customize_profile(self, **kwargs):
-        """Update user profile customization options"""
-        try:
-            valid_fields = {
-                'theme', 'accent_color', 'banner', 'display_name',
-                'bio', 'avatar', 'preferences'
-            }
-            
-            for field, value in kwargs.items():
-                if field not in valid_fields:
-                    continue
-                    
-                if field == 'preferences' and isinstance(value, dict):
-                    current_prefs = self.preferences or {}
-                    current_prefs.update(value)
-                    setattr(self, field, current_prefs)
-                else:
-                    setattr(self, field, value)
-            
-            logger.info(f"Updated profile customization for user {self.username}")
-        except Exception as e:
-            logger.error(f"Error customizing profile for user {self.username}: {str(e)}")
-            raise
-    
-    def to_dict(self, include_private=False):
-        """Convert user object to dictionary with rich profile structure"""
+        """Convert user object to dictionary with profile data"""
         try:
             data = {
                 'id': self.id,
@@ -233,7 +182,7 @@ class User(UserMixin, db.Model):
                     'warning_count': self.warning_count,
                     'is_active': self.is_active
                 })
-                
+            
             return data
         except Exception as e:
             logger.error(f"Error converting user {self.username} to dict: {str(e)}")
@@ -250,13 +199,12 @@ class Message(db.Model):
     channel_id = db.Column(db.Integer, db.ForeignKey('channel.id', ondelete='CASCADE'))
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    file_url = db.Column(db.String(200), nullable=True)
-    voice_url = db.Column(db.String(200), nullable=True)
-    voice_duration = db.Column(db.Float, nullable=True)
+    file_url = db.Column(db.String(200))
+    voice_url = db.Column(db.String(200))
+    voice_duration = db.Column(db.Float)
     reactions = db.Column(db.JSON, default=dict)
     
     def to_dict(self):
-        """Convert message to dictionary"""
         return {
             'id': self.id,
             'type': self.type,
