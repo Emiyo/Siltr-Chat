@@ -127,8 +127,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme and accent color from user preferences
     function initializeTheme() {
         if (themeSelect) {
-            const savedTheme = themeSelect.value;
-            const root = document.documentElement;
+            // Fetch user's saved theme from the server
+            fetch('/profile', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const savedTheme = data.theme || themeSelect.value || 'dark';
+                themeSelect.value = savedTheme;
+                const root = document.documentElement;
             
             // Apply saved theme
             root.style.transition = 'none';

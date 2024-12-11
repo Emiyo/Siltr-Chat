@@ -94,6 +94,7 @@ class User(UserMixin, db.Model):
     status = db.Column(db.String(200), nullable=True)
     presence_state = db.Column(db.String(20), nullable=False, server_default='online')
     accent_color = db.Column(db.String(7), nullable=True)
+    theme = db.Column(db.String(20), nullable=False, server_default='dark')
     bio = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(100), nullable=True)
     banner_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
@@ -306,7 +307,12 @@ def register():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    if request.method == 'POST':
+    if request.method == 'GET' and request.headers.get('Accept') == 'application/json':
+        return jsonify({
+            'theme': current_user.theme,
+            'accent_color': current_user.accent_color
+        })
+    elif request.method == 'POST':
         try:
             # Update basic profile information
             current_user.bio = request.form.get('bio', '')
