@@ -354,38 +354,46 @@ def handle_disconnect():
 def handle_join(data):
     """Handle user joining a channel"""
     if current_user.is_authenticated:
-        # Emit active users list
-        active_users = User.query.filter(
-            User.last_seen >= (datetime.utcnow() - timedelta(minutes=5))
-        ).all()
-        socketio.emit('active_users', {
-            'users': [user.to_dict() for user in active_users]
-        })
-        
-        # Emit categories and channels with proper structure
-        channels = Channel.query.all()
-        categories_data = []
-        seen_categories = set()
-        
-        for channel in channels:
-            if channel.category_id not in seen_categories:
-                seen_categories.add(channel.category_id)
-                category_channels = [ch for ch in channels if ch.category_id == channel.category_id]
-                categories_data.append({
-                    'id': channel.category_id,
-                    'name': channel.category.name if channel.category else 'General',
-                    'channels': [{
-                        'id': ch.id,
-                        'name': ch.name,
-                        'description': ch.description,
-                        'type': ch.type,
-                        'is_private': ch.is_private
-                    } for ch in category_channels]
+        try:
+            # Emit active users list
+            active_users = User.query.filter(
+                User.last_seen >= (datetime.utcnow() - timedelta(minutes=5))
+            ).all()
+            socketio.emit('active_users', {
+                'users': [user.to_dict() for user in active_users]
+            })
+            
+            # Get all channels and group them by type
+            channels = Channel.query.all()
+            channel_groups = {}
+            
+            for channel in channels:
+                channel_type = channel.type or 'text'  # Default to text if type is None
+                if channel_type not in channel_groups:
+                    channel_groups[channel_type] = []
+                    
+                channel_groups[channel_type].append({
+                    'id': channel.id,
+                    'name': channel.name,
+                    'description': channel.description,
+                    'type': channel_type
                 })
-        
-        socketio.emit('categories_list', {'categories': categories_data})
-        
-        logger.info(f"Sent initial data to user {current_user.username}")
+            
+            # Convert to list of channel groups
+            groups_data = [
+                {
+                    'name': group_name.capitalize(),
+                    'channels': channels
+                }
+                for group_name, channels in channel_groups.items()
+            ]
+            
+            socketio.emit('channel_groups', {'groups': groups_data})
+            logger.info(f"Sent initial data to user {current_user.username}")
+            
+        except Exception as e:
+            logger.error(f"Error in handle_join: {str(e)}")
+            socketio.emit('error', {'message': 'Failed to load channels'})
 
 # Main routes
 @app.route('/')

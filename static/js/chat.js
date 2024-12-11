@@ -307,16 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('join', (data) => {
         if (data.username) {
-            console.log('Successfully joined, requesting categories...');
+            console.log('Successfully joined as:', data.username);
             socket.emit('join', { username: data.username });
         }
     });
     
-    // Handle categories list update
-    socket.on('categories_list', (data) => {
-        console.log('Received categories:', data);
-        if (data && data.categories) {
-            categories = data.categories;
+    // Handle channel groups update
+    socket.on('channel_groups', (data) => {
+        console.log('Received channel groups:', data);
+        if (data && data.groups) {
+            categories = data.groups; // Reuse categories array for groups
             updateCategoryList();
         }
     });
@@ -391,19 +391,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryList = document.getElementById('categoryList');
         if (!categoryList || !Array.isArray(categories)) return;
         
-        categoryList.innerHTML = categories.map(category => {
-            const channels = category.channels || [];
+        categoryList.innerHTML = categories.map(group => {
+            const channels = group.channels || [];
+            const groupIcon = group.name.toLowerCase() === 'text' ? '#' : 
+                            group.name.toLowerCase() === 'voice' ? '🔊' : 
+                            group.name.toLowerCase() === 'announcement' ? '📢' : '💬';
+            
             return `
                 <div class="category-item">
                     <div class="category-header">
                         <span class="category-toggle">▼</span>
-                        ${category.name}
+                        ${groupIcon} ${group.name} Channels
                     </div>
                     <div class="channel-list" style="display: block;">
                         ${channels.map(channel => `
                             <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
-                                 data-channel-id="${channel.id}">
-                                ${channel.is_private ? '🔒' : '#'} ${channel.name}
+                                 data-channel-id="${channel.id}"
+                                 data-channel-type="${channel.type || 'text'}">
+                                ${channel.type === 'voice' ? '🔊' : '#'} ${channel.name}
+                                ${channel.description ? `<div class="channel-description">${channel.description}</div>` : ''}
                             </div>
                         `).join('')}
                     </div>
