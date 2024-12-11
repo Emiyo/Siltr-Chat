@@ -434,11 +434,12 @@ def handle_connect():
         
         logger.info("Authenticated user connecting: %s", current_user.username)
         
-        # Update last seen without changing presence state
+        # Only update last_seen timestamp
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
+        logger.info(f"Current presence state for {current_user.username}: {current_user.presence_state}")
         
-        # Send initial user data
+        # Send initial user data without modifying presence
         user_data = current_user.to_dict()
         logger.info("Sending user data: %s", user_data)
         emit('user_connected', user_data)
@@ -552,13 +553,15 @@ def handle_update_presence(data):
             logger.warning("No presence state provided")
             return False
 
-        logger.info(f"Updating presence for user {current_user.username} to {presence_state}")
+        logger.info(f"Updating presence for user {current_user.username} from {current_user.presence_state} to {presence_state}")
         
         # Update user's presence state
         if current_user.update_presence(presence_state):
             try:
+                current_user.presence_state = presence_state
+                current_user.last_seen = datetime.utcnow()
                 db.session.commit()
-                logger.info(f"Successfully updated presence state to {presence_state}")
+                logger.info(f"Successfully updated presence state to {presence_state} for user {current_user.username}")
                 
                 # Broadcast updated user list to all connected clients
                 users = User.query.all()
