@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.channel-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', async () => {
                 const channelId = parseInt(item.dataset.channelId);
                 if (currentChannel !== channelId) {
                     if (currentChannel) {
