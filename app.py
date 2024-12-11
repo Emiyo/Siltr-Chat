@@ -338,11 +338,25 @@ def update_theme():
     try:
         data = request.get_json()
         theme = data.get('theme')
-        if theme in ['dark', 'light', 'custom']:
-            current_user.theme = theme
-            db.session.commit()
-            return jsonify({'success': True, 'message': 'Theme updated successfully'})
-        return jsonify({'success': False, 'message': 'Invalid theme'}), 400
+        accent_color = data.get('accent_color')
+        
+        if theme:
+            if theme in ['dark', 'light', 'midnight', 'sunset', 'custom']:
+                current_user.theme = theme
+            else:
+                return jsonify({'success': False, 'message': 'Invalid theme'}), 400
+                
+        if accent_color:
+            # Validate hex color format
+            if re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', accent_color):
+                current_user.accent_color = accent_color
+            else:
+                return jsonify({'success': False, 'message': 'Invalid accent color format'}), 400
+        
+        db.session.commit()
+        logger.info(f"Theme updated for user {current_user.username}: theme={theme}, accent_color={accent_color}")
+        return jsonify({'success': True, 'message': 'Theme updated successfully'})
+        
     except Exception as e:
         logger.error(f"Error updating theme: {str(e)}")
         db.session.rollback()

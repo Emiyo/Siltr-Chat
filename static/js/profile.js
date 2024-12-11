@@ -124,13 +124,47 @@ document.addEventListener('DOMContentLoaded', function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    // Initialize theme based on saved preference
-    const savedTheme = themeSelect ? themeSelect.value : 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    if (customThemeOptions) {
-        customThemeOptions.style.display = savedTheme === 'custom' ? 'block' : 'none';
-        customThemeOptions.style.opacity = savedTheme === 'custom' ? '1' : '0';
+    // Initialize theme and accent color from user preferences
+    function initializeTheme() {
+        if (themeSelect) {
+            const savedTheme = themeSelect.value;
+            const root = document.documentElement;
+            
+            // Apply saved theme
+            root.style.transition = 'none';
+            root.setAttribute('data-theme', savedTheme);
+            void root.offsetWidth;
+            root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
+            
+            // Initialize custom theme options if needed
+            if (customThemeOptions) {
+                if (savedTheme === 'custom') {
+                    customThemeOptions.style.display = 'block';
+                    customThemeOptions.style.opacity = '1';
+                    
+                    // Apply saved accent color if available
+                    if (accentColorPicker && accentColorPicker.value) {
+                        const color = accentColorPicker.value;
+                        root.style.setProperty('--primary-color', color);
+                        root.style.setProperty('--interactive-active', color);
+                        
+                        const rgba = hexToRGBA(color, 0.1);
+                        const rgbaHover = hexToRGBA(color, 0.15);
+                        root.style.setProperty('--primary-transparent', rgba);
+                        root.style.setProperty('--primary-transparent-hover', rgbaHover);
+                    }
+                } else {
+                    customThemeOptions.style.display = 'none';
+                    customThemeOptions.style.opacity = '0';
+                }
+            }
+            
+            console.log('Theme initialized:', savedTheme);
+        }
     }
+    
+    // Call initialization on page load
+    initializeTheme();
 });
 // Discord-like profile functionality
 let socket;
