@@ -325,8 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
         userList.innerHTML = users.map(user => `
             <div class="user-item ${user.presence_state || 'offline'}">
                 <span class="user-status"></span>
-                <span class="user-name">${user.username}</span>
-                ${user.activity_status ? `<div class="user-activity">${user.activity_status}</div>` : ''}
+                <span class="user-name">${user.display_name || user.username}</span>
+                ${user.status ? `<div class="user-activity">${user.status_emoji || ''} ${user.status}</div>` : ''}
+                ${user.roles ? `<div class="user-roles">${user.roles.map(role => `<span class="role-badge ${role.name}">${role.name}</span>`).join('')}</div>` : ''}
             </div>
         `).join('');
     }
@@ -385,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="category-item">
                     <div class="category-header">
                         <span class="category-toggle">▼</span>
-                        ${groupIcon} ${group.name} Channels
+                        ${groupIcon} ${group.name}
                     </div>
                     <div class="channel-list" style="display: block;">
                         ${channels.map(channel => `
