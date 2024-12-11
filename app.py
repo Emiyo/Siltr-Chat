@@ -511,92 +511,103 @@ def get_user_profile(user_id):
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
-    if 'avatar' in request.files:
-        file = request.files['avatar']
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{timestamp}_{filename}"
-            
-            if filename.split('.')[-1].lower() in {'png', 'jpg', 'jpeg', 'gif'}:
+    try:
+        # Handle avatar upload
+        if 'avatar' in request.files:
+            file = request.files['avatar']
+            if file and file.filename:
+                # Validate file type and size
+                if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    flash('Invalid image format. Please use PNG, JPG, or GIF.', 'error')
+                    return redirect(url_for('profile'))
+                
+                if file.content_length and file.content_length > 5 * 1024 * 1024:  # 5MB limit
+                    flash('Image size too large. Maximum size is 5MB.', 'error')
+                    return redirect(url_for('profile'))
+                
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"avatar_{current_user.id}_{timestamp}_{filename}"
+                
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
-                current_user.avatar = url_for('static', filename=f'uploads/{filename}')
-    
-    # Basic profile fields
-    username = request.form.get('username')
-    status = request.form.get('status')
-    bio = request.form.get('bio')
-    display_name = request.form.get('display_name')
-    
-    # Extended profile fields
-    location = request.form.get('location')
-    timezone = request.form.get('timezone')
-    
-    # Handle preferences as JSON
-    preferences = {
-        'notifications': request.form.get('notifications', 'all'),
-        'theme': request.form.get('theme', 'dark'),
-        'message_display': request.form.get('message_display', 'compact'),
-        'language': request.form.get('language', 'en')
-    }
-    
-    # Handle contact info as JSON
-    contact_info = {
-        'email_visibility': request.form.get('email_visibility', 'private'),
-        'alternative_contact': request.form.get('alternative_contact'),
-        'social_links': {
-            'github': request.form.get('github'),
-            'linkedin': request.form.get('linkedin'),
-            'twitter': request.form.get('twitter')
+                
+                # Update avatar URL
+                avatar_url = url_for('static', filename=f'uploads/{filename}')
+                current_user.avatar = avatar_url
+
+        # Basic profile fields with validation
+        username = request.form.get('username', '').strip()
+        if username and username != current_user.username:
+            if len(username) < 3:
+                flash('Username must be at least 3 characters long', 'error')
+                return redirect(url_for('profile'))
+            if User.query.filter_by(username=username).first():
+                flash('Username already taken', 'error')
+                return redirect(url_for('profile'))
+            current_user.username = username
+
+        # Update display name
+        display_name = request.form.get('display_name', '').strip()
+        if display_name:
+            if len(display_name) < 2:
+                flash('Display name must be at least 2 characters long', 'error')
+                return redirect(url_for('profile'))
+            current_user.display_name = display_name[:50]
+
+        # Update status with sanitization
+        status = request.form.get('status', '').strip()
+        current_user.status = status[:100] if status else None
+
+        # Update bio with sanitization
+        bio = request.form.get('bio', '').strip()
+        current_user.bio = bio[:500] if bio else None
+
+        # Location and timezone
+        location = request.form.get('location', '').strip()
+        timezone = request.form.get('timezone', '').strip()
+        current_user.location = location[:100] if location else None
+        current_user.timezone = timezone[:50] if timezone else None
+
+        # Update preferences
+        current_user.preferences = {
+            'notifications': request.form.get('notifications', 'all'),
+            'theme': request.form.get('theme', 'dark'),
+            'message_display': request.form.get('message_display', 'compact'),
+            'language': request.form.get('language', 'en')
         }
-    }
-    
-    if username and username != current_user.username:
-        if User.query.filter_by(username=username).first():
-            flash('Username already taken', 'error')
-            return redirect(url_for('profile'))
-        current_user.username = username
-    
-    # Update basic profile fields
-    if status is not None:
-        current_user.status = status[:100]  # Limit status to 100 characters
-    if bio is not None:
-        current_user.bio = bio[:500]  # Limit bio to 500 characters
-    if display_name is not None:
-        current_user.display_name = display_name[:50]  # Limit display name to 50 characters
-        
-    # Update extended profile fields
-    if location is not None:
-        current_user.location = location[:100]
-    if timezone is not None:
-        current_user.timezone = timezone[:50]
-    
-    # Update preferences and contact info
-    current_user.preferences = preferences
-    current_user.contact_info = contact_info
-    
-    # Update last seen
-    current_user.last_seen = datetime.utcnow()
-    
-    try:
+
+        # Update contact information
+        current_user.contact_info = {
+            'email_visibility': request.form.get('email_visibility', 'private'),
+            'social_links': {
+                'github': request.form.get('github', '').strip(),
+                'linkedin': request.form.get('linkedin', '').strip(),
+                'twitter': request.form.get('twitter', '').strip()
+            }
+        }
+
+        # Update last seen timestamp
+        current_user.last_seen = datetime.utcnow()
+
+        # Save changes
         db.session.commit()
         flash('Profile updated successfully', 'success')
-        
-        # Update active users list with new information
-        if request.sid in active_users:
+
+        # Update active users list if in chat
+        if hasattr(request, 'sid') and request.sid in active_users:
             active_users[request.sid].update({
                 'username': current_user.username,
                 'status': current_user.status,
                 'display_name': current_user.display_name
             })
             emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-            
+
     except Exception as e:
         db.session.rollback()
-        flash('Error updating profile', 'error')
         logger.error(f"Profile update error: {str(e)}")
-    
+        flash('Error updating profile. Please try again.', 'error')
+
     return redirect(url_for('profile'))
 
 @app.route('/moderation/delete-message/<int:message_id>', methods=['POST'])
