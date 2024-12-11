@@ -11,14 +11,15 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     try:
         logger.info("Starting Flask-SocketIO server...")
-        # Use eventlet as the async_mode
-        socketio.init_app(app, async_mode='eventlet', cors_allowed_origins="*")
+        socketio.init_app(app, 
+                         async_mode='eventlet', 
+                         cors_allowed_origins="*", 
+                         logger=logger)
         socketio.run(app, 
-                    host="0.0.0.0", 
+                    host='0.0.0.0',
                     port=5000,
                     debug=True,
-                    use_reloader=True,
-                    log_output=True)
+                    use_reloader=False)  # Disable reloader to avoid duplicate processes
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
         raise

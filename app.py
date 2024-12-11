@@ -639,5 +639,4 @@ def get_user_profile_by_id(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict(include_private=False))
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+# Server startup is handled by main.py

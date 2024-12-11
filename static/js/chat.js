@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Handle regular messages with encryption
+            // Handle regular messages
             if (!currentChannel) {
                 addMessage({
                     type: 'system',
@@ -93,45 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            try {
-                // Get or create symmetric key for the channel
-                let symmetricKey = channelKeys.get(currentChannel);
-                if (!symmetricKey) {
-                    symmetricKey = await CryptoManager.generateSymmetricKey();
-                    channelKeys.set(currentChannel, symmetricKey);
-                }
+            // Create simple message data
+            const messageData = {
+                text: message,
+                channel_id: currentChannel
+            };
 
-                // Create message payload
-                const messagePayload = {
-                    content: message,
-                    timestamp: new Date().toISOString()
-                };
-
-                // Encrypt the message payload
-                const encryptedMessage = await CryptoManager.encryptMessage(
-                    JSON.stringify(messagePayload),
-                    symmetricKey
-                );
-                
-                const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
-
-                const messageData = {
-                    text: encryptedMessage,
-                    channel_id: currentChannel,
-                    encryption_key: exportedKey,
-                    is_encrypted: true
-                };
-
-                socket.emit('message', messageData);
-            } catch (error) {
-                console.error('Encryption error:', error);
-                addMessage({
-                    type: 'system',
-                    text: 'Failed to encrypt message: ' + error.message,
-                    timestamp: new Date().toISOString()
-                });
-            }
-            
+            socket.emit('message', messageData);
             messageHistory.push(message);
             historyIndex = messageHistory.length;
             messageInput.value = '';
