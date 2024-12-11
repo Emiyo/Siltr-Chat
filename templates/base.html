@@ -82,40 +82,17 @@
     <!-- Load stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     
-    <!-- Load JavaScript -->
+    <!-- Load JavaScript Modules -->
+    <script type="module" src="{{ url_for('static', filename='js/panels/userPanel.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/panels/channelPanel.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/panels/chatPanel.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/socketHandler.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/profile.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    
     <script>
-        console.log('Starting script loading...');
-    </script>
-    <!-- Load profile functionality first -->
-    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
-    <!-- Wait for profile functionality to be ready -->
-    <script>
-        function waitForProfileFunctionality(callback) {
-            if (typeof window.fetchAndDisplayUserProfile === 'function') {
-                console.log('Profile functionality ready');
-                callback();
-            } else {
-                console.log('Waiting for profile functionality...');
-                setTimeout(() => waitForProfileFunctionality(callback), 50);
-            }
-        }
-    </script>
-    <!-- Load other scripts after profile is ready -->
-    <script>
-        waitForProfileFunctionality(() => {
-            // Load modal.js
-            const modalScript = document.createElement('script');
-            modalScript.src = "{{ url_for('static', filename='js/modal.js') }}";
-            document.body.appendChild(modalScript);
-            
-            // Load chat.js after modal.js
-            modalScript.onload = () => {
-                const chatScript = document.createElement('script');
-                chatScript.src = "{{ url_for('static', filename='js/chat.js') }}";
-                document.body.appendChild(chatScript);
-                console.log('All scripts loaded');
-            };
-        });
+        console.log('All modules loaded');
     </script>
 </body>
 </html>
