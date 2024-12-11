@@ -123,6 +123,40 @@ document.addEventListener('DOMContentLoaded', function() {
         socket.on('connect_error', (error) => {
             console.error('Profile connection error:', error);
         });
+
+        // Handle incoming socket events
+        socket.on('categories_list', (data) => {
+            console.log('Received categories:', data);
+            // Handle categories data here
+        });
+
+        socket.on('user_list', (data) => {
+            console.log('Received users:', data);
+            if (data.users) {
+                updateUserList(data.users);
+            }
+        });
+
+        socket.on('error', (data) => {
+            console.error('Socket error:', data);
+        });
+    }
+
+    function updateUserList(users) {
+        const userListElement = document.getElementById('userList');
+        if (!userListElement) return;
+
+        userListElement.innerHTML = '';
+        users.forEach(user => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <span class="presence-indicator ${user.presence_state}"></span>
+                <span class="username">${user.username}</span>
+                ${user.status ? `<span class="status">${user.status}</span>` : ''}
+            `;
+            userListElement.appendChild(userItem);
+        });
     }
             const newPresence = event.target.value;
             if (typeof socket !== 'undefined') {

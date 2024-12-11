@@ -353,9 +353,15 @@ def handle_connect(auth=None):
     """Handle client connection"""
     try:
         logger.info("Client connecting with auth: %s", auth)
-        if current_user.is_authenticated:
-            logger.info("Authenticated user connecting: %s", current_user.username)
-            join_room(f'user_{current_user.id}')
+        if not current_user.is_authenticated:
+            logger.warning("Unauthenticated client attempting to connect")
+            return False
+        
+        logger.info("Authenticated user connecting: %s", current_user.username)
+        join_room(f'user_{current_user.id}')
+        
+        try:
+            # Send initial user data
             emit('user_connected', current_user.to_dict())
             
             # Send initial user list
@@ -369,10 +375,15 @@ def handle_connect(auth=None):
             emit('categories_list', {'categories': [category.to_dict() for category in categories]})
             
             logger.info("Client connected successfully: %s", current_user.username)
-        else:
-            logger.warning("Unauthenticated client attempting to connect")
+            return True
+        except Exception as e:
+            logger.error("Error sending initial data: %s", str(e), exc_info=True)
+            emit('error', {'message': 'Error loading initial data'})
+            return False
+            
     except Exception as e:
         logger.error("Error in handle_connect: %s", str(e), exc_info=True)
+        return False
 
 @socketio.on('disconnect')
 def handle_disconnect():
