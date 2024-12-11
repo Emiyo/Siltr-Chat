@@ -70,17 +70,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (accentColorPicker) {
         accentColorPicker.addEventListener('input', function(e) {
-            document.documentElement.style.setProperty('--primary-color', e.target.value);
-            document.documentElement.style.setProperty('--interactive-active', e.target.value);
+            const color = e.target.value;
+            const root = document.documentElement;
             
-            // Update preview messages
+            // Update CSS variables with new accent color
+            root.style.setProperty('--primary-color', color);
+            root.style.setProperty('--interactive-active', color);
+            
+            // Create transparent versions for hover and active states
+            const rgba = hexToRGBA(color, 0.1);
+            const rgbaHover = hexToRGBA(color, 0.15);
+            root.style.setProperty('--primary-transparent', rgba);
+            root.style.setProperty('--primary-transparent-hover', rgbaHover);
+            
+            // Update preview elements
             if (preview) {
-                const previewMessages = preview.querySelectorAll('.preview-message');
-                previewMessages.forEach(msg => {
-                    msg.style.borderColor = e.target.value;
-                });
+                preview.classList.add('transitioning');
+                setTimeout(() => {
+                    const previewMessages = preview.querySelectorAll('.preview-message');
+                    previewMessages.forEach(msg => {
+                        if (msg.classList.contains('preview-own')) {
+                            msg.style.borderLeft = `4px solid ${color}`;
+                            msg.style.backgroundColor = rgba;
+                        }
+                    });
+                    
+                    // Update preview input
+                    const previewInput = preview.querySelector('.preview-input');
+                    if (previewInput) {
+                        previewInput.style.borderColor = color;
+                    }
+                    
+                    preview.classList.remove('transitioning');
+                }, 150);
             }
+
+            // Save accent color preference
+            fetch('/update_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accent_color: color })
+            });
         });
+    }
+
+    // Helper function to convert hex to rgba
+    function hexToRGBA(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     // Initialize theme based on saved preference

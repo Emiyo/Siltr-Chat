@@ -234,24 +234,29 @@ input[type="file"]::file-selector-button:hover {
 .preview-message {
     padding: 0.75rem 1rem;
     margin: 0.5rem 0;
-    border-radius: 4px;
+    border-radius: 8px;
     color: var(--text-color);
     position: relative;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: default;
     max-width: 80%;
+    box-shadow: var(--elevation-low);
 }
 
 .preview-message:hover {
-    filter: brightness(1.05);
     transform: translateY(-1px);
+    box-shadow: var(--elevation-stroke);
 }
 
 .preview-own {
-    background-color: var(--message-own-bg);
+    background-color: var(--primary-transparent, rgba(88, 101, 242, 0.1));
     margin-left: auto;
     width: fit-content;
     border-left: 4px solid var(--primary-color);
+}
+
+.preview-own:hover {
+    background-color: var(--primary-transparent-hover, rgba(88, 101, 242, 0.15));
 }
 
 .preview-other {
@@ -259,6 +264,10 @@ input[type="file"]::file-selector-button:hover {
     margin-right: auto;
     width: fit-content;
     border-left: 4px solid var(--secondary-color);
+}
+
+.preview-other:hover {
+    background-color: rgba(47, 49, 54, 0.7);
 }
 
 .preview-input {
