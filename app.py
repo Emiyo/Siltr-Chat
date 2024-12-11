@@ -1,13 +1,69 @@
 import os
-from functools import wraps
-from flask import flash, request, render_template, redirect, url_for
-import logging
 from datetime import datetime, timedelta
-from werkzeug.utils import secure_filename
-from flask_mail import Mail, Message as FlaskMessage
-from itsdangerous import URLSafeTimedSerializer
+import logging
+from logging.handlers import RotatingFileHandler
+import random
+import string
+import time
+import functools
+from functools import wraps
+
+# Flask and extensions
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
+from flask_mail import Mail, Message
+from werkzeug.utils import secure_filename
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from email_validator import validate_email, EmailNotValidError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
+handler.setFormatter(logging.Formatter(
+    '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+))
+logger.addHandler(handler)
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configure app
+app.config.update(
+    SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///chat.db'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    UPLOAD_FOLDER=os.path.join('static', 'uploads'),
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max file size
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD')
+)
+
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize extensions
+db = SQLAlchemy(app)
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+bcrypt = Bcrypt(app)
+mail = Mail(app)
+
+# Configure login manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
+
+# Configure token serializer for password reset
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
 def logout_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -15,17 +71,6 @@ def logout_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from flask_bcrypt import Bcrypt
-from pydub import AudioSegment
-from email_validator import validate_email, EmailNotValidError
-import random
-import string
-import functools
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
-from time import sleep
-
 
 def retry_on_db_error(max_retries=5, initial_delay=0.1):
     def decorator(f):
@@ -35,87 +80,20 @@ def retry_on_db_error(max_retries=5, initial_delay=0.1):
             while retries < max_retries:
                 try:
                     if retries > 0:
-                        db.session.remove()  # Clean up the session before retry
-                        db.engine.dispose()  # Dispose engine connections
+                        db.session.remove()
+                        db.engine.dispose()
                     return f(*args, **kwargs)
                 except (OperationalError, SQLAlchemyError) as e:
                     retries += 1
                     if retries == max_retries:
                         logger.error(f"Database operation failed after {max_retries} retries: {str(e)}")
                         raise
-                    delay = initial_delay * (2 ** (retries - 1))  # Exponential backoff
+                    delay = initial_delay * (2 ** (retries - 1))
                     logger.warning(f"Database operation failed, attempt {retries} of {max_retries}, retrying in {delay:.2f}s: {str(e)}")
-                    sleep(delay)
+                    time.sleep(delay)
             return None
         return wrapper
     return decorator
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Initialize Flask app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///chat.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# Initialize extensions
-db = SQLAlchemy(app)
-socketio = SocketIO()
-bcrypt = Bcrypt(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-# Configure Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-mail = Mail(app)
-serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
-
-def generate_reset_token(email):
-    return serializer.dumps(email, salt='password-reset-salt')
-
-
-def verify_reset_token(token, expiration=3600):
-    try:
-        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
-        return email
-    except:
-        return None
-
-
-def send_password_reset_email(user):
-    try:
-        token = generate_reset_token(user.email)
-        reset_url = url_for('reset_password', token=token, _external=True)
-
-        msg = FlaskMessage(
-            subject='Password Reset Request',
-            recipients=[user.email],
-            body=f'''To reset your password, visit the following link:
-{reset_url}
-
-If you did not make this request, please ignore this email.
-'''
-        )
-        mail.send(msg)
-        logger.info(f"Password reset email sent to {user.email}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send password reset email: {str(e)}")
-        return False
-
 
 # Models
 class Role(db.Model):
@@ -125,27 +103,21 @@ class Role(db.Model):
     permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
     users = db.relationship('User', secondary='user_roles', back_populates='roles')
 
-
 class Permission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.String(200))
     roles = db.relationship('Role', secondary='role_permissions', back_populates='permissions')
 
-
 role_permissions = db.Table('role_permissions',
-                            db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'),
-                                      primary_key=True),
-                            db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'),
-                                      primary_key=True)
-                            )
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'), primary_key=True)
+)
 
 user_roles = db.Table('user_roles',
-                      db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'),
-                                primary_key=True),
-                      db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'),
-                                primary_key=True)
-                      )
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
+)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -183,10 +155,8 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def validate_password_strength(password):
-        """Validate password strength"""
-        if len(password) < 6:  # Reduced minimum length
+        if len(password) < 6:
             return False
-        # Must contain at least 2 of these 3: uppercase, lowercase, numbers
         conditions = [
             any(c.isupper() for c in password),
             any(c.islower() for c in password),
@@ -195,7 +165,6 @@ class User(UserMixin, db.Model):
         return sum(conditions) >= 2
 
     def to_dict(self, include_private=False):
-        """Convert user to dictionary with optional private information"""
         data = {
             'id': self.id,
             'username': self.username,
@@ -203,6 +172,7 @@ class User(UserMixin, db.Model):
             'is_moderator': self.is_moderator,
             'avatar': self.avatar,
             'status': self.status,
+            'presence_state': self.presence_state,
             'bio': self.bio,
             'location': self.location,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
@@ -211,11 +181,8 @@ class User(UserMixin, db.Model):
             'is_verified': self.is_verified
         }
 
-        # Include private information if requested and available
         if include_private and self.preferences:
             data['preferences'] = self.preferences
-
-            # Only include contact info based on visibility settings
             if self.contact_info and self.contact_info.get('email_visibility') == 'public':
                 data['contact_info'] = {
                     'email': self.email,
@@ -229,49 +196,224 @@ class User(UserMixin, db.Model):
             return True
         return False
 
-
-    def mute_user(self, minutes=10):
-        if not self.has_permission('mute_users'):
-            return 'Permission denied'
-        self.muted_until = datetime.utcnow() + timedelta(minutes=minutes)
-        return f'User {self.username} has been muted for {minutes} minutes'
-
-    def unmute_user(self):
-        if not self.has_permission('mute_users'):
-            return 'Permission denied'
-        self.muted_until = None
-        return f'User {self.username} has been unmuted'
-
     def has_permission(self, permission_name):
         return any(
             any(p.name == permission_name for p in role.permissions)
             for role in self.roles
         )
 
-    def has_role(self, role_name):
-        return any(role.name == role_name for role in self.roles)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-    def add_role(self, role_name):
-        role = Role.query.filter_by(name=role_name).first()
-        if role and role not in self.roles:
-            self.roles.append(role)
-            return f'Role {role_name} added to {self.username}'
-        return f'Role {role_name} not found or already assigned'
+def generate_reset_token(email):
+    return serializer.dumps(email, salt='password-reset-salt')
 
-    def remove_role(self, role_name):
-        role = Role.query.filter_by(name=role_name).first()
-        if role and role in self.roles:
-            self.roles.remove(role)
-            return f'Role {role_name} removed from {self.username}'
-        return f'Role {role_name} not found or not assigned'
+def verify_reset_token(token, expiration=3600):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+        return email
+    except:
+        return None
 
-    def update_profile(self, status=None, avatar=None):
-        if status is not None:
-            self.status = status[:100]  # Limit status length
-        if avatar is not None:
-            self.avatar = avatar
-        return f'Profile updated successfully'
+def send_password_reset_email(user):
+    try:
+        token = generate_reset_token(user.email)
+        reset_url = url_for('reset_password', token=token, _external=True)
+        msg = Message(
+            subject='Password Reset Request',
+            recipients=[user.email],
+            body=f'''To reset your password, visit the following link:
+{reset_url}
 
+If you did not make this request, please ignore this email.
+'''
+        )
+        mail.send(msg)
+        logger.info(f"Password reset email sent to {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {str(e)}")
+        return False
+
+# Routes
+@app.route('/')
+@login_required
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        logger.info(f"Login attempt for email: {email}")
+
+        if not all([email, password]):
+            logger.warning("Login failed: Missing email or password")
+            flash('All fields are required', 'error')
+            return redirect(url_for('login'))
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if user.check_password(password):
+                login_user(user)
+                logger.info(f"User {user.username} logged in successfully")
+                return redirect(url_for('index'))
+            else:
+                logger.warning(f"Login failed: Invalid password for user {user.username}")
+        else:
+            logger.warning(f"Login failed: No user found with email {email}")
+
+        flash('Invalid email or password', 'error')
+        return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+@logout_required
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not all([username, email, password]):
+            flash('All fields are required.', 'error')
+            return render_template('register.html')
+
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists.', 'error')
+            return render_template('register.html')
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.', 'error')
+            return render_template('register.html')
+
+        if not User.validate_password_strength(password):
+            flash('Password must be at least 6 characters and contain at least 2 of the following: uppercase letters, lowercase letters, numbers', 'error')
+            return render_template('register.html')
+
+        new_user = User(
+            username=username,
+            email=email,
+            presence_state='online',
+            status='Available'
+        )
+        new_user.set_password(password)
+        
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Registration error: {str(e)}")
+            flash('An error occurred during registration.', 'error')
+            return render_template('register.html')
+
+    return render_template('register.html')
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+@logout_required
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        try:
+            validate_email(email)
+        except EmailNotValidError:
+            flash('Please enter a valid email address.', 'error')
+            return render_template('forgot_password.html')
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            if user.verification_sent_at and \
+               (datetime.utcnow() - user.verification_sent_at).total_seconds() < 300:
+                flash('A reset link was recently sent. Please wait 5 minutes before requesting another.', 'info')
+                return render_template('forgot_password.html')
+            
+            if send_password_reset_email(user):
+                user.verification_sent_at = datetime.utcnow()
+                db.session.commit()
+                flash('If an account exists with this email, you will receive password reset instructions.', 'success')
+            else:
+                flash('An error occurred while sending the reset email. Please try again later.', 'error')
+        else:
+            time.sleep(1)  # Security delay
+            flash('If an account exists with this email, you will receive password reset instructions.', 'success')
+            
+        return redirect(url_for('login'))
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+@logout_required
+def reset_password(token):
+    try:
+        email = verify_reset_token(token)
+        if not email:
+            flash('Invalid or expired reset link. Please request a new one.', 'error')
+            return redirect(url_for('forgot_password'))
+            
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash('User not found.', 'error')
+            return redirect(url_for('forgot_password'))
+            
+        if request.method == 'POST':
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if not password or not confirm_password:
+                flash('Both password fields are required.', 'error')
+                return render_template('reset_password.html', token=token)
+                
+            if password != confirm_password:
+                flash('Passwords do not match.', 'error')
+                return render_template('reset_password.html', token=token)
+                
+            try:
+                user.set_password(password)
+                db.session.commit()
+                flash('Your password has been reset successfully. Please login with your new password.', 'success')
+                return redirect(url_for('login'))
+            except ValueError as e:
+                flash(str(e), 'error')
+                return render_template('reset_password.html', token=token)
+            except Exception as e:
+                logger.error(f"Error resetting password: {str(e)}")
+                flash('An error occurred while resetting your password. Please try again.', 'error')
+                return render_template('reset_password.html', token=token)
+                
+        return render_template('reset_password.html', token=token)
+        
+    except Exception as e:
+        logger.error(f"Error processing password reset: {str(e)}")
+        flash('An error occurred. Please try again.', 'error')
+        return redirect(url_for('forgot_password'))
+
+@app.route('/api/user/profile')
+@login_required
+def get_current_user_profile():
+    return jsonify(current_user.to_dict(include_private=True))
+
+@app.route('/api/user/by_id/<int:user_id>')
+@login_required
+def get_user_profile(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -324,136 +466,24 @@ class Message(db.Model):
         }
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-# Routes
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html')
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        logger.info(f"Login attempt for email: {email}")
-
-        if not all([email, password]):
-            logger.warning("Login failed: Missing email or password")
-            flash('All fields are required', 'error')
-            return redirect(url_for('login'))
-
-        user = User.query.filter_by(email=email).first()
-        if user:
-            if user.check_password(password):
-                login_user(user)
-                logger.info(f"User {user.username} logged in successfully")
-                return redirect(url_for('index'))
-            else:
-                logger.warning(f"Login failed: Invalid password for user {user.username}")
-        else:
-            logger.warning(f"Login failed: No user found with email {email}")
-
-        flash('Invalid email or password', 'error')
-        return redirect(url_for('login'))
-
-    return render_template('login.html')
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-@app.route('/register', methods=['GET', 'POST'])
-@logout_required
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        # Input validation
-        if not username or not email or not password:
-            flash('All fields are required.', 'error')
-            return render_template('register.html')
-
-        # Check if username or email already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'error')
-            return render_template('register.html')
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'error')
-            return render_template('register.html')
-
-        # Validate password strength
-        if not User.validate_password_strength(password):
-            flash('Password must be at least 6 characters and contain at least 2 of the following: uppercase letters, lowercase letters, numbers', 'error')
-            return render_template('register.html')
-
-        # Create new user
-        new_user = User(
-            username=username,
-            email=email,
-            presence_state='online',
-            status='Available'
-        )
-        new_user.set_password(password)
-        
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Registration error: {str(e)}")
-            flash('An error occurred during registration.', 'error')
-            return render_template('register.html')
-
-    return render_template('register.html')
-@app.route('/api/user/<int:user_id>/profile')
-@login_required
-def get_user_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    return jsonify(user.to_dict(include_private=True))
-
-
-
-# Create database tables and test user
-with app.app_context():
-    db.create_all()
-    # Create a test user if none exists
-    if not User.query.filter_by(email='test@example.com').first():
-        test_user = User(
-            username='testuser',
-            email='test@example.com',
-            presence_state='online',
-            bio='Test user account',
-            status='Available'
-        )
-        test_user.set_password('Test123')  # Meets requirements: uppercase, lowercase, and numbers
-        db.session.add(test_user)
-        try:
-            db.session.commit()
-            logger.info("Created test user: test@example.com / Test123")
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Failed to create test user: {str(e)}")
-
-
-# Rest of the routes and functions from the original code would go here.  
-# Due to the incompleteness of the provided modified snippet, these are omitted.  A complete replacement would be needed to integrate them correctly.
-
 if __name__ == '__main__':
-    socketio.init_app(app, async_mode='eventlet', cors_allowed_origins="*")
+    with app.app_context():
+        db.create_all()
+        # Create a test user if none exists
+        if not User.query.filter_by(email='test@example.com').first():
+            test_user = User(
+                username='testuser',
+                email='test@example.com',
+                presence_state='online',
+                bio='Test user account',
+                status='Available'
+            )
+            test_user.set_password('Test123')  # Meets requirements: uppercase, lowercase, and numbers
+            db.session.add(test_user)
+            try:
+                db.session.commit()
+                logger.info("Created test user: test@example.com / Test123")
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed to create test user: {str(e)}")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

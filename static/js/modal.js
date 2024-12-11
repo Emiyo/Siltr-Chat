@@ -63,6 +63,7 @@ window.fetchAndDisplayUserProfile = async function(userId) {
     }
 };
 
+// Modal UI operations
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('userProfileModal');
     const closeBtn = modal.querySelector('.close');
@@ -72,13 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (profileButton) {
         profileButton.addEventListener('click', function(e) {
             e.preventDefault();
-            fetchAndDisplayUserProfile('current');
+            if (typeof window.fetchAndDisplayUserProfile === 'function') {
+                window.fetchAndDisplayUserProfile('current');
+            } else {
+                console.error('Profile functionality not loaded');
+            }
         });
     }
     
     // Close modal when clicking the close button
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
+    if (closeBtn) {
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
     }
     
     // Close modal when clicking outside
@@ -86,17 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target == modal) {
             modal.style.display = "none";
         }
-    }
-
-    // Add click handlers to user list items
-    function setupUserClickHandlers() {
-        const userElements = document.querySelectorAll('.user-item');
-        userElements.forEach(element => {
-            element.addEventListener('click', function() {
-                const userId = this.dataset.userId;
-                fetchAndDisplayUserProfile(userId);
-            });
-        });
     }
 
     // Setup presence selector handler
@@ -110,17 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Setup initial handlers
-    setupUserClickHandlers();
-
     // Setup WebSocket event listener for user list updates
     if (typeof socket !== 'undefined') {
         socket.on('user_list', function(data) {
-            // After user list is updated, reattach click handlers
-            setTimeout(setupUserClickHandlers, 100);
-            
             // Update presence indicator if modal is open
-            const modal = document.getElementById('userProfileModal');
             if (modal.style.display === "block") {
                 const currentUserId = modal.dataset.currentUserId;
                 const currentUser = data.users.find(u => u.id === currentUserId);
@@ -129,9 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (indicator) {
                         indicator.className = `presence-indicator ${currentUser.presence_state || 'online'}`;
                     }
-                    const selector = document.getElementById('presenceSelector');
-                    if (selector) {
-                        selector.value = currentUser.presence_state || 'online';
+                    if (presenceSelector) {
+                        presenceSelector.value = currentUser.presence_state || 'online';
                     }
                 }
             }

@@ -88,14 +88,34 @@
     </script>
     <!-- Load profile functionality first -->
     <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+    <!-- Wait for profile functionality to be ready -->
     <script>
-        console.log('Profile functionality loaded:', typeof window.fetchAndDisplayUserProfile);
+        function waitForProfileFunctionality(callback) {
+            if (typeof window.fetchAndDisplayUserProfile === 'function') {
+                console.log('Profile functionality ready');
+                callback();
+            } else {
+                console.log('Waiting for profile functionality...');
+                setTimeout(() => waitForProfileFunctionality(callback), 50);
+            }
+        }
     </script>
-    <!-- Load other scripts -->
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <!-- Load other scripts after profile is ready -->
     <script>
-        console.log('All scripts loaded');
+        waitForProfileFunctionality(() => {
+            // Load modal.js
+            const modalScript = document.createElement('script');
+            modalScript.src = "{{ url_for('static', filename='js/modal.js') }}";
+            document.body.appendChild(modalScript);
+            
+            // Load chat.js after modal.js
+            modalScript.onload = () => {
+                const chatScript = document.createElement('script');
+                chatScript.src = "{{ url_for('static', filename='js/chat.js') }}";
+                document.body.appendChild(chatScript);
+                console.log('All scripts loaded');
+            };
+        });
     </script>
 </body>
 </html>

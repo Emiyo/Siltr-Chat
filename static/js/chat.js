@@ -1,57 +1,4 @@
-// Define fetchAndDisplayUserProfile in the global scope first
-async function fetchAndDisplayUserProfile(userId) {
-    try {
-        const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
-        const response = await fetch(endpoint);
-        if (!response.ok) throw new Error('Failed to fetch user profile');
-        const userData = await response.json();
-        
-        // Get modal
-        const modal = document.getElementById('userProfileModal');
-        if (!modal) {
-            console.error('Modal element not found');
-            return;
-        }
-        
-        // Update modal content with presence indicator
-        const presenceClass = userData.presence_state || 'online';
-        document.getElementById('modalUsername').innerHTML = `
-            <span class="presence-indicator ${presenceClass}"></span>
-            ${userData.display_name || userData.username}
-        `;
-        document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-        document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
-        document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
-        document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
-        
-        // Set avatar
-        const avatarElement = document.getElementById('modalUserAvatar');
-        avatarElement.src = userData.avatar || '/static/images/default-avatar.png';
-        
-        // Update contact information
-        const contactDiv = document.getElementById('modalContact');
-        contactDiv.innerHTML = '';
-        if (userData.contact_info && userData.contact_info.email_visibility === 'public') {
-            contactDiv.innerHTML += `<p>✉️ ${userData.email}</p>`;
-        }
-        if (userData.contact_info && userData.contact_info.social_links) {
-            const socialLinks = document.createElement('div');
-            socialLinks.className = 'social-links';
-            const links = userData.contact_info.social_links;
-            if (links.github) socialLinks.innerHTML += `<a href="${links.github}" target="_blank">GitHub</a>`;
-            if (links.linkedin) socialLinks.innerHTML += `<a href="${links.linkedin}" target="_blank">LinkedIn</a>`;
-            if (links.twitter) socialLinks.innerHTML += `<a href="${links.twitter}" target="_blank">Twitter</a>`;
-            if (socialLinks.children.length > 0) contactDiv.appendChild(socialLinks);
-        }
-        
-        // Show modal
-        modal.style.display = "block";
-        
-        console.log('Modal displayed for user:', userData.username);
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-    }
-}
+// User profile functionality is loaded from profile.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
@@ -919,30 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to fetch and display user profile
-    function fetchAndDisplayUserProfile(userId, profileModal) {
-        fetch(`/api/user/${userId}/profile`)
-            .then(response => response.json())
-            .then(userData => {
-                // Update modal content
-                document.getElementById('modalUsername').innerHTML = `
-                    <span class="presence-indicator ${userData.presence_state || 'online'}"></span>
-                    ${userData.username}
-                `;
-                document.getElementById('modalUserAvatar').src = userData.avatar || '/static/img/default-avatar.png';
-                document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-                document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
-                document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
-                document.getElementById('modalLocation').textContent = userData.location || 'Location not set';
-                
-                // Show the modal
-                profileModal.show();
-            })
-            .catch(error => {
-                console.error('Error fetching user profile:', error);
-                alert('Failed to load user profile. Please try again.');
-            });
-    }
+    // Using the global fetchAndDisplayUserProfile function defined in profile.js
 
     function updateUserList(users) {
         const userList = document.getElementById('userList');
@@ -964,11 +888,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Initialize Bootstrap modal if not already done
-        const profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'), {
-            keyboard: true
-        });
-
         // Add click handlers for user profiles and messages
         document.querySelectorAll('.user-item').forEach(element => {
             element.addEventListener('click', function(e) {
@@ -986,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     e.stopPropagation();
                 } else if (e.target.classList.contains('profile-btn')) {
-                    fetchAndDisplayUserProfile(userId, profileModal);
+                    window.fetchAndDisplayUserProfile(userId);
                     e.stopPropagation();
                 }
             });
