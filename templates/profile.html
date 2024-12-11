@@ -34,28 +34,8 @@
 
                 <div class="form-group">
                     <label for="status">Custom Status</label>
-                    <div class="status-input-group">
-                        <div class="emoji-button" id="emojiButton">
-                            <span id="selectedEmoji">{{ current_user.status_emoji or '😊' }}</span>
-                        </div>
-                        <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" 
-                               maxlength="128" placeholder="What's on your mind?" class="form-control">
-                        <input type="hidden" id="statusEmoji" name="status_emoji" value="{{ current_user.status_emoji or '' }}">
-                    </div>
-                    <div id="emojiPicker" class="emoji-picker" style="display: none;">
-                        <div class="emoji-list">
-                            <span class="emoji-option" data-emoji="😊">😊</span>
-                            <span class="emoji-option" data-emoji="👋">👋</span>
-                            <span class="emoji-option" data-emoji="💻">💻</span>
-                            <span class="emoji-option" data-emoji="🎮">🎮</span>
-                            <span class="emoji-option" data-emoji="🎵">🎵</span>
-                            <span class="emoji-option" data-emoji="🎨">🎨</span>
-                            <span class="emoji-option" data-emoji="📚">📚</span>
-                            <span class="emoji-option" data-emoji="✨">✨</span>
-                            <span class="emoji-option" data-emoji="🌟">🌟</span>
-                            <span class="emoji-option" data-emoji="💭">💭</span>
-                        </div>
-                    </div>
+                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" 
+                           maxlength="128" placeholder="What's on your mind?" class="form-control">
                 </div>
 
                 <div class="profile-info">

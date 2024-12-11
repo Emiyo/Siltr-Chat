@@ -117,62 +117,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize socket when the page loads
     initializeSocket();
 
-    // Emoji picker functionality
-    const emojiButton = document.getElementById('emojiButton');
-    const emojiPicker = document.getElementById('emojiPicker');
-    const selectedEmojiSpan = document.getElementById('selectedEmoji');
-    const statusEmojiInput = document.getElementById('statusEmoji');
+    // Status input handling
     const statusInput = document.getElementById('status');
-
-    // Debug logging
-    console.log('Emoji button:', emojiButton);
-    console.log('Emoji picker:', emojiPicker);
-
-    if (emojiButton && emojiPicker) {
-        console.log('Setting up emoji picker event listeners');
-        
-        // Handle emoji button click
-        emojiButton.onclick = function(e) {
-            console.log('Emoji button clicked');
-            e.preventDefault();
-            e.stopPropagation();
-            const isHidden = emojiPicker.style.display === 'none' || !emojiPicker.style.display;
-            emojiPicker.style.display = isHidden ? 'block' : 'none';
-            console.log('Emoji picker display:', emojiPicker.style.display);
-        };
-
-        // Handle clicking outside to close picker
-        document.addEventListener('click', function(e) {
-            if (!emojiPicker.contains(e.target) && !emojiButton.contains(e.target)) {
-                emojiPicker.style.display = 'none';
-            }
-        });
-
-        // Handle emoji selection
-        const emojiOptions = document.querySelectorAll('.emoji-option');
-        console.log('Found emoji options:', emojiOptions.length);
-        
-        emojiOptions.forEach(option => {
-            option.onclick = function(e) {
-                console.log('Emoji option clicked:', e.target.dataset.emoji);
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const emoji = e.target.dataset.emoji;
-                selectedEmojiSpan.textContent = emoji;
-                statusEmojiInput.value = emoji;
-                emojiPicker.style.display = 'none';
-                
-                // Update status via Socket.IO
-                if (socket && socket.connected) {
-                    socket.emit('update_status', {
-                        status: statusInput.value,
-                        status_emoji: emoji
-                    });
-                }
-            };
-        });
-    }
 
     // Status update handler
     if (statusInput) {
