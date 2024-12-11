@@ -1,3 +1,25 @@
+/* Base styles */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #1e293b;
+    --success-color: #059669;
+    --danger-color: #dc2626;
+    --warning-color: #d97706;
+    --light-gray: #f1f5f9;
+    --border-color: #cbd5e1;
+    --text-color: #111827;
+    --text-light: #374151;
+    --card-bg: #ffffff;
+    --header-text: #000000;
+    --badge-bg: #ef4444;
+    --terminal-text: #ffffff;
+    --terminal-bg: #1a1b1e;
+    --message-own-bg: rgba(42, 72, 52, 0.3);
+    --message-other-bg: rgba(44, 52, 64, 0.3);
+    --message-system-bg: rgba(0, 0, 0, 0.2);
+    --message-private-bg: rgba(255, 215, 0, 0.1);
+}
+
 /* Login Modal Styling */
 /* Authentication Pages */
 .auth-container {
@@ -142,14 +164,6 @@
 }
 
 /* Terminal Theme */
-:root {
-    --terminal-bg: #1a1a1a;
-    --terminal-text: #f0f0f0;
-    --message-own-bg: #2a4834;
-    --message-other-bg: #2c3440;
-    --message-system-bg: #1e2227;
-    --message-private-bg: #3d3424;
-}
 
 body {
     background-color: var(--terminal-bg);
@@ -243,17 +257,20 @@ body {
 }
 
 /* Message Styling */
+/* Message Actions and Threading */
+
+/* Message Styles */
 .message {
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
     border-radius: 8px;
-    max-width: 85%;
-    word-wrap: break-word;
+    max-width: 80%;
     position: relative;
     animation: fadeIn 0.3s ease-in;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-/* Message Actions and Threading */
+}
+
 .message-actions {
     visibility: hidden;
     opacity: 0;
@@ -303,6 +320,7 @@ body {
     margin-left: 1.5rem;
     border-left: 2px solid rgba(74, 158, 255, 0.3);
     padding-left: 1rem;
+    position: relative;
 }
 
 .threaded-message::before {
@@ -314,7 +332,6 @@ body {
     height: 2px;
     background-color: rgba(74, 158, 255, 0.3);
 }
-}
 
 .message:hover {
     transform: translateY(-1px);
@@ -325,22 +342,12 @@ body {
     background-color: var(--message-own-bg);
     margin-left: auto;
     border-bottom-right-radius: 2px;
-    box-shadow: 0 2px 10px rgba(42, 72, 52, 0.2);
-}
-
-.message-own:hover {
-    box-shadow: 0 4px 15px rgba(42, 72, 52, 0.3);
 }
 
 .message-other {
     background-color: var(--message-other-bg);
     margin-right: auto;
     border-bottom-left-radius: 2px;
-    box-shadow: 0 2px 10px rgba(44, 52, 64, 0.2);
-}
-
-.message-other:hover {
-    box-shadow: 0 4px 15px rgba(44, 52, 64, 0.3);
 }
 
 .message-system {
@@ -459,6 +466,8 @@ body {
 .message-reactions {
     margin-top: 0.5rem;
     display: flex;
+}
+
 .terminal-input:focus {
     outline: none;
     box-shadow: 0 0 10px rgba(74, 158, 255, 0.2);
