@@ -131,7 +131,7 @@ class User(UserMixin, db.Model):
             'avatar': self.avatar,
             'display_name': self.display_name or self.username,
             'status': self.status or '',
-            'presence_state': self.presence_state or 'online',
+            'presence_state': self.presence_state,
             'accent_color': self.accent_color or '#5865F2',
             'bio': self.bio or '',
             'location': self.location or '',
@@ -139,6 +139,14 @@ class User(UserMixin, db.Model):
             'created_at': self.created_at.isoformat(),
             'roles': [role.name for role in self.roles]
         }
+
+    def update_presence(self, new_state):
+        valid_states = ['online', 'idle', 'dnd', 'offline']
+        if new_state in valid_states:
+            self.presence_state = new_state
+            self.last_seen = datetime.utcnow()
+            return True
+        return False
 
     def set_password(self, password):
         if not password:
@@ -537,32 +545,50 @@ def handle_get_user_list():
 def handle_update_presence(data):
     """Handle user presence update"""
     try:
-        logger.info("Updating presence for user: %s", current_user.username if current_user.is_authenticated else None)
         if not current_user.is_authenticated:
             logger.warning("Unauthenticated user attempting to update presence")
-            return
-            
-        presence_state = data.get('presence_state', 'online')
-        if presence_state not in ['online', 'idle', 'dnd', 'offline']:
-            logger.warning("Invalid presence state received: %s", presence_state)
-            return
-            
-        # Update presence in database
-        current_user.presence_state = presence_state
-        current_user.last_seen = datetime.utcnow()
-        db.session.commit()
-        logger.info("Presence state saved to database: %s", presence_state)
+            return False
+
+        presence_state = data.get('presence_state')
+        if not presence_state:
+            logger.warning("No presence state provided")
+            return False
+
+        logger.info(f"Updating presence for user {current_user.username} to {presence_state}")
         
-        # Broadcast updated user list to all connected clients
-        users = User.query.all()
-        users_data = [user.to_dict() for user in users]
-        emit('user_list', {'users': users_data}, broadcast=True)
-        logger.info("Presence updated and broadcast: %s", presence_state)
-        
+        # Update user's presence state
+        if current_user.update_presence(presence_state):
+            try:
+                db.session.commit()
+                logger.info(f"Successfully updated presence state to {presence_state}")
+                
+                # Broadcast updated user list to all connected clients
+                users = User.query.all()
+                users_data = [user.to_dict() for user in users]
+                emit('user_list', {'users': users_data}, broadcast=True)
+                
+                # Send confirmation back to the client
+                emit('presence_updated', {
+                    'success': True,
+                    'presence_state': presence_state,
+                    'user_id': current_user.id
+                })
+                return True
+            except SQLAlchemyError as e:
+                logger.error(f"Database error while updating presence: {str(e)}")
+                db.session.rollback()
+                emit('error', {'message': 'Database error while updating presence'})
+                return False
+        else:
+            logger.warning(f"Invalid presence state received: {presence_state}")
+            emit('error', {'message': 'Invalid presence state'})
+            return False
+            
     except Exception as e:
-        logger.error("Error updating presence: %s", str(e), exc_info=True)
+        logger.error(f"Error in handle_update_presence: {str(e)}", exc_info=True)
         db.session.rollback()
-        emit('error', {'message': 'Failed to update presence state'})
+        emit('error', {'message': 'Server error while updating presence'})
+        return False
 
 @socketio.on('join_channel')
 def handle_join_channel(data):
