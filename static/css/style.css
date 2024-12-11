@@ -274,7 +274,9 @@ body {
 }
 
 .message:hover {
-    width: calc(100% - 2rem);
+    width: max-content;
+    min-width: fit-content;
+    padding-right: 6rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
