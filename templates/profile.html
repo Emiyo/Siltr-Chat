@@ -23,12 +23,12 @@
             <h3>User Info</h3>
             <form method="POST" action="{{ url_for('update_status') }}" class="profile-form">
                 <div class="form-group">
-                    <label for="presence_state">Status</label>
+                    <label for="presence_state">Online Status</label>
                     <select id="presence_state" name="presence_state" class="form-control">
                         <option value="online" {% if current_user.presence_state == 'online' %}selected{% endif %}>Online</option>
                         <option value="idle" {% if current_user.presence_state == 'idle' %}selected{% endif %}>Idle</option>
                         <option value="dnd" {% if current_user.presence_state == 'dnd' %}selected{% endif %}>Do Not Disturb</option>
-                        <option value="offline" {% if current_user.presence_state == 'offline' %}selected{% endif %}>Offline</option>
+                        <option value="offline" {% if current_user.presence_state == 'offline' %}selected{% endif %}>Invisible</option>
                     </select>
                 </div>
 
