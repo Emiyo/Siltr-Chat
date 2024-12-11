@@ -1,0 +1,98 @@
+/home/runner/TornadoChatRoom/app.py:318: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  return User.query.get(int(user_id))
+INFO:__main__:Client connected: dHi6ZW51NYpEYs82AAAB
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column "reply_to_id" of relation "message" does not exist
+LINE 1: ...uration, reactions, is_encrypted, encryption_key, reply_to_i...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/eventlet/hubs/hub.py", line 471, in fire_timers
+    timer()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/eventlet/hubs/timer.py", line 59, in __call__
+    cb(*args, **kw)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/eventlet/greenthread.py", line 265, in main
+    result = function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py", line 589, in _handle_event_internal
+    r = server._trigger_event(data[0], namespace, sid, *data[1:])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py", line 614, in _trigger_event
+    return handler(*args)
+           ^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 293, in _handler
+    return self._handle_event(handler, message, real_ns, sid,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 838, in _handle_event
+    ret = handler(*args)
+          ^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/app.py", line 749, in handle_join
+    db.session.commit()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2028, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4352, in flush
+    self._flush(objects)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4487, in _flush
+    with util.safe_reraise():
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4448, in _flush
+    flush_context.execute()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column "reply_to_id" of relation "message" does not exist
+LINE 1: ...uration, reactions, is_encrypted, encryption_key, reply_to_i...
+                                                             ^
+
+[SQL: INSERT INTO message (type, sender_id, receiver_id, channel_id, text, timestamp, file_url, voice_url, voice_duration, reactions, is_encrypted, encryption_key, reply_to_id, forwarded_from_id, thread_id, is_edited) VALUES (%(type)s, %(sender_id)s, %(receiver_id)s, %(channel_id)s, %(text)s, %(timestamp)s, %(file_url)s, %(voice_url)s, %(voice_duration)s, %(reactions)s::JSON, %(is_encrypted)s, %(encryption_key)s, %(reply_to_id)s, %(forwarded_from_id)s, %(thread_id)s, %(is_edited)s) RETURNING message.id]
+[parameters: {'type': 'system', 'sender_id': None, 'receiver_id': None, 'channel_id': None, 'text': 'Apple has joined the chat', 'timestamp': datetime.datetime(2024, 12, 11, 1, 25, 36, 921648), 'file_url': None, 'voice_url': None, 'voice_duration': None, 'reactions': '{}', 'is_encrypted': True, 'encryption_key': None, 'reply_to_id': None, 'forwarded_from_id': None, 'thread_id': None, 'is_edited': False}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
