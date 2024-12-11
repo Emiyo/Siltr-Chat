@@ -208,10 +208,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const presenceSelector = document.getElementById('presenceSelector');
     
     if (presenceSelector) {
-        presenceSelector.addEventListener('change', event => {
+        presenceSelector.addEventListener('change', async event => {
             const newPresence = event.target.value;
             if (socket && socket.connected) {
-                socket.emit('update_presence', { presence_state: newPresence });
+                try {
+                    // Update local UI immediately
+                    const currentUserPresence = document.querySelector('.user-item[data-self="true"] .presence-indicator');
+                    if (currentUserPresence) {
+                        currentUserPresence.className = `presence-indicator ${newPresence}`;
+                    }
+                    
+                    // Emit presence update
+                    socket.emit('update_presence', { presence_state: newPresence });
+                    
+                    console.log('Presence updated:', newPresence);
+                } catch (error) {
+                    console.error('Error updating presence:', error);
+                }
             }
         });
     }
@@ -269,10 +282,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     const userList = document.getElementById('userList');
                     if (!userList) return;
 
+                    // Get current user's ID from the select element
+                    const currentUserId = presenceSelector ? presenceSelector.getAttribute('data-user-id') : null;
+
                     userList.innerHTML = '';
                     data.users.forEach(user => {
                         const userItem = document.createElement('div');
                         userItem.className = 'user-item';
+                        // Mark if this is the current user
+                        if (currentUserId && user.id.toString() === currentUserId) {
+                            userItem.setAttribute('data-self', 'true');
+                        }
                         userItem.innerHTML = `
                             <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
                             <span class="username">${user.display_name}</span>
@@ -280,6 +300,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         `;
                         userList.appendChild(userItem);
                     });
+                    
+                    // Update presence selector if it exists
+                    if (presenceSelector && currentUserId) {
+                        const currentUser = data.users.find(u => u.id.toString() === currentUserId);
+                        if (currentUser) {
+                            presenceSelector.value = currentUser.presence_state || 'online';
+                        }
+                    }
                 }
             });
         }
