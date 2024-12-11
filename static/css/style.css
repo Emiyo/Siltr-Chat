@@ -29,6 +29,11 @@
     --elevation-low: 0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
 }
 
+/* Theme Transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 [data-theme="light"] {
     --primary-color: #5865F2;
     --secondary-color: #f2f3f5;
@@ -56,6 +61,64 @@
     --channeltextarea-background: #ebedef;
     --elevation-stroke: 0 0 0 1px rgba(6,6,7,0.08);
     --elevation-low: 0 1px 0 rgba(6,6,7,0.1),0 1.5px 0 rgba(6,6,7,0.025),0 2px 0 rgba(6,6,7,0.025);
+}
+
+[data-theme="midnight"] {
+    --primary-color: #7289DA;
+    --secondary-color: #1a1b1e;
+    --success-color: #43B581;
+    --danger-color: #F04747;
+    --warning-color: #FAA61A;
+    --light-gray: #4f545c;
+    --border-color: #2C2F33;
+    --text-color: #ffffff;
+    --text-light: #b9bbbe;
+    --card-bg: #2C2F33;
+    --header-text: #ffffff;
+    --badge-bg: #f04747;
+    --terminal-text: #ffffff;
+    --terminal-bg: #1a1b1e;
+    --message-own-bg: rgba(114, 137, 218, 0.1);
+    --message-other-bg: rgba(44, 47, 51, 0.6);
+    --message-system-bg: rgba(26, 27, 30, 0.5);
+    --message-private-bg: rgba(250, 166, 26, 0.1);
+    --interactive-hover: #ffffff;
+    --interactive-active: #ffffff;
+    --background-primary: #23272A;
+    --background-secondary: #2C2F33;
+    --background-tertiary: #1a1b1e;
+    --channeltextarea-background: #40444B;
+    --elevation-stroke: 0 0 0 1px rgba(4,4,5,0.15);
+    --elevation-low: 0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
+}
+
+[data-theme="sunset"] {
+    --primary-color: #FF6B6B;
+    --secondary-color: #2C2F33;
+    --success-color: #4ECDC4;
+    --danger-color: #FF6B6B;
+    --warning-color: #FFE66D;
+    --light-gray: #6c757d;
+    --border-color: #343a40;
+    --text-color: #F7F7F7;
+    --text-light: #CED4DA;
+    --card-bg: #343a40;
+    --header-text: #ffffff;
+    --badge-bg: #ff6b6b;
+    --terminal-text: #ffffff;
+    --terminal-bg: #2C2F33;
+    --message-own-bg: rgba(255, 107, 107, 0.1);
+    --message-other-bg: rgba(52, 58, 64, 0.6);
+    --message-system-bg: rgba(44, 47, 51, 0.5);
+    --message-private-bg: rgba(255, 230, 109, 0.1);
+    --interactive-hover: #ffffff;
+    --interactive-active: #ffffff;
+    --background-primary: #2C2F33;
+    --background-secondary: #343a40;
+    --background-tertiary: #23272A;
+    --channeltextarea-background: #495057;
+    --elevation-stroke: 0 0 0 1px rgba(4,4,5,0.15);
+    --elevation-low: 0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
 }
 
 /* Login Modal Styling */

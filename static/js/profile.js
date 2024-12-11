@@ -10,12 +10,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (themeSelect) {
         themeSelect.addEventListener('change', function(e) {
             const selectedTheme = e.target.value;
-            document.documentElement.setAttribute('data-theme', selectedTheme);
+            const root = document.documentElement;
             
-            // Toggle custom theme options
+            // Apply theme with transition
+            root.style.transition = 'none';
+            root.setAttribute('data-theme', selectedTheme);
+            
+            // Force reflow
+            void root.offsetWidth;
+            root.style.transition = '';
+            
+            // Toggle custom theme options with animation
             if (customThemeOptions) {
-                customThemeOptions.style.display = selectedTheme === 'custom' ? 'block' : 'none';
-                customThemeOptions.style.opacity = selectedTheme === 'custom' ? '1' : '0';
+                if (selectedTheme === 'custom') {
+                    customThemeOptions.style.display = 'block';
+                    setTimeout(() => {
+                        customThemeOptions.style.opacity = '1';
+                    }, 10);
+                } else {
+                    customThemeOptions.style.opacity = '0';
+                    setTimeout(() => {
+                        customThemeOptions.style.display = 'none';
+                    }, 300);
+                }
             }
             
             // Save theme preference

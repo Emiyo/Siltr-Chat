@@ -49,8 +49,10 @@
                     <div class="form-group">
                         <label for="theme">Theme</label>
                         <select id="theme" name="theme" class="form-control">
-                            <option value="dark" {% if current_user.theme == 'dark' %}selected{% endif %}>Dark</option>
+                            <option value="dark" {% if current_user.theme == 'dark' %}selected{% endif %}>Default Dark</option>
                             <option value="light" {% if current_user.theme == 'light' %}selected{% endif %}>Light</option>
+                            <option value="midnight" {% if current_user.theme == 'midnight' %}selected{% endif %}>Midnight</option>
+                            <option value="sunset" {% if current_user.theme == 'sunset' %}selected{% endif %}>Sunset</option>
                             <option value="custom" {% if current_user.theme == 'custom' %}selected{% endif %}>Custom</option>
                         </select>
                     </div>
