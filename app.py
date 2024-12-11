@@ -11,6 +11,8 @@ from logging.handlers import RotatingFileHandler
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
+from werkzeug.urls import url_parse as werkzeug_url_parse
+from sqlalchemy.exc import SQLAlchemyError
 from itsdangerous import URLSafeTimedSerializer
 from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
@@ -23,30 +25,41 @@ import json
 from datetime import datetime
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with more detailed format
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
+logger.info("Flask app initialized")
 # GitHub OAuth Configuration
 app.config['GITHUB_CLIENT_ID'] = os.environ.get('GITHUB_CLIENT_ID')
 app.config['GITHUB_CLIENT_SECRET'] = os.environ.get('GITHUB_CLIENT_SECRET')
 app.config['GITHUB_CALLBACK_URL'] = os.environ.get('GITHUB_CALLBACK_URL', 'http://localhost:5000/auth/github/callback')
-# Configure database URL with SSL mode
-db_url = os.environ.get('DATABASE_URL', 'sqlite:///chat.db')
-if db_url.startswith('postgres://'):
-    db_url = db_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-    'connect_args': {
-        'sslmode': 'require'
+# Configure database URL
+try:
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        logger.error("DATABASE_URL environment variable is not set")
+        raise ValueError("DATABASE_URL environment variable is required")
+        
+    if db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    
+    logger.info(f"Configuring database connection...")
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
     }
-}
+except Exception as e:
+    logger.error(f"Database configuration error: {str(e)}")
+    raise
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Configure logging
@@ -63,22 +76,30 @@ logger.setLevel(logging.INFO)
 
 # Initialize Flask-SQLAlchemy
 db.init_app(app)
+login_manager.init_app(app)
+bcrypt.init_app(app)
+mail.init_app(app)
+login_manager.login_view = 'login'
+
+# Initialize migrations
+migrate = Migrate(app, db, compare_type=True)
+
+# Import models
+from models import User, Role, Category, Channel, Message
 
 with app.app_context():
-    # Initialize other extensions
-    login_manager.init_app(app)
-    bcrypt.init_app(app)
-    mail.init_app(app)
-    login_manager.login_view = 'login'
-
-    # Initialize migrations
-    migrate = Migrate(app, db, compare_type=True)
-
-    # Import models after db initialization
-    from models import User, Role, Category, Channel, Message
-
-    # Create tables
-    db.create_all()
+    try:
+        # Create tables
+        db.create_all()
+        logger.info("Database tables created successfully")
+        
+        # Verify tables exist
+        tables = db.engine.table_names()
+        logger.info(f"Available tables: {tables}")
+        
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}", exc_info=True)
+        raise
 
 # Initialize SocketIO after Flask app and extensions
 socketio = SocketIO(
@@ -115,36 +136,43 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        logger.info("Already authenticated user accessing login page")
         return redirect(url_for('index'))
 
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        
+        logger.info(f"Login attempt for email: {email}")
+        
+        if not email or not password:
+            logger.warning("Login attempt with missing credentials")
+            flash('Please provide both email and password', 'error')
+            return redirect(url_for('login'))
 
-        user = User.query.filter_by(email=email).first()
-        if user:
-            logger.info(f"Found user {user.username}, verifying password")
-            stored_hash = user.password_hash
-            logger.info(f"Stored hash length: {len(stored_hash) if stored_hash else 'None'}")
-            
-            try:
-                is_valid = user.check_password(password)
-                logger.info(f"Password verification result: {is_valid}")
-                if is_valid:
-                    login_user(user)
+        try:
+            user = User.query.filter_by(email=email).first()
+            if user:
+                logger.info(f"Found user {user.username}, verifying password")
+                if user.check_password(password):
+                    login_user(user, remember=True)
                     logger.info(f"User {user.username} logged in successfully")
-                    return redirect(url_for('index'))
+                    next_page = request.args.get('next')
+                    if not next_page or werkzeug_url_parse(next_page).netloc != '':
+                        next_page = url_for('index')
+                    return redirect(next_page)
                 else:
-                    logger.warning(f"Login failed: Invalid password for user {user.username}")
-            except Exception as e:
-                logger.error(f"Password verification error: {str(e)}")
-                flash('An error occurred during login', 'error')
-                return redirect(url_for('login'))
-        else:
-            logger.warning(f"Login failed: No user found with email {email}")
-
-        flash('Invalid email or password', 'error')
-        return redirect(url_for('login'))
+                    logger.warning(f"Invalid password for user {user.username}")
+            else:
+                logger.warning(f"No user found with email {email}")
+            
+            flash('Invalid email or password', 'error')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            logger.error(f"Login error: {str(e)}", exc_info=True)
+            flash('An error occurred during login. Please try again.', 'error')
+            return redirect(url_for('login'))
 
     return render_template('login.html')
 
@@ -433,23 +461,46 @@ def handle_message(data):
             logger.warning("No channel_id provided")
             return
             
+        logger.info(f"Looking up channel {channel_id}...")
         channel = Channel.query.get(channel_id)
         if not channel:
             logger.error(f"Channel {channel_id} not found")
             return
-            
-        # Create and save message
-        message = Message(
-            content=content,
-            user_id=current_user.id,
-            channel_id=channel_id,
-            parent_id=parent_id,
-            type=message_type
-        )
         
-        db.session.add(message)
-        db.session.commit()
-        logger.info(f"Message saved to database with id {message.id}")
+        logger.info(f"Creating message for user {current_user.id} in channel {channel_id}")    
+        # Create and save message
+        try:
+            message = Message(
+                content=content,
+                user_id=current_user.id,
+                channel_id=channel_id,
+                parent_id=parent_id,
+                type=message_type
+            )
+            
+            logger.info("Adding message to session")
+            db.session.add(message)
+            logger.info("Committing message to database")
+            db.session.commit()
+            logger.info(f"Message saved to database with id {message.id}")
+try:
+    message_data = message.to_dict()
+    logger.info(f"Message serialized successfully: {message_data}")
+except Exception as e:
+    logger.error(f"Error serializing message: {str(e)}")
+    return False
+            
+            message_data = message.to_dict()
+            logger.info(f"Emitting message: {message_data}")
+            emit('message', message_data, room=f'channel_{channel_id}', broadcast=True)
+            logger.info(f"Message broadcasted to channel {channel.name}")
+            return True
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Database error saving message: {str(e)}", exc_info=True)
+            db.session.rollback()
+            emit('error', {'message': 'Failed to save message'})
+            return False
         
         # Get complete message data
         message_data = message.to_dict()

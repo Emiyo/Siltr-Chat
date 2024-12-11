@@ -1,6 +1,9 @@
 from flask_login import UserMixin
 from datetime import datetime
 from extensions import db, bcrypt
+import logging
+
+logger = logging.getLogger(__name__)
 
 # User roles association table
 user_roles = db.Table('user_roles',
@@ -39,6 +42,23 @@ class User(UserMixin, db.Model):
     
     def has_role(self, role_name):
         return any(role.name == role_name for role in self.roles)
+        
+    def set_password(self, password):
+        """Set the password hash for the user."""
+        if password:
+            self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        
+    def check_password(self, password):
+        """Check if the provided password matches the hash."""
+        try:
+            if not password or not self.password_hash:
+                logger.warning("Missing password or password hash")
+                return False
+            logger.info(f"Stored hash length: {len(self.password_hash)}")
+            return bcrypt.check_password_hash(self.password_hash.encode('utf-8'), password)
+        except Exception as e:
+            logger.error(f"Password verification error: {str(e)}")
+            return False
 
     def to_dict(self):
         return {
