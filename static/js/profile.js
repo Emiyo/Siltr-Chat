@@ -124,21 +124,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusEmojiInput = document.getElementById('statusEmoji');
     const statusInput = document.getElementById('status');
 
-    if (emojiButton && emojiPicker) {
-        emojiButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
-        });
+    // Debug logging
+    console.log('Emoji button:', emojiButton);
+    console.log('Emoji picker:', emojiPicker);
 
-        document.addEventListener('click', (e) => {
-            if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+    if (emojiButton && emojiPicker) {
+        console.log('Setting up emoji picker event listeners');
+        
+        // Handle emoji button click
+        emojiButton.onclick = function(e) {
+            console.log('Emoji button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            const isHidden = emojiPicker.style.display === 'none' || !emojiPicker.style.display;
+            emojiPicker.style.display = isHidden ? 'block' : 'none';
+            console.log('Emoji picker display:', emojiPicker.style.display);
+        };
+
+        // Handle clicking outside to close picker
+        document.addEventListener('click', function(e) {
+            if (!emojiPicker.contains(e.target) && !emojiButton.contains(e.target)) {
                 emojiPicker.style.display = 'none';
             }
         });
 
+        // Handle emoji selection
         const emojiOptions = document.querySelectorAll('.emoji-option');
+        console.log('Found emoji options:', emojiOptions.length);
+        
         emojiOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
+            option.onclick = function(e) {
+                console.log('Emoji option clicked:', e.target.dataset.emoji);
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const emoji = e.target.dataset.emoji;
                 selectedEmojiSpan.textContent = emoji;
                 statusEmojiInput.value = emoji;
@@ -151,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         status_emoji: emoji
                     });
                 }
-            });
+            };
         });
     }
 
