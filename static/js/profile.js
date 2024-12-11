@@ -20,11 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
             void root.offsetWidth;
             root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
             
-            // Update preview container with theme-specific styles
+            // Update preview container with smooth transition
             if (preview) {
-                preview.style.opacity = '0';
+                preview.classList.add('transitioning');
                 setTimeout(() => {
-                    preview.style.opacity = '1';
+                    // Update theme-specific styles
+                    preview.classList.remove('transitioning');
                 }, 300);
             }
             

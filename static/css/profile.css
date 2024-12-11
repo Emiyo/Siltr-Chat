@@ -206,7 +206,14 @@ input[type="file"]::file-selector-button:hover {
     padding: 1rem;
     background-color: var(--background-secondary);
     border-radius: 8px;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.theme-preview.transitioning {
+    opacity: 0;
+    transform: translateY(10px);
 }
 
 .theme-preview h5 {
