@@ -844,19 +844,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUserList(users) {
         userList.innerHTML = users.map(user => `
-            <div class="user-item" data-user-id="${user.id}">
+            <div class="user-item" data-user-id="${user.id}" title="Click to view profile or send private message">
                 <span class="user-status">></span>
                 ${user.username}
+                <div class="user-actions" style="display: none;">
+                    <button class="btn btn-sm btn-terminal">Message</button>
+                    <button class="btn btn-sm btn-terminal">Profile</button>
+                </div>
             </div>
         `).join('');
 
-        // Add click handlers for user profiles
+        // Add click handlers for user profiles and messages
         document.querySelectorAll('.user-item').forEach(element => {
-            element.addEventListener('click', function() {
+            element.addEventListener('click', function(e) {
                 const userId = this.getAttribute('data-user-id');
-                console.log('User clicked:', userId);
-                if (userId) {
-                    fetchAndDisplayUserProfile(userId);
+                const username = this.textContent.trim();
+                
+                if (!userId) return;
+                
+                // Toggle actions menu
+                const actionsMenu = this.querySelector('.user-actions');
+                if (actionsMenu) {
+                    const isVisible = actionsMenu.style.display === 'block';
+                    // Hide all other action menus
+                    document.querySelectorAll('.user-actions').forEach(menu => {
+                        menu.style.display = 'none';
+                    });
+                    // Toggle this menu
+                    actionsMenu.style.display = isVisible ? 'none' : 'block';
+                }
+
+                // Handle button clicks
+                if (e.target.tagName === 'BUTTON') {
+                    if (e.target.textContent === 'Message') {
+                        // Pre-fill message input with @username
+                        const messageInput = document.getElementById('messageInput');
+                        if (messageInput) {
+                            messageInput.value = `@${username} `;
+                            messageInput.focus();
+                        }
+                    } else if (e.target.textContent === 'Profile') {
+                        fetchAndDisplayUserProfile(userId);
+                    }
+                    e.stopPropagation();
                 }
             });
         });
