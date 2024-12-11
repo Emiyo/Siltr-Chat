@@ -54,8 +54,17 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="status">Status Message:</label>
-                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" maxlength="100">
+                    <label for="presence_state">Presence:</label>
+                    <select id="presence_state" name="presence_state" class="presence-selector">
+                        <option value="online" {% if current_user.presence_state == 'online' %}selected{% endif %}>Online</option>
+                        <option value="idle" {% if current_user.presence_state == 'idle' %}selected{% endif %}>Idle</option>
+                        <option value="dnd" {% if current_user.presence_state == 'dnd' %}selected{% endif %}>Do Not Disturb</option>
+                        <option value="invisible" {% if current_user.presence_state == 'invisible' %}selected{% endif %}>Invisible</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Custom Status:</label>
+                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" maxlength="100" placeholder="What's on your mind?">
                 </div>
                 <div class="form-group">
                     <label for="bio">Bio:</label>

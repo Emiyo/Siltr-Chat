@@ -205,7 +205,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(60), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
     avatar = db.Column(db.String(200))
-    status = db.Column(db.String(100))
+    status = db.Column(db.String(100))  # Custom status message
+    presence_state = db.Column(db.String(20), default='online')  # online, idle, dnd, invisible
     bio = db.Column(db.String(500))  # User biography
     display_name = db.Column(db.String(50))  # Display name (can be different from username)
     last_seen = db.Column(db.DateTime)  # Track user's last activity
@@ -576,9 +577,21 @@ def update_profile():
                 return redirect(url_for('profile'))
             current_user.display_name = display_name[:50]
 
-        # Update status with sanitization
+        # Update presence state and status
+        presence_state = request.form.get('presence_state', 'online')
+        if presence_state in ['online', 'idle', 'dnd', 'invisible']:
+            current_user.presence_state = presence_state
+            
         status = request.form.get('status', '').strip()
         current_user.status = status[:100] if status else None
+        
+        # Emit presence update to all users
+        if hasattr(request, 'sid'):
+            socketio.emit('presence_update', {
+                'user_id': current_user.id,
+                'presence_state': current_user.presence_state,
+                'status': current_user.status
+            }, broadcast=True)
 
         # Update bio with sanitization
         bio = request.form.get('bio', '').strip()
