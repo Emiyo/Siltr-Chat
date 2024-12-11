@@ -83,7 +83,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     
     <!-- Load JavaScript -->
+    <script>
+        // Debug logging for script loading
+        console.log('Starting script loading...');
+    </script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script>
+        // Verify function is defined
+        console.log('modal.js loaded, fetchAndDisplayUserProfile defined:', typeof window.fetchAndDisplayUserProfile);
+    </script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script>
+        console.log('All scripts loaded');
+    </script>
 </body>
 </html>
