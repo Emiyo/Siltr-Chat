@@ -1,18 +1,18 @@
 .profile-container {
-    max-width: 800px;
+    max-width: 600px;
     margin: 20px auto;
     padding: 20px;
-    background: #1a1a1a;
+    background: #36393f;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border: 1px solid #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .profile-section {
-    margin-bottom: 30px;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #2f3136;
+    border-radius: 5px;
+    position: relative;
 }
 
 .profile-section h3 {

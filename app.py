@@ -95,55 +95,35 @@ def retry_on_db_error(max_retries=5, initial_delay=0.1):
         return wrapper
     return decorator
 
-# Models
-class Role(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.String(200))
-    permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
-    users = db.relationship('User', secondary='user_roles', back_populates='roles')
-
-class Permission(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.String(200))
-    roles = db.relationship('Role', secondary='role_permissions', back_populates='permissions')
-
-role_permissions = db.Table('role_permissions',
-    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'), primary_key=True)
-)
-
-user_roles = db.Table('user_roles',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
-)
+# Initialize Flask-Migrate
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    is_moderator = db.Column(db.Boolean, default=False)
-    avatar = db.Column(db.String(200))
-    status = db.Column(db.String(100))
-    presence_state = db.Column(db.String(20), default='online')
-    bio = db.Column(db.String(500))
-    display_name = db.Column(db.String(50))
-    last_seen = db.Column(db.DateTime)
-    location = db.Column(db.String(100))
-    timezone = db.Column(db.String(50))
-    preferences = db.Column(db.JSON)
-    contact_info = db.Column(db.JSON)
+    # Discord-like profile fields
+    avatar = db.Column(db.String(200))  # Avatar URL
+    accent_color = db.Column(db.String(7))  # Hex color code for profile accent
+    banner = db.Column(db.String(200))  # Banner image URL
+    status = db.Column(db.String(128))  # Custom status message (e.g. "Playing Minecraft")
+    presence_state = db.Column(db.String(20), default='online')  # online, idle, dnd, invisible
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    muted_until = db.Column(db.DateTime)
-    warning_count = db.Column(db.Integer, default=0)
-    is_verified = db.Column(db.Boolean, nullable=False, default=False)
-    verification_token = db.Column(db.String(100))
-    verification_sent_at = db.Column(db.DateTime)
-    roles = db.relationship('Role', secondary=user_roles, back_populates='users')
-    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
-    received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
+    last_online = db.Column(db.DateTime)
+    
+    # Message relationships
+    sent_messages = db.relationship('Message', 
+                                  foreign_keys='Message.sender_id',
+                                  backref='sender',
+                                  lazy='dynamic',
+                                  cascade='all, delete-orphan')
+    received_messages = db.relationship('Message',
+                                      foreign_keys='Message.receiver_id',
+                                      backref='receiver',
+                                      lazy='dynamic',
+                                      cascade='all, delete-orphan')
 
     def set_password(self, password):
         if not self.validate_password_strength(password):
@@ -168,39 +148,14 @@ class User(UserMixin, db.Model):
         data = {
             'id': self.id,
             'username': self.username,
-            'display_name': self.display_name or self.username,
-            'is_moderator': self.is_moderator,
             'avatar': self.avatar,
             'status': self.status,
             'presence_state': self.presence_state,
-            'bio': self.bio,
-            'location': self.location,
-            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'created_at': self.created_at.isoformat(),
-            'is_muted': self.is_muted(),
-            'is_verified': self.is_verified
+            'created_at': self.created_at.isoformat()
         }
-
-        if include_private and self.preferences:
-            data['preferences'] = self.preferences
-            if self.contact_info and self.contact_info.get('email_visibility') == 'public':
-                data['contact_info'] = {
-                    'email': self.email,
-                    'social_links': self.contact_info.get('social_links', {})
-                }
-
+        if include_private:
+            data['email'] = self.email
         return data
-
-    def is_muted(self):
-        if self.muted_until and self.muted_until > datetime.utcnow():
-            return True
-        return False
-
-    def has_permission(self, permission_name):
-        return any(
-            any(p.name == permission_name for p in role.permissions)
-            for role in self.roles
-        )
 
 @login_manager.user_loader
 def load_user(user_id):
