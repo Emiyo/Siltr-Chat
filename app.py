@@ -373,15 +373,38 @@ def handle_get_categories():
     try:
         logger.info("Fetching categories")
         categories = Category.query.all()
-        categories_data = [category.to_dict() for category in categories]
+        categories_data = []
+        
+        for category in categories:
+            try:
+                category_dict = category.to_dict()
+                categories_data.append(category_dict)
+            except Exception as e:
+                logger.error(f"Error converting category to dict: {str(e)}")
+                continue
+        
         logger.info("Categories query successful, found %d categories", len(categories))
+        
+        # Create default category if none exist
+        if not categories_data:
+            logger.info("No categories found, creating default category")
+            default_category = Category(name="General")
+            try:
+                db.session.add(default_category)
+                db.session.commit()
+                logger.info("Created default category")
+                categories_data = [default_category.to_dict()]
+            except Exception as e:
+                logger.error(f"Failed to create default category: {str(e)}")
+                db.session.rollback()
+                raise
         
         emit('categories_list', {
             'categories': categories_data
         })
-        logger.info("Categories list sent successfully")
+        logger.info("Categories list sent successfully with %d categories", len(categories_data))
     except Exception as e:
-        logger.error("Error fetching categories: %s", str(e), exc_info=True)
+        logger.error(f"Error in handle_get_categories: {str(e)}", exc_info=True)
         emit('error', {'message': 'Failed to fetch categories'})
 
 @socketio.on('get_user_list')
@@ -445,5 +468,15 @@ def handle_leave_channel(data):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            # Check if we need to create default roles and categories
+            if not Category.query.first():
+                default_category = Category(name="General")
+                db.session.add(default_category)
+                db.session.commit()
+                logger.info("Created default category")
+        except Exception as e:
+            logger.error(f"Database initialization error: {str(e)}")
+            db.session.rollback()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
