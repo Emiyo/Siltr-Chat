@@ -16,3 +16,14 @@
 [2024-12-11 17:27:18,044] WARNING in app: Login failed: Invalid password for user Apple
 [2024-12-11 17:27:30,861] INFO in app: Login attempt for email: etoiyoiky@gmail.com
 [2024-12-11 17:27:31,248] WARNING in app: Login failed: Invalid password for user Apple
+[2024-12-11 17:46:36,655] INFO in app: Login attempt for email: etoiyoiky@gmail.com
+[2024-12-11 17:46:36,789] INFO in app: Found user Apple, verifying password
+[2024-12-11 17:46:36,793] INFO in app: Stored hash length: 60
+[2024-12-11 17:46:37,322] INFO in app: Password verification result: False
+[2024-12-11 17:46:37,325] WARNING in app: Login failed: Invalid password for user Apple
+[2024-12-11 17:48:42,492] INFO in app: Password hash generated, length: 60
+[2024-12-11 17:48:47,747] INFO in app: Login attempt for email: etoiyoiki@gmail.com
+[2024-12-11 17:48:47,883] INFO in app: Found user Hollow, verifying password
+[2024-12-11 17:48:47,886] INFO in app: Stored hash length: 60
+[2024-12-11 17:48:48,208] INFO in app: Password verification result: True
+[2024-12-11 17:48:48,213] INFO in app: User Hollow logged in successfully
