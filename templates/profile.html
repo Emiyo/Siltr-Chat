@@ -5,7 +5,11 @@
     <div class="profile-header">
         <div class="profile-info">
             <h2 class="display-name">{{ user.display_name or user.username }}</h2>
-            <span class="username">#{{ user.username }}</span>
+            <span class="username">@{{ user.username }}</span>
+        </div>
+        <div class="profile-status">
+            <span class="presence-indicator {{ user.presence_state }}"></span>
+            <span class="status-text">{{ user.status or 'No status set' }}</span>
         </div>
     </div>
 
@@ -15,7 +19,14 @@
             <div class="form-group">
                 <label for="display_name">Display Name</label>
                 <input type="text" id="display_name" name="display_name" 
-                       value="{{ user.display_name or '' }}" maxlength="50">
+                       value="{{ user.display_name or '' }}" maxlength="50"
+                       placeholder="Enter display name">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" maxlength="500" 
+                          placeholder="Tell us about yourself">{{ user.bio or '' }}</textarea>
             </div>
 
             <div class="form-group">

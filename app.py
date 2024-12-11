@@ -128,32 +128,19 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
     
-    # Core profile fields (Discord-like)
+    # Core profile fields
     display_name = db.Column(db.String(50))
-    discriminator = db.Column(db.String(4))  # The #0000 part of Discord usernames
     avatar = db.Column(db.String(200))
-    banner = db.Column(db.String(200))
-    accent_color = db.Column(db.String(7), default='#5865F2')  # Discord's default color
+    accent_color = db.Column(db.String(7), default='#5865F2')
+    bio = db.Column(db.String(500))
     
-    # Presence and Status
-    status = db.Column(db.String(100))  # Custom status message
-    status_emoji = db.Column(db.String(50))  # Custom status emoji
-    presence_state = db.Column(db.String(20), default='online')  # online, idle, dnd, offline
+    # Status and Presence
+    status = db.Column(db.String(100))
+    presence_state = db.Column(db.String(20), default='online')
     
-    # Activity
-    activity_type = db.Column(db.String(50))  # playing, streaming, listening, watching, custom
-    activity_name = db.Column(db.String(100))  # Name of the game/activity
-    
-    # About Me
-    bio = db.Column(db.String(500))  # Discord's "About Me" section
-    
-    # Preferences and Settings
-    profile_theme = db.Column(db.String(20), default='dark')  # dark/light
-    locale = db.Column(db.String(10), default='en-US')
+    # Settings
+    profile_theme = db.Column(db.String(20), default='dark')
     preferences = db.Column(db.JSON, default={})
-    
-    # Social and Connections
-    connections = db.Column(db.JSON, default={})  # Connected accounts (GitHub, Spotify, etc.)
     
     # System Fields
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -192,42 +179,43 @@ class User(UserMixin, db.Model):
         return sum(conditions) >= 2
 
     def to_dict(self, include_private=False):
+        """Convert user object to dictionary with basic profile structure."""
         data = {
             'id': self.id,
             'username': self.username,
             'display_name': self.display_name or self.username,
-            'is_moderator': self.is_moderator,
             'avatar': self.avatar,
-            'banner': self.banner,
             'accent_color': self.accent_color,
-            'status': self.status,
-            'status_emoji': self.status_emoji,
-            'presence_state': self.presence_state,
-            'activity': {
-                'type': self.activity_type,
-                'name': self.activity_name
-            } if self.activity_type else None,
-            'bio': self.bio,
-            'location': self.location,
             'profile_theme': self.profile_theme,
+            'status': self.status,
+            'presence_state': self.presence_state,
+            'bio': self.bio,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'created_at': self.created_at.isoformat(),
-            'is_muted': self.is_muted(),
             'is_verified': self.is_verified,
             'roles': [{'id': role.id, 'name': role.name} for role in self.roles]
         }
 
         if include_private:
             data.update({
-                'preferences': self.preferences,
-                'connections': self.connections,
-                'contact_info': {
-                    'email': self.email if self.contact_info.get('email_visibility') == 'public' else None,
-                    'social_links': self.contact_info.get('social_links', {})
-                } if self.contact_info else {}
+                'email': self.email,
+                'preferences': self.preferences or {},
             })
 
         return data
+        
+    def update_presence(self, state='online'):
+        """Update user's presence state."""
+        valid_states = {'online', 'idle', 'dnd', 'offline'}
+        if state not in valid_states:
+            raise ValueError(f"Invalid presence state. Must be one of: {', '.join(valid_states)}")
+        self.presence_state = state
+        
+    def set_status(self, text=None):
+        """Set user's status message."""
+        if text and len(text) > 100:
+            raise ValueError("Status text cannot exceed 100 characters")
+        self.status = text
 
     def is_muted(self):
         if self.muted_until and self.muted_until > datetime.utcnow():
@@ -465,23 +453,49 @@ def reset_password(token):
         return redirect(url_for('forgot_password'))
 
 @app.route('/api/user/profile')
+@login_required
+def get_current_user_profile():
+    """Get the current user's complete profile"""
+    return jsonify(current_user.to_dict(include_private=True))
+
+@app.route('/api/user/profile/<int:user_id>')
+@login_required
+def get_user_profile_by_id(user_id):
+    """Get another user's public profile"""
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict(include_private=False))
+
 @app.route('/api/user/update_status', methods=['POST'])
 @login_required
 def update_status():
-    data = request.get_json()
-    current_user.status = data.get('status')
-    current_user.status_emoji = data.get('status_emoji')
-    db.session.commit()
-    return jsonify(current_user.to_dict())
+    try:
+        data = request.get_json()
+        text = data.get('status')
+        
+        current_user.set_status(text=text)
+        db.session.commit()
+        return jsonify(current_user.to_dict())
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update status'}), 500
 
-@app.route('/api/user/update_activity', methods=['POST'])
+@app.route('/api/user/update_presence', methods=['POST'])
 @login_required
-def update_activity():
-    data = request.get_json()
-    current_user.activity_type = data.get('activity_type')
-    current_user.activity_name = data.get('activity_name')
-    db.session.commit()
-    return jsonify(current_user.to_dict())
+def update_presence():
+    try:
+        data = request.get_json()
+        state = data.get('state', 'online')
+        
+        current_user.update_presence(state=state)
+        db.session.commit()
+        return jsonify(current_user.to_dict())
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update presence'}), 500
 
 @app.route('/api/user/update_theme', methods=['POST'])
 @login_required
@@ -499,16 +513,6 @@ def update_connections():
     current_user.connections = data
     db.session.commit()
     return jsonify(current_user.to_dict())
-@login_required
-def get_current_user_profile():
-    return jsonify(current_user.to_dict(include_private=True))
-
-@app.route('/api/user/by_id/<int:user_id>')
-@login_required
-def get_user_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    return jsonify(user.to_dict())
-
 class Channel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
