@@ -853,7 +853,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add click handlers for user profiles
         document.querySelectorAll('.user-item').forEach(element => {
             element.addEventListener('click', function() {
-                const userId = this.dataset.userId;
+                const userId = this.getAttribute('data-user-id');
+                console.log('User clicked:', userId);
                 if (userId) {
                     fetchAndDisplayUserProfile(userId);
                 }

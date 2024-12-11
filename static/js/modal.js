@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to fetch user profile');
             const userData = await response.json();
             
+            // Get modal
+            const modal = document.getElementById('userProfileModal');
+            if (!modal) {
+                console.error('Modal element not found');
+                return;
+            }
+            
             // Update modal content
             document.getElementById('modalUsername').textContent = userData.display_name || userData.username;
             document.getElementById('modalStatus').textContent = userData.status || 'No status set';
@@ -70,6 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show modal
             modal.style.display = "block";
+            
+            console.log('Modal displayed for user:', userData.username);
         } catch (error) {
             console.error('Error fetching user profile:', error);
         }
