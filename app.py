@@ -426,6 +426,12 @@ def handle_connect():
         
         logger.info("Authenticated user connecting: %s", current_user.username)
         
+        # Restore last known presence state or set to online
+        if not current_user.presence_state:
+            current_user.presence_state = 'online'
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
+        
         # Send initial user data
         user_data = current_user.to_dict()
         logger.info("Sending user data: %s", user_data)
@@ -530,15 +536,33 @@ def handle_get_user_list():
 @socketio.on('update_presence')
 def handle_update_presence(data):
     """Handle user presence update"""
-    logger.info("Updating presence for user: %s", current_user.username if current_user.is_authenticated else None)
-    if current_user.is_authenticated:
+    try:
+        logger.info("Updating presence for user: %s", current_user.username if current_user.is_authenticated else None)
+        if not current_user.is_authenticated:
+            logger.warning("Unauthenticated user attempting to update presence")
+            return
+            
         presence_state = data.get('presence_state', 'online')
+        if presence_state not in ['online', 'idle', 'dnd', 'offline']:
+            logger.warning("Invalid presence state received: %s", presence_state)
+            return
+            
+        # Update presence in database
         current_user.presence_state = presence_state
+        current_user.last_seen = datetime.utcnow()
         db.session.commit()
+        logger.info("Presence state saved to database: %s", presence_state)
+        
         # Broadcast updated user list to all connected clients
         users = User.query.all()
-        emit('user_list', {'users': [user.to_dict() for user in users]}, broadcast=True)
+        users_data = [user.to_dict() for user in users]
+        emit('user_list', {'users': users_data}, broadcast=True)
         logger.info("Presence updated and broadcast: %s", presence_state)
+        
+    except Exception as e:
+        logger.error("Error updating presence: %s", str(e), exc_info=True)
+        db.session.rollback()
+        emit('error', {'message': 'Failed to update presence state'})
 
 @socketio.on('join_channel')
 def handle_join_channel(data):
