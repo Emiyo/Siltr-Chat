@@ -74,40 +74,20 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     
-    # Discord-like profile customization
+    # Essential Discord-like profile fields
     avatar = db.Column(db.String(200))  # URL to avatar image
-    banner = db.Column(db.String(200))  # URL to banner image
-    accent_color = db.Column(db.String(7), default='#7289DA')  # Discord's default color
-    
-    # Discord-like presence system
     status = db.Column(db.String(128))  # Custom status message
     presence_state = db.Column(db.String(20), default='online')  # online, idle, dnd, offline
-    
-    # Timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime, onupdate=datetime.utcnow, default=datetime.utcnow)
 
     def set_password(self, password):
-        if not self.validate_password_strength(password):
-            raise ValueError("Password does not meet strength requirements")
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-    @staticmethod
-    def validate_password_strength(password):
-        if len(password) < 6:
-            return False
-        conditions = [
-            any(c.isupper() for c in password),
-            any(c.islower() for c in password),
-            any(c.isdigit() for c in password)
-        ]
-        return sum(conditions) >= 2
-
-    def to_dict(self, include_private=False):
-        data = {
+    def to_dict(self):
+        return {
             'id': self.id,
             'username': self.username,
             'avatar': self.avatar,
@@ -115,9 +95,6 @@ class User(UserMixin, db.Model):
             'presence_state': self.presence_state,
             'created_at': self.created_at.isoformat()
         }
-        if include_private:
-            data['email'] = self.email
-        return data
 
 class Message(db.Model):
     """Basic message model for profile activity"""
@@ -233,59 +210,42 @@ def logout():
 @app.route('/api/user/profile')
 @login_required
 def get_current_user_profile():
-    return jsonify(current_user.to_dict(include_private=True))
+    return jsonify(current_user.to_dict())
 
-@app.route('/api/user/by_id/<int:user_id>')
+@app.route('/update_status', methods=['POST'])
 @login_required
-def get_user_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    return jsonify(user.to_dict())
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
-
-@app.route('/update_profile', methods=['POST'])
-@login_required
-def update_profile():
+def update_status():
     try:
-        # Handle file uploads
-        if 'avatar' in request.files:
-            avatar_file = request.files['avatar']
-            if avatar_file and allowed_file(avatar_file.filename):
-                filename = secure_filename(f"avatar_{current_user.id}_{int(time.time())}.{avatar_file.filename.rsplit('.', 1)[1]}")
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                avatar_file.save(filepath)
-                current_user.avatar = f"/static/uploads/{filename}"
-
-        if 'banner' in request.files:
-            banner_file = request.files['banner']
-            if banner_file and allowed_file(banner_file.filename):
-                filename = secure_filename(f"banner_{current_user.id}_{int(time.time())}.{banner_file.filename.rsplit('.', 1)[1]}")
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                banner_file.save(filepath)
-                current_user.banner = f"/static/uploads/{filename}"
-
-        # Update other profile fields
-        if 'accent_color' in request.form:
-            current_user.accent_color = request.form['accent_color']
         if 'status' in request.form:
             current_user.status = request.form['status']
         if 'presence_state' in request.form:
             current_user.presence_state = request.form['presence_state']
-
+        
         db.session.commit()
-        flash('Profile updated successfully!', 'success')
+        return jsonify({'message': 'Status updated successfully'})
     except Exception as e:
-        logger.error(f"Error updating profile: {str(e)}")
-        flash('Error updating profile', 'error')
+        logger.error(f"Error updating status: {str(e)}")
         db.session.rollback()
+        return jsonify({'error': 'Failed to update status'}), 500
 
-    return redirect(url_for('profile'))
-
-@app.route('/profile')
+@app.route('/update_avatar', methods=['POST'])
 @login_required
-def profile():
-    return render_template('profile.html')
+def update_avatar():
+    try:
+        if 'avatar' in request.files:
+            file = request.files['avatar']
+            if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                filename = secure_filename(f"avatar_{current_user.id}_{int(time.time())}.{file.filename.rsplit('.', 1)[1]}")
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                current_user.avatar = f"/static/uploads/{filename}"
+                db.session.commit()
+                return jsonify({'message': 'Avatar updated successfully'})
+        return jsonify({'error': 'No valid image provided'}), 400
+    except Exception as e:
+        logger.error(f"Error updating avatar: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update avatar'}), 500
 
 if __name__ == '__main__':
     with app.app_context():

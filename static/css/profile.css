@@ -9,16 +9,13 @@
     overflow: hidden;
 }
 
-/* Profile Banner */
+/* Profile Header */
 .profile-banner {
-    height: 180px;
+    height: 120px;
     background-color: #2f3136;
-    background-size: cover;
-    background-position: center;
     position: relative;
 }
 
-/* Profile Header */
 .profile-header {
     position: absolute;
     bottom: -60px;
@@ -31,13 +28,13 @@
 /* Avatar */
 .profile-avatar-container {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
 }
 
 .profile-avatar {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     border: 6px solid #36393f;
     background-color: #2f3136;
@@ -47,12 +44,12 @@
 /* Presence Indicator */
 .presence-indicator {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
-    width: 20px;
-    height: 20px;
+    bottom: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    border: 4px solid #36393f;
+    border: 3px solid #36393f;
 }
 
 .presence-indicator.online { background-color: #43b581; }
@@ -98,6 +95,10 @@
 }
 
 /* Form Styling */
+.profile-form {
+    margin-bottom: 24px;
+}
+
 .profile-form .form-group {
     margin-bottom: 16px;
 }
@@ -127,28 +128,6 @@
     background-color: #40444b;
 }
 
-/* Color Picker */
-input[type="color"].form-control {
-    height: 40px;
-    padding: 2px;
-}
-
-/* File Inputs */
-input[type="file"].form-control {
-    padding: 8px;
-    background-color: #40444b;
-}
-
-/* Select Dropdown */
-select.form-control {
-    appearance: none;
-    padding-right: 24px;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px;
-}
-
 /* Profile Info */
 .profile-info {
     margin: 16px 0;
@@ -165,7 +144,7 @@ select.form-control {
 
 /* Form Actions */
 .form-actions {
-    margin-top: 24px;
+    margin-top: 16px;
     text-align: right;
 }
 
@@ -186,6 +165,16 @@ select.form-control {
 
 .btn-primary:hover {
     background-color: #4752c4;
+}
+
+.mt-4 {
+    margin-top: 24px;
+}
+
+/* File Input Styling */
+input[type="file"] {
+    padding: 8px;
+    background-color: #40444b;
 }
 
 /* Responsive Design */
