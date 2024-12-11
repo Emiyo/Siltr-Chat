@@ -117,6 +117,60 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize socket when the page loads
     initializeSocket();
 
+    // Emoji picker functionality
+    const emojiButton = document.getElementById('emojiButton');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const selectedEmojiSpan = document.getElementById('selectedEmoji');
+    const statusEmojiInput = document.getElementById('statusEmoji');
+    const statusInput = document.getElementById('status');
+
+    if (emojiButton && emojiPicker) {
+        emojiButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+                emojiPicker.style.display = 'none';
+            }
+        });
+
+        const emojiOptions = document.querySelectorAll('.emoji-option');
+        emojiOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const emoji = e.target.dataset.emoji;
+                selectedEmojiSpan.textContent = emoji;
+                statusEmojiInput.value = emoji;
+                emojiPicker.style.display = 'none';
+                
+                // Update status via Socket.IO
+                if (socket && socket.connected) {
+                    socket.emit('update_status', {
+                        status: statusInput.value,
+                        status_emoji: emoji
+                    });
+                }
+            });
+        });
+    }
+
+    // Status update handler
+    if (statusInput) {
+        let updateTimeout;
+        statusInput.addEventListener('input', () => {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => {
+                if (socket && socket.connected) {
+                    socket.emit('update_status', {
+                        status: statusInput.value,
+                        status_emoji: statusEmojiInput.value
+                    });
+                }
+            }, 500); // Debounce status updates
+        });
+    }
+
     // Fetch and display user profile in Discord style
     window.fetchAndDisplayUserProfile = async function(userId) {
         try {
