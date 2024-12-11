@@ -1,7 +1,11 @@
 // Centralized socket management
-class SocketHandler {
+export default class SocketHandler {
     constructor() {
-        this.socket = io({
+        if (!window.io) {
+            throw new Error('Socket.IO client not loaded');
+        }
+        
+        this.socket = window.io({
             transports: ['websocket'],
             upgrade: false,
             reconnection: true,
@@ -43,5 +47,3 @@ class SocketHandler {
         return this.socket;
     }
 }
-
-export default SocketHandler;

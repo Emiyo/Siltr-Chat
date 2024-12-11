@@ -1,8 +1,17 @@
 // User panel functionality
-class UserPanel {
+export default class UserPanel {
     constructor(socket) {
+        if (!socket) {
+            throw new Error('Socket instance is required for UserPanel');
+        }
+        
         this.socket = socket;
         this.userList = document.getElementById('userList');
+        
+        if (!this.userList) {
+            console.warn('UserList element not found in the DOM');
+        }
+        
         this.initializeEventListeners();
     }
 
@@ -40,5 +49,3 @@ class UserPanel {
         console.log('User list updated');
     }
 }
-
-export default UserPanel;
