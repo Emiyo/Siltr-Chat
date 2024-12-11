@@ -668,7 +668,8 @@ body {
     background-color: var(--terminal-bg);
     padding: 0.5rem;
     border-radius: 4px;
-    border: 1px solid #333;
+    border: 1px solid #4a9eff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 
@@ -676,10 +677,21 @@ body {
     padding: 0.25rem 0.5rem;
     font-size: 0.8rem;
     white-space: nowrap;
+    background-color: rgba(74, 158, 255, 0.1);
+    border: 1px solid #4a9eff;
+    color: #4a9eff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 2px 0;
 }
 
 .user-actions .btn-terminal:hover {
     background-color: rgba(74, 158, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(74, 158, 255, 0.2);
 }
 
 .user-item:hover {
