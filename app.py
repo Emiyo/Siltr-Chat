@@ -332,6 +332,22 @@ def profile():
     return render_template('profile.html')
 
 @app.route('/update_status', methods=['POST'])
+@app.route('/update_theme', methods=['POST'])
+@login_required
+def update_theme():
+    try:
+        data = request.get_json()
+        theme = data.get('theme')
+        if theme in ['dark', 'light', 'custom']:
+            current_user.theme = theme
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Theme updated successfully'})
+        return jsonify({'success': False, 'message': 'Invalid theme'}), 400
+    except Exception as e:
+        logger.error(f"Error updating theme: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Failed to update theme'}), 500
+
 @login_required
 def update_status():
     try:

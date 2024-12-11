@@ -1,3 +1,67 @@
+// Theme Management
+document.addEventListener('DOMContentLoaded', function() {
+    const themeSelect = document.getElementById('theme');
+    const customThemeOptions = document.querySelector('.custom-theme-options');
+    const bannerColorPicker = document.getElementById('banner_color');
+    const accentColorPicker = document.getElementById('accent_color');
+    const preview = document.querySelector('.theme-preview');
+
+    // Theme Selection Handler
+    if (themeSelect) {
+        themeSelect.addEventListener('change', function(e) {
+            const selectedTheme = e.target.value;
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+            
+            // Toggle custom theme options
+            if (customThemeOptions) {
+                customThemeOptions.style.display = selectedTheme === 'custom' ? 'block' : 'none';
+                customThemeOptions.style.opacity = selectedTheme === 'custom' ? '1' : '0';
+            }
+            
+            // Save theme preference
+            fetch('/update_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: selectedTheme })
+            });
+        });
+    }
+
+    // Color Picker Handlers
+    if (bannerColorPicker) {
+        bannerColorPicker.addEventListener('input', function(e) {
+            const banner = document.querySelector('.profile-banner');
+            if (banner) {
+                banner.style.backgroundColor = e.target.value;
+            }
+        });
+    }
+
+    if (accentColorPicker) {
+        accentColorPicker.addEventListener('input', function(e) {
+            document.documentElement.style.setProperty('--primary-color', e.target.value);
+            document.documentElement.style.setProperty('--interactive-active', e.target.value);
+            
+            // Update preview messages
+            if (preview) {
+                const previewMessages = preview.querySelectorAll('.preview-message');
+                previewMessages.forEach(msg => {
+                    msg.style.borderColor = e.target.value;
+                });
+            }
+        });
+    }
+
+    // Initialize theme based on saved preference
+    const savedTheme = themeSelect ? themeSelect.value : 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (customThemeOptions) {
+        customThemeOptions.style.display = savedTheme === 'custom' ? 'block' : 'none';
+        customThemeOptions.style.opacity = savedTheme === 'custom' ? '1' : '0';
+    }
+});
 // Discord-like profile functionality
 let socket;
 let reconnectAttempts = 0;
