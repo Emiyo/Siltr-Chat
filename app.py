@@ -556,51 +556,54 @@ def handle_get_user_list():
 def handle_message(data):
     """Handle message sent"""
     if not current_user.is_authenticated:
+        logger.warning("Unauthenticated user tried to send message")
         return
     
-    content = data.get('text', '').strip()
-    channel_id = data.get('channel_id')
-    parent_id = data.get('parent_id')
-    message_type = data.get('type')
-    
-    if content and channel_id:
-        try:
-            channel = Channel.query.get(channel_id)
-            if channel:
-                message = Message(
-                    content=content,
-                    user_id=current_user.id,
-                    channel_id=channel_id,
-                    parent_id=parent_id,
-                    type=message_type
-                )
-                
-                db.session.add(message)
-                db.session.commit()
-                
-                # Get complete message data with user information
-                message_data = message.to_dict()
-                
-                # Broadcast to all users in the channel
-                emit('message', message_data, room=f'channel_{channel_id}')
-                logger.info(f"Message sent by {current_user.username} in channel {channel.name}")
-                
-                # Send system message for user joins/leaves if needed
-                if message_type == 'join':
-                    system_message = Message(
-                        content=f"{current_user.username} has joined the channel",
-                        channel_id=channel_id,
-                        user_id=current_user.id,
-                        type='system'
-                    )
-                    db.session.add(system_message)
-                    db.session.commit()
-                    emit('message', system_message.to_dict(), room=f'channel_{channel_id}')
-                
-        except Exception as e:
-            logger.error(f"Error sending message: {str(e)}")
-            db.session.rollback()
-            emit('error', {'message': 'Failed to send message'})
+    try:
+        logger.info(f"Received message data: {data}")
+        content = data.get('text', '').strip()
+        channel_id = data.get('channel_id')
+        parent_id = data.get('parent_id')
+        message_type = data.get('type', 'message')
+        
+        if not content:
+            logger.warning("Empty message content")
+            return
+            
+        if not channel_id:
+            logger.warning("No channel_id provided")
+            return
+            
+        channel = Channel.query.get(channel_id)
+        if not channel:
+            logger.error(f"Channel {channel_id} not found")
+            return
+            
+        # Create and save message
+        message = Message(
+            content=content,
+            user_id=current_user.id,
+            channel_id=channel_id,
+            parent_id=parent_id,
+            type=message_type
+        )
+        
+        db.session.add(message)
+        db.session.commit()
+        logger.info(f"Message saved to database with id {message.id}")
+        
+        # Get complete message data
+        message_data = message.to_dict()
+        logger.info(f"Message data prepared: {message_data}")
+        
+        # Broadcast to channel
+        emit('message', message_data, room=f'channel_{channel_id}', broadcast=True)
+        logger.info(f"Message broadcasted to channel {channel.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in handle_message: {str(e)}", exc_info=True)
+        db.session.rollback()
+        emit('error', {'message': 'Failed to send message'})
 
 @socketio.on('system_message')
 def handle_system_message(data):
@@ -636,18 +639,51 @@ def handle_system_message(data):
 def handle_join_channel(data):
     """Handle joining a channel"""
     if not current_user.is_authenticated:
+        logger.warning("Unauthenticated user tried to join channel")
         return
     
-    channel_id = data.get('channel_id')
-    if channel_id:
+    try:
+        channel_id = data.get('channel_id')
+        if not channel_id:
+            logger.error("No channel_id provided")
+            return
+            
         channel = Channel.query.get(channel_id)
-        if channel:
-            join_room(f'channel_{channel_id}')
-            messages = Message.query.filter_by(channel_id=channel_id).order_by(Message.timestamp.desc()).limit(50).all()
-            emit('channel_history', {
-                'channel_id': channel_id,
-                'messages': [msg.to_dict() for msg in messages]
-            })
+        if not channel:
+            logger.error(f"Channel {channel_id} not found")
+            return
+            
+        # Join the channel room
+        join_room(f'channel_{channel_id}')
+        logger.info(f"User {current_user.username} joined channel {channel.name}")
+        
+        # Get channel messages
+        messages = Message.query.filter_by(channel_id=channel_id).order_by(Message.timestamp.desc()).limit(50).all()
+        logger.info(f"Found {len(messages)} messages for channel {channel_id}")
+        
+        # Send channel history
+        message_data = [msg.to_dict() for msg in messages]
+        emit('channel_history', {
+            'channel_id': channel_id,
+            'messages': message_data
+        })
+        
+        # Send system message for user joining
+        system_message = Message(
+            content=f"{current_user.username} has joined the channel",
+            channel_id=channel_id,
+            user_id=current_user.id,
+            type='system'
+        )
+        db.session.add(system_message)
+        db.session.commit()
+        
+        emit('message', system_message.to_dict(), room=f'channel_{channel_id}')
+        logger.info(f"System message sent for user {current_user.username} joining channel {channel.name}")
+        
+    except Exception as e:
+        logger.error(f"Error in handle_join_channel: {str(e)}")
+        db.session.rollback()
 
 @socketio.on('leave_channel')
 def handle_leave_channel(data):
