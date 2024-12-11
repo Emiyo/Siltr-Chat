@@ -84,6 +84,9 @@ class User(UserMixin, db.Model):
     
     roles = db.relationship('Role', secondary=user_roles, lazy='subquery',
                           backref=db.backref('users', lazy=True))
+    
+    def has_role(self, role_name):
+        return any(role.name == role_name for role in self.roles)
 
     def to_dict(self):
         return {
