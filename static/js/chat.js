@@ -338,11 +338,29 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUserList(data.users);
     });
 
+    // User List Updates
+    socket.on('user_list', (data) => {
+        console.log('Received user list:', data);
+        if (data && Array.isArray(data.users)) {
+            updateUserList(data.users);
+        } else {
+            console.error('Invalid user list data received:', data);
+        }
+    });
+
+    socket.on('user_status_change', (data) => {
+        console.log('User status changed:', data);
+        socket.emit('get_user_list'); // Request updated user list
+    });
+
     // Categories and Channels
     socket.on('categories_list', (data) => {
+        console.log('Received categories:', data);
         if (data && data.categories) {
             categories = data.categories;
             updateCategoryList();
+        } else {
+            console.error('Invalid categories data received:', data);
         }
     });
 
@@ -380,21 +398,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper Functions
     function updateCategoryList() {
         const categoryList = document.getElementById('categoryList');
-        if (!categoryList || !Array.isArray(categories)) return;
+        console.log('Updating category list:', { categoryList, categories });
+        
+        if (!categoryList) {
+            console.error('Category list element not found');
+            return;
+        }
+        
+        if (!Array.isArray(categories)) {
+            console.error('Categories is not an array:', categories);
+            return;
+        }
         
         categoryList.innerHTML = categories.map(category => {
-            const channels = category.channels || [];
+            console.log('Processing category:', category);
+            const channels = Array.isArray(category.channels) ? category.channels : [];
             return `
                 <div class="category-item">
                     <div class="category-header">
                         <span class="category-toggle">▼</span>
-                        ${category.name}
+                        ${category.name || 'Unnamed Category'}
                     </div>
                     <div class="channel-list" style="display: block;">
                         ${channels.map(channel => `
                             <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
                                  data-channel-id="${channel.id}">
-                                ${channel.is_private ? '🔒' : '#'} ${channel.name}
+                                ${channel.is_private ? '🔒' : '#'} ${channel.name || 'Unnamed Channel'}
                             </div>
                         `).join('')}
                     </div>
@@ -870,46 +899,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUserList(users) {
         const userList = document.getElementById('userList');
-        if (!userList) return;
+        console.log('Updating user list:', { users });
+        
+        if (!userList) {
+            console.error('User list element not found');
+            return;
+        }
 
-        userList.innerHTML = users.map(user => {
-            const presenceClass = user.presence_state || 'online';
-            return `
-                <div class="user-item" data-user-id="${user.id}" title="Click to view profile or send private message">
-                    <div class="d-flex align-items-center">
-                        <span class="presence-indicator ${presenceClass}"></span>
-                        <span class="user-name">${user.username}</span>
-                    </div>
-                    <div class="user-actions">
-                        <button class="btn btn-sm btn-terminal message-btn">Message</button>
-                        <button class="btn btn-sm btn-terminal profile-btn">Profile</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        if (!Array.isArray(users)) {
+            console.error('Invalid users data received:', users);
+            return;
+        }
 
-        // Add click handlers for user profiles and messages
-        document.querySelectorAll('.user-item').forEach(element => {
-            element.addEventListener('click', function(e) {
-                const userId = this.getAttribute('data-user-id');
-                const username = this.querySelector('.user-name').textContent.trim();
-                
-                if (!userId) return;
-
-                // Handle button clicks
-                if (e.target.classList.contains('message-btn')) {
-                    const messageInput = document.getElementById('messageInput');
-                    if (messageInput) {
-                        messageInput.value = `@${username} `;
-                        messageInput.focus();
-                    }
-                    e.stopPropagation();
-                } else if (e.target.classList.contains('profile-btn')) {
-                    window.fetchAndDisplayUserProfile(userId);
-                    e.stopPropagation();
+        try {
+            userList.innerHTML = users.map(user => {
+                if (!user || !user.username) {
+                    console.warn('Invalid user data:', user);
+                    return '';
                 }
+
+                const presenceClass = user.presence_state || 'online';
+                const displayName = user.display_name || user.username;
+                const status = user.status ? `<div class="user-status">${user.status}</div>` : '';
+                
+                return `
+                    <div class="user-item" data-user-id="${user.id}" title="Click to view profile or send private message">
+                        <div class="d-flex align-items-center">
+                            <span class="presence-indicator presence-${presenceClass}"></span>
+                            <div class="user-info">
+                                <span class="user-name">${displayName}</span>
+                                ${status}
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-sm btn-terminal message-btn">Message</button>
+                            <button class="btn btn-sm btn-terminal profile-btn">Profile</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add click handlers for user profiles and messages
+            document.querySelectorAll('.user-item').forEach(element => {
+                element.addEventListener('click', function(e) {
+                    const userId = this.getAttribute('data-user-id');
+                    const username = this.querySelector('.user-name').textContent.trim();
+                    
+                    if (!userId) {
+                        console.warn('User ID not found in element:', this);
+                        return;
+                    }
+
+                    // Handle button clicks
+                    if (e.target.classList.contains('message-btn')) {
+                        const messageInput = document.getElementById('messageInput');
+                        if (messageInput) {
+                            messageInput.value = `@${username} `;
+                            messageInput.focus();
+                        }
+                        e.stopPropagation();
+                    } else if (e.target.classList.contains('profile-btn')) {
+                        if (typeof window.fetchAndDisplayUserProfile === 'function') {
+                            window.fetchAndDisplayUserProfile(userId);
+                        } else {
+                            console.error('Profile display function not found');
+                        }
+                        e.stopPropagation();
+                    }
+                });
             });
-        });
+
+            console.log('User list updated successfully');
+        } catch (error) {
+            console.error('Error updating user list:', error);
+            userList.innerHTML = '<div class="error-message">Error loading users</div>';
+        }
     }
 
     function scrollToBottom() {

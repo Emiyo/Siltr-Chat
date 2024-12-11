@@ -60,15 +60,17 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    is_verified = db.Column(db.Boolean, default=False)
-    is_moderator = db.Column(db.Boolean, default=False)
-    avatar = db.Column(db.String(200))
-    bio = db.Column(db.Text)
-    location = db.Column(db.String(100))
-    status = db.Column(db.String(100))
-    presence_state = db.Column(db.String(20), default='online')
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_verified = db.Column(db.Boolean, default=False, server_default='false')
+    is_moderator = db.Column(db.Boolean, default=False, server_default='false')
+    # Discord-like profile fields
+    avatar = db.Column(db.String(200), nullable=True)  # Avatar URL
+    display_name = db.Column(db.String(100), nullable=True)  # Display name (nickname)
+    status = db.Column(db.String(100), nullable=True)  # Custom status message
+    presence_state = db.Column(db.String(20), nullable=False, server_default='online')  # online, idle, dnd, invisible
+    accent_color = db.Column(db.String(7), nullable=True)  # Hex color code
+    bio = db.Column(db.Text, nullable=True)  # About me
+    last_seen = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
 
     def set_password(self, password):
         if not password:
