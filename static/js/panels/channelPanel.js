@@ -46,6 +46,15 @@ class ChannelPanel {
                             group.name.toLowerCase() === 'voice' ? '🔊' : 
                             group.name.toLowerCase() === 'announcement' ? '📢' : '💬';
             
+            const channelElements = channels.map(channel => {
+                return `<div class="channel-item ${channel.id === this.currentChannel ? 'active' : ''}" 
+                            data-channel-id="${channel.id}"
+                            data-channel-type="${channel.type || 'text'}">
+                            ${channel.type === 'voice' ? '🔊' : '#'} ${channel.name}
+                            ${channel.description ? `<div class="channel-description">${channel.description}</div>` : ''}
+                        </div>`;
+            }).join('');
+            
             return `
                 <div class="category-item">
                     <div class="category-header">
@@ -53,14 +62,7 @@ class ChannelPanel {
                         ${groupIcon} ${group.name}
                     </div>
                     <div class="channel-list" style="display: block;">
-                        ${channels.map(channel => `
-                            <div class="channel-item ${channel.id === this.currentChannel ? 'active' : ''}" 
-                                 data-channel-id="${channel.id}"
-                                 data-channel-type="${channel.type || 'text'}">
-                                ${channel.type === 'voice' ? '🔊' : '#'} ${channel.name}
-                                ${channel.description ? `<div class="channel-description">${channel.description}</div>` : ''}
-                            </div>
-                        `).join('')}
+                        ${channelElements}
                     </div>
                 </div>
             `;

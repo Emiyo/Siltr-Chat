@@ -1,13 +1,24 @@
 // User profile functionality is loaded from profile.js
 
+// Import panel modules
+import UserPanel from './panels/userPanel.js';
+import ChannelPanel from './panels/channelPanel.js';
+import ChatPanel from './panels/chatPanel.js';
+import SocketHandler from './socketHandler.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize socket with explicit config
-    const socket = io({
-        transports: ['websocket'],
-        upgrade: false,
-        reconnection: true,
-        reconnectionAttempts: 5
-    });
+    // Initialize socket handler
+    const socketHandler = new SocketHandler();
+    const socket = socketHandler.getSocket();
+    
+    // Initialize panels
+    const messageContainer = document.getElementById('messageContainer');
+    const channelPanel = new ChannelPanel(socket, messageContainer);
+    const userPanel = new UserPanel(socket);
+    const chatPanel = new ChatPanel(socket);
+    
+    // Connect panels
+    chatPanel.setChannelPanel(channelPanel);
     
     // DOM Elements
     const messageForm = document.getElementById('messageForm');
