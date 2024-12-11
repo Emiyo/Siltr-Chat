@@ -126,15 +126,22 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
     avatar = db.Column(db.String(200))
+    banner = db.Column(db.String(200))
+    accent_color = db.Column(db.String(7))  # Hex color code
     status = db.Column(db.String(100))
+    status_emoji = db.Column(db.String(50))
     presence_state = db.Column(db.String(20), default='online')
+    activity_type = db.Column(db.String(50))  # gaming, streaming, listening, etc.
+    activity_name = db.Column(db.String(100))
     bio = db.Column(db.String(500))
     display_name = db.Column(db.String(50))
     last_seen = db.Column(db.DateTime)
     location = db.Column(db.String(100))
     timezone = db.Column(db.String(50))
-    preferences = db.Column(db.JSON)
-    contact_info = db.Column(db.JSON)
+    profile_theme = db.Column(db.String(50), default='dark')
+    preferences = db.Column(db.JSON, default={})
+    contact_info = db.Column(db.JSON, default={})
+    connections = db.Column(db.JSON, default={})
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime)
     warning_count = db.Column(db.Integer, default=0)
@@ -171,23 +178,34 @@ class User(UserMixin, db.Model):
             'display_name': self.display_name or self.username,
             'is_moderator': self.is_moderator,
             'avatar': self.avatar,
+            'banner': self.banner,
+            'accent_color': self.accent_color,
             'status': self.status,
+            'status_emoji': self.status_emoji,
             'presence_state': self.presence_state,
+            'activity': {
+                'type': self.activity_type,
+                'name': self.activity_name
+            } if self.activity_type else None,
             'bio': self.bio,
             'location': self.location,
+            'profile_theme': self.profile_theme,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
             'created_at': self.created_at.isoformat(),
             'is_muted': self.is_muted(),
-            'is_verified': self.is_verified
+            'is_verified': self.is_verified,
+            'roles': [{'id': role.id, 'name': role.name} for role in self.roles]
         }
 
-        if include_private and self.preferences:
-            data['preferences'] = self.preferences
-            if self.contact_info and self.contact_info.get('email_visibility') == 'public':
-                data['contact_info'] = {
-                    'email': self.email,
+        if include_private:
+            data.update({
+                'preferences': self.preferences,
+                'connections': self.connections,
+                'contact_info': {
+                    'email': self.email if self.contact_info.get('email_visibility') == 'public' else None,
                     'social_links': self.contact_info.get('social_links', {})
-                }
+                } if self.contact_info else {}
+            })
 
         return data
 
@@ -405,6 +423,40 @@ def reset_password(token):
         return redirect(url_for('forgot_password'))
 
 @app.route('/api/user/profile')
+@app.route('/api/user/update_status', methods=['POST'])
+@login_required
+def update_status():
+    data = request.get_json()
+    current_user.status = data.get('status')
+    current_user.status_emoji = data.get('status_emoji')
+    db.session.commit()
+    return jsonify(current_user.to_dict())
+
+@app.route('/api/user/update_activity', methods=['POST'])
+@login_required
+def update_activity():
+    data = request.get_json()
+    current_user.activity_type = data.get('activity_type')
+    current_user.activity_name = data.get('activity_name')
+    db.session.commit()
+    return jsonify(current_user.to_dict())
+
+@app.route('/api/user/update_theme', methods=['POST'])
+@login_required
+def update_theme():
+    data = request.get_json()
+    current_user.profile_theme = data.get('profile_theme')
+    current_user.accent_color = data.get('accent_color')
+    db.session.commit()
+    return jsonify(current_user.to_dict())
+
+@app.route('/api/user/update_connections', methods=['POST'])
+@login_required
+def update_connections():
+    data = request.get_json()
+    current_user.connections = data
+    db.session.commit()
+    return jsonify(current_user.to_dict())
 @login_required
 def get_current_user_profile():
     return jsonify(current_user.to_dict(include_private=True))

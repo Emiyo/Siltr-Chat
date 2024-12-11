@@ -1,215 +1,266 @@
+/* Profile Container */
 .profile-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #1a1a1a;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border: 1px solid #333;
+    max-width: 100%;
+    background: var(--background-primary);
+    color: var(--text-normal);
 }
 
-.profile-section {
-    margin-bottom: 30px;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+/* Profile Header */
+.profile-header {
+    position: relative;
+    height: 300px;
 }
 
-.profile-section h3 {
-    margin-bottom: 20px;
-    color: #ffffff;
-    border-bottom: 2px solid #4a9eff;
-    padding-bottom: 10px;
-    font-weight: 600;
+.profile-banner {
+    width: 100%;
+    height: 100%;
+    background-color: #36393f;
+    background-size: cover;
+    background-position: center;
+    position: relative;
 }
 
-.avatar-container {
-    text-align: center;
-    margin-bottom: 20px;
+.banner-upload {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
-.current-avatar {
-    width: 150px;
-    height: 150px;
+.profile-banner:hover .banner-upload {
+    opacity: 1;
+}
+
+.banner-edit-btn {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #f0f0f0;
+    cursor: pointer;
 }
 
-.avatar-placeholder {
-    width: 150px;
-    height: 150px;
+/* Avatar */
+.profile-avatar-container {
+    position: absolute;
+    bottom: -40px;
+    left: 16px;
+    z-index: 2;
+}
+
+.profile-avatar {
+    width: 128px;
+    height: 128px;
     border-radius: 50%;
-    background: #f0f0f0;
+    border: 8px solid var(--background-primary);
+    background-color: #36393f;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.avatar-upload {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.profile-avatar:hover .avatar-upload {
+    opacity: 1;
+}
+
+/* Presence Indicator */
+.presence-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 4px solid var(--background-primary);
+}
+
+.presence-indicator.online { background-color: #3ba55c; }
+.presence-indicator.idle { background-color: #faa61a; }
+.presence-indicator.dnd { background-color: #ed4245; }
+.presence-indicator.offline { background-color: #747f8d; }
+
+/* Profile Content */
+.profile-content {
+    padding: 60px 16px 16px;
+    --accent-color: #5865f2;
+}
+
+/* User Info Section */
+.user-info-section {
+    max-width: 600px;
     margin: 0 auto;
-    color: #666;
 }
 
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ffffff;
+.display-name {
+    font-size: 20px;
     font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin: 0;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="url"],
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    background-color: #2d2d2d;
-    border: 1px solid #444;
-    border-radius: 4px;
-    font-size: 16px;
-    color: #ffffff;
+.username {
+    font-size: 14px;
+    margin-left: 8px;
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-.form-group select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 24px;
-    padding-right: 32px;
-}
-
-.form-group select:focus,
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #4a9eff;
-    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
-}
-
-.form-group input[readonly] {
-    background-color: #f9f9f9;
-    cursor: not-allowed;
-}
-
-.form-text {
-    font-size: 0.875em;
-    color: #666;
+/* Roles */
+.roles-container {
+    margin: 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .role-badge {
-    display: inline-block;
     padding: 4px 8px;
-    background: #4a9eff;
     border-radius: 4px;
-    margin-right: 8px;
-    font-size: 0.875em;
-    color: #ffffff;
+    font-size: 12px;
     font-weight: 500;
-}
-
-.form-actions {
-    text-align: center;
-    margin-top: 30px;
-}
-
-.btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.2s;
-}
-
-.btn-primary {
-    background-color: #007bff;
+    background: var(--accent-color);
     color: white;
+}
+
+/* Custom Status */
+.custom-status-section {
+    margin: 16px 0;
+}
+
+.status-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-emoji {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-normal);
+}
+
+.status-input {
+    background: var(--background-secondary);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: var(--text-normal);
+    flex-grow: 1;
+}
+
+/* About Me Section */
+.about-me-section {
+    margin: 24px 0;
+}
+
+.about-me-section textarea {
+    background: var(--background-secondary);
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    color: var(--text-normal);
+    width: 100%;
+    resize: vertical;
+}
+
+/* Activity Section */
+.activity-section {
+    margin: 24px 0;
+}
+
+/* Connections Section */
+.connections-section {
+    margin: 24px 0;
+}
+
+.connection-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    padding: 8px;
+    background: var(--background-secondary);
+    border-radius: 4px;
+}
+
+.connection-item i {
+    font-size: 24px;
+    width: 32px;
+    text-align: center;
+}
+
+/* Theme Settings */
+.theme-section {
+    margin: 24px 0;
+}
+
+.color-picker-container {
+    margin: 12px 0;
+}
+
+/* Custom Button Styles */
+.btn-primary {
+    background: var(--accent-color);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: filter 0.2s;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
+    filter: brightness(1.1);
 }
 
-.alert {
-    padding: 12px;
-    margin-bottom: 20px;
-    border-radius: 4px;
+/* Dark Theme Variables */
+:root[data-theme="dark"] {
+    --background-primary: #36393f;
+    --background-secondary: #2f3136;
+    --text-normal: #dcddde;
+    --text-muted: #72767d;
 }
 
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+/* Light Theme Variables */
+:root[data-theme="light"] {
+    --background-primary: #ffffff;
+    --background-secondary: #f2f3f5;
+    --text-normal: #2e3338;
+    --text-muted: #747f8d;
 }
 
-.alert-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
-/* Verification Status Styles */
-.verification-status {
-    margin-top: 10px;
-}
-
-.verified-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 4px;
-    font-size: 0.875em;
-}
-
-.unverified-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.unverified-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #dc3545;
-    color: white;
-    border-radius: 4px;
-    font-size: 0.875em;
-}
-
-.inline-form {
-    display: inline-block;
-}
-
-.btn-link {
-    background: none;
-    border: none;
-    color: #4a9eff;
-    padding: 0;
-    font-size: 0.875em;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.btn-link:hover {
-    color: #0056b3;
-}
-
-    .profile-container {
-        margin: 10px;
-        padding: 15px;
+    .profile-header {
+        height: 200px;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-width: 6px;
+    }
+    
+    .profile-avatar-container {
+        bottom: -30px;
+    }
+    
+    .presence-indicator {
+        width: 18px;
+        height: 18px;
+        border-width: 3px;
     }
 }
