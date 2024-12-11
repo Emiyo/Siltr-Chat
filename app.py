@@ -1,65 +1,163 @@
-from datetime import datetime
 import os
+import logging
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from flask_mail import Mail, Message
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask_mail import Mail
+from flask_mail import Message as FlaskMessage
+from datetime import datetime, timedelta
 from itsdangerous import URLSafeTimedSerializer
-from flask import Flask, session
+import os
+from flask import Flask, request, render_template, jsonify, url_for, flash, redirect
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from pydub import AudioSegment
 from email_validator import validate_email, EmailNotValidError
-from flask_socketio import SocketIO, emit, join_room, leave_room
 import json
-import secrets
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app and extensions
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///chat.db')
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL')) #Using os.getenv as per modified code, but keeping original method as fallback
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Initialize extensions
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-# Email configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
+# Ensure upload folder exists
+# Email Configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-mail = Mail(app)
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 
-# Active users storage
+mail = Mail(app)
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+def generate_reset_token(email):
+    return serializer.dumps(email, salt='password-reset-salt')
+
+def verify_reset_token(token, expiration=3600):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+        return email
+    except:
+        return None
+
+def send_password_reset_email(user):
+    try:
+        token = generate_reset_token(user.email)
+        reset_url = url_for('reset_password', token=token, _external=True)
+        
+        msg = FlaskMessage(
+            subject='Password Reset Request',
+            recipients=[user.email],
+            body=f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request, please ignore this email.
+'''
+        )
+        mail.send(msg)
+        logger.info(f"Password reset email sent to {user.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {str(e)}")
+        return False
+
+# Ensure upload folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize extensions
+db = SQLAlchemy(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+bcrypt = Bcrypt(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info' # Retained from original
+
+
+# Constants
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'txt', 'pdf'} #Combined allowed extensions
+MAX_MESSAGES = 50
 active_users = {}
 
-# User loader callback
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
 # Models
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    permissions = db.relationship('Permission', secondary='role_permissions', back_populates='roles')
+    users = db.relationship('User', secondary='user_roles', back_populates='roles')
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    roles = db.relationship('Role', secondary='role_permissions', back_populates='permissions')
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    channels = db.relationship('Channel', backref='category', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'channels': [channel.to_dict() for channel in self.channels] if self.channels else []
+        }
+
+class Channel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(200))
+    is_private = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    messages = db.relationship('Message', backref='channel', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'category_id': self.category_id,
+            'name': self.name,
+            'description': self.description,
+            'is_private': self.is_private
+        }
+
+
+role_permissions = db.Table('role_permissions',
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'), primary_key=True)
+)
+
+user_roles = db.Table('user_roles',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
+)
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(60), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
-    status = db.Column(db.String(100), default='')
-    # Messages sent by this user
-    messages = db.relationship('Message',
-                             foreign_keys='Message.sender_id',
-                             backref='author',
-                             lazy=True)
-    # Messages received by this user
-    received_messages = db.relationship('Message',
-                                      foreign_keys='Message.receiver_id',
-                                      backref='recipient',
-                                      lazy=True)
+    avatar = db.Column(db.String(200))
+    status = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    muted_until = db.Column(db.DateTime)
+    roles = db.relationship('Role', secondary=user_roles, back_populates='users')
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -68,45 +166,60 @@ class User(UserMixin, db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def has_permission(self, permission_name):
-        # Placeholder - needs implementation based on roles and permissions
-        return False
+        return any(
+            any(p.name == permission_name for p in role.permissions)
+            for role in self.roles
+        )
 
     def has_role(self, role_name):
-        # Placeholder - needs implementation based on roles and permissions
-        return False
+        return any(role.name == role_name for role in self.roles)
 
     def add_role(self, role_name):
-        # Placeholder - needs implementation based on roles and permissions
-        return ""
+        role = Role.query.filter_by(name=role_name).first()
+        if role and role not in self.roles:
+            self.roles.append(role)
+            return f'Role {role_name} added to {self.username}'
+        return f'Role {role_name} not found or already assigned'
 
     def remove_role(self, role_name):
-        # Placeholder - needs implementation based on roles and permissions
-        return ""
+        role = Role.query.filter_by(name=role_name).first()
+        if role and role in self.roles:
+            self.roles.remove(role)
+            return f'Role {role_name} removed from {self.username}'
+        return f'Role {role_name} not found or not assigned'
 
     def is_muted(self):
-        # Placeholder - needs implementation based on mute status
+        if self.muted_until and self.muted_until > datetime.utcnow():
+            return True
         return False
 
     def mute_user(self, minutes=10):
-        # Placeholder - needs implementation
-        return ""
+        if not self.has_permission('mute_users'):
+            return 'Permission denied'
+        self.muted_until = datetime.utcnow() + timedelta(minutes=minutes)
+        return f'User {self.username} has been muted for {minutes} minutes'
 
     def unmute_user(self):
-        # Placeholder - needs implementation
-        return ""
+        if not self.has_permission('mute_users'):
+            return 'Permission denied'
+        self.muted_until = None
+        return f'User {self.username} has been unmuted'
 
     def promote_to_moderator(self):
-        # Placeholder - needs implementation
-        return ""
+        if not self.has_permission('manage_roles'):
+            return 'Permission denied'
+        return self.add_role('moderator')
 
     def demote_from_moderator(self):
-        # Placeholder - needs implementation
-        return ""
+        if not self.has_permission('manage_roles'):
+            return 'Permission denied'
+        return self.remove_role('moderator')
 
     def update_profile(self, status=None, avatar=None):
         if status is not None:
             self.status = status[:100]  # Limit status length
-        # Avatar handling needs to be added back in
+        if avatar is not None:
+            self.avatar = avatar
         return f'Profile updated successfully'
 
     def to_dict(self):
@@ -114,130 +227,49 @@ class User(UserMixin, db.Model):
             'id': self.id,
             'username': self.username,
             'is_moderator': self.is_moderator,
-            'status': self.status
-        }
-
-
-class Channel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.String(200))
-    is_private = db.Column(db.Boolean, default=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    messages = db.relationship('Message', backref='channel', lazy=True)
-    category = db.relationship('Category', back_populates='channels')
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'is_private': self.is_private,
-            'category_id': self.category_id
-        }
-
-class Category(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.String(200))
-    channels = db.relationship('Channel', back_populates='category', lazy=True)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'channels': [channel.to_dict() for channel in self.channels]
+            'avatar': self.avatar,
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'is_muted': self.is_muted()
         }
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice'
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
+    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'))  # Channel where message was sent
     text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=True)
-    type = db.Column(db.String(20), default='text')  # text, system, private
-    file_url = db.Column(db.String(200), nullable=True)
-    voice_url = db.Column(db.String(200), nullable=True)
-    voice_duration = db.Column(db.Float, nullable=True)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    file_url = db.Column(db.String(200))  # For file attachments
+    voice_url = db.Column(db.String(200))  # For voice messages
+    voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
     reactions = db.Column(db.JSON, default=dict)
-    is_encrypted = db.Column(db.Boolean, default=False)
-    encryption_key = db.Column(db.Text, nullable=True)
-    
+    is_encrypted = db.Column(db.Boolean, default=True)  # Whether the message is encrypted
+    encryption_key = db.Column(db.Text, nullable=True)  # Encrypted symmetric key for the message
+
     def to_dict(self):
         return {
             'id': self.id,
-            'text': self.text,
-            'timestamp': self.timestamp.isoformat(),
+            'type': self.type,
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id,
             'channel_id': self.channel_id,
-            'type': self.type,
+            'text': self.text,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'file_url': self.file_url,
             'voice_url': self.voice_url,
             'voice_duration': self.voice_duration,
-            'reactions': self.reactions,
+            'reactions': {} if self.reactions is None else self.reactions,
             'is_encrypted': self.is_encrypted,
-            'encryption_key': self.encryption_key,
-            'username': self.author.username if self.author else None
+            'encryption_key': self.encryption_key if self.is_encrypted else None
         }
 
-# Create database tables and initial data
-with app.app_context():
-    db.create_all()
-    
-    # Create default categories if they don't exist
-    if not Category.query.first():
-        general = Category(name='General', description='General discussion')
-        announcements = Category(name='Announcements', description='Important announcements')
-        
-        # Create general channel in General category
-        general_channel = Channel(
-            name='general',
-            description='General chat channel',
-            category=general,
-            is_private=False
-        )
-        
-        db.session.add(general)
-        db.session.add(announcements)
-        db.session.commit()
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-# Socket event handlers
-@socketio.on('connect')
-def handle_connect():
-    if not current_user.is_authenticated:
-        return False
-    
-    user_data = {
-        'id': current_user.id,
-        'username': current_user.username,
-        'is_moderator': current_user.is_moderator,
-        'status': current_user.status
-    }
-    active_users[request.sid] = user_data
-    emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    if request.sid in active_users:
-        username = active_users[request.sid]['username']
-        del active_users[request.sid]
-        
-        leave_message = Message(
-            type='system',
-            text=f'{username} has left the chat',
-            timestamp=datetime.now(),
-            sender_id=None,
-            channel_id=None
-        )
-        db.session.add(leave_message)
-        db.session.commit()
-        
-        emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-        emit('new_message', leave_message.to_dict(), broadcast=True)
-
+# Routes
 @app.route('/')
 @login_required
 def index():
@@ -274,6 +306,12 @@ def register():
         
         user = User(username=username, email=email)
         user.set_password(password)
+        
+        # Assign default user role
+        default_role = Role.query.filter_by(name='user').first()
+        if default_role:
+            user.roles.append(default_role)
+        
         db.session.add(user)
         db.session.commit()
         
@@ -318,7 +356,16 @@ def forgot_password():
     
     if request.method == 'POST':
         email = request.form.get('email')
-        # Password reset functionality needs to be added back in
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            if send_password_reset_email(user):
+                flash('An email has been sent with instructions to reset your password.', 'info')
+                return redirect(url_for('login'))
+            else:
+                flash('There was an error sending the password reset email. Please try again later.', 'error')
+        else:
+            flash('No account found with that email address.', 'error')
     
     return render_template('forgot_password.html')
 
@@ -327,7 +374,29 @@ def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    # Password reset functionality needs to be added back in
+    email = verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired reset token', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not password or not confirm_password:
+            flash('Please fill in all fields', 'error')
+        elif password != confirm_password:
+            flash('Passwords do not match', 'error')
+        else:
+            user.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+            db.session.commit()
+            flash('Your password has been updated! You can now log in', 'success')
+            return redirect(url_for('login'))
     
     return render_template('reset_password.html', token=token)
 
@@ -373,30 +442,69 @@ def update_profile():
     
     return redirect(url_for('profile'))
 
+
 @app.route('/admin/roles', methods=['GET'])
 @login_required
 def list_roles():
-    # Placeholder - admin role check and role listing needs implementation
-    return "Roles"
+    if not current_user.has_role('admin'):
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    roles = Role.query.all()
+    return render_template('admin/roles.html', roles=roles)
 
 @app.route('/admin/roles/assign', methods=['POST'])
 @login_required
 def assign_role():
-    # Placeholder - role assignment needs implementation
-    return "Role Assignment"
+    if not current_user.has_role('admin'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    user_id = request.form.get('user_id')
+    role_name = request.form.get('role_name')
+    
+    if not all([user_id, role_name]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    result = user.add_role(role_name)
+    db.session.commit()
+    
+    return jsonify({'message': result})
 
 @app.route('/admin/roles/remove', methods=['POST'])
 @login_required
 def remove_role():
-    # Placeholder - role removal needs implementation
-    return "Role Removal"
+    if not current_user.has_role('admin'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    user_id = request.form.get('user_id')
+    role_name = request.form.get('role_name')
+    
+    if not all([user_id, role_name]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    result = user.remove_role(role_name)
+    db.session.commit()
+    
+    return jsonify({'message': result})
 
 @app.route('/admin/users', methods=['GET'])
 @login_required
 def list_users():
-    # Placeholder - user listing needs implementation
-    return "Users"
-
+    if not current_user.has_role('admin'):
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
+    users = User.query.all()
+    roles = Role.query.all()
+    return render_template('admin/users.html', users=users, roles=roles)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -434,18 +542,66 @@ def upload_file():
         else:
             return jsonify({'error': 'File type not allowed'}), 400
 
+# Socket Events
+@socketio.on('connect')
+def handle_connect():
+    logger.info(f"Client connected: {request.sid}")
 
-# Socket Events (rest of the socket events from the original code)
+@socketio.on('join')
+def handle_join(data):
+    username = data.get('username')
+    if not username:
+        return
+    
+    # Get or create user
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        user = User(username=username)
+        db.session.add(user)
+        db.session.commit()
+    
+    # Store user in active users
+    active_users[request.sid] = {
+        'id': user.id,
+        'username': user.username,
+        'is_moderator': user.is_moderator,
+        'status': user.status
+    }
+    
+    # Send join message
+    join_message = Message(
+        type='system',
+        text=f'{username} has joined the chat',
+        timestamp=datetime.now()
+    )
+    db.session.add(join_message)
+    db.session.commit()
+    
+    # Send recent messages and current user list
+    recent_messages = Message.query.order_by(Message.timestamp.desc()).limit(MAX_MESSAGES).all()
+    recent_messages.reverse()
+    
+    emit('message_history', {
+        'messages': [msg.to_dict() for msg in recent_messages],
+        'user_id': user.id
+    })
+    emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+    emit('new_message', join_message.to_dict(), broadcast=True)
 
 @socketio.on('message')
 def handle_message(data):
+    logger.debug(f"Received message data: {data}")
+    
     if request.sid not in active_users:
+        logger.error(f"User session {request.sid} not found in active_users")
         return
     
     user_data = active_users[request.sid]
     if not user_data:
+        logger.error(f"User data not found for session {request.sid}")
         return
     
+    logger.info(f"Processing message from user: {user_data['username']}")
     text = data.get('text', '').strip()
     channel_id = data.get('channel_id')
     file_url = data.get('file_url')
@@ -466,12 +622,15 @@ def handle_message(data):
     # Create and save message
     message = Message(
         type='public',
-        user_id=user_data['id'],
+        sender_id=user_data['id'],
         channel_id=channel_id,
         text=text,
         file_url=file_url,
         voice_url=voice_url,
-        voice_duration=voice_duration
+        voice_duration=voice_duration,
+        reactions={},
+        is_encrypted=data.get('is_encrypted', False),
+        encryption_key=data.get('encryption_key')
     )
     db.session.add(message)
     db.session.commit()
@@ -525,7 +684,9 @@ def handle_reaction(data):
     
     # Broadcast updated message
     message_dict = message.to_dict()
-    message_dict['sender_username'] = User.query.get(message.user_id).username
+    message_dict['sender_username'] = User.query.get(message.sender_id).username
+    if message.receiver_id:
+        message_dict['receiver_username'] = User.query.get(message.receiver_id).username
     
     # Broadcast to channel if specified, otherwise broadcast to all
     if message.channel_id:
@@ -539,12 +700,12 @@ def handle_join_channel(data):
         return
     
     channel_id = data.get('channel_id')
-    
     channel = Channel.query.get(channel_id)
     if not channel:
         emit('error', {'message': 'Channel not found'})
         return
     
+    # Join the channel room
     join_room(f'channel_{channel_id}')
     
     # Get recent messages for this channel
@@ -570,21 +731,18 @@ def handle_leave_channel(data):
 
 @socketio.on('get_categories')
 def handle_get_categories():
-    print(f"Received get_categories request from {request.sid}")
     if request.sid not in active_users:
-        print(f"Unauthorized request for categories from {request.sid}")
+        logger.warning(f"Unauthorized request for categories from {request.sid}")
         return
     
     try:
         categories = Category.query.all()
-        print(f"Found {len(categories)} categories")
-        categories_data = {
+        logger.info(f"Found {len(categories)} categories")
+        emit('categories_list', {
             'categories': [category.to_dict() for category in categories]
-        }
-        print(f"Sending categories data: {categories_data}")
-        emit('categories_list', categories_data)
+        })
     except Exception as e:
-        print(f"Error fetching categories: {str(e)}")
+        logger.error(f"Error fetching categories: {str(e)}")
         emit('error', {'message': 'Error loading categories'})
 
 @socketio.on('create_category')
@@ -593,7 +751,10 @@ def handle_create_category(data):
         return
     
     user_data = active_users[request.sid]
-    # Category creation requires permission check and implementation
+    user = User.query.get(user_data['id'])
+    if not user.has_permission('manage_channels'):
+        emit('error', {'message': 'Permission denied: Cannot create categories'})
+        return
     
     name = data.get('name')
     description = data.get('description')
@@ -602,7 +763,9 @@ def handle_create_category(data):
         emit('error', {'message': 'Category name is required'})
         return
     
-    # Category creation needs implementation
+    category = Category(name=name, description=description)
+    db.session.add(category)
+    db.session.commit()
     
     emit('category_created', category.to_dict(), broadcast=True)
 
@@ -612,7 +775,10 @@ def handle_create_channel(data):
         return
     
     user_data = active_users[request.sid]
-    # Channel creation requires permission check and implementation
+    user = User.query.get(user_data['id'])
+    if not user.has_permission('create_channels'):
+        emit('error', {'message': 'Permission denied: Cannot create channels'})
+        return
     
     category_id = data.get('category_id')
     name = data.get('name')
@@ -623,11 +789,33 @@ def handle_create_channel(data):
         emit('error', {'message': 'Category ID and channel name are required'})
         return
     
-    # Channel creation needs implementation
+    channel = Channel(
+        category_id=category_id,
+        name=name,
+        description=description,
+        is_private=is_private
+    )
+    db.session.add(channel)
+    db.session.commit()
     
     emit('channel_created', channel.to_dict(), broadcast=True)
 
-
+@socketio.on('disconnect')
+def handle_disconnect():
+    if request.sid in active_users:
+        username = active_users[request.sid]['username']
+        del active_users[request.sid]
+        
+        leave_message = Message(
+            type='system',
+            text=f'{username} has left the chat',
+            timestamp=datetime.now()
+        )
+        db.session.add(leave_message)
+        db.session.commit()
+        
+        emit('user_list', {'users': list(active_users.values())}, broadcast=True)
+        emit('new_message', leave_message.to_dict(), broadcast=True)
 
 def handle_command(text, user_data, db_user):
     command_parts = text.lower().split()
@@ -697,7 +885,7 @@ def handle_command(text, user_data, db_user):
                 # Update user list to reflect changes
                 emit('user_list', {'users': list(active_users.values())}, broadcast=True)
 
-# Initialize Flask-Migrate (This part is added back)
+# Initialize Flask-Migrate
 from flask_migrate import Migrate
 migrate = Migrate(app, db)
 
