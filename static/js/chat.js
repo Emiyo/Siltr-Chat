@@ -1,15 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io();
+    // Get the modal element
+    const usernameModalElement = document.getElementById('usernameModal');
+    
+    if (!usernameModalElement) {
+        console.error('Username modal not found in the DOM');
+        return;
+    }
+    
+    // Initialize the modal with Bootstrap
+    const usernameModal = new bootstrap.Modal(usernameModalElement, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
+    // Get socket from window object (initialized in index.html)
+    const socket = window.socket;
+    
+    if (!socket) {
+        console.error('Socket not initialized');
+        return;
+    }
     
     // DOM Elements
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
     const messageContainer = document.getElementById('messageContainer');
     const userList = document.getElementById('userList');
-    const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
-        backdrop: 'static',
-        keyboard: false
-    });
 
     // State variables
     let username = '';
@@ -18,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let categories = [];
     let messageHistory = [];
     let historyIndex = -1;
+    
+    // Show login modal immediately
+    console.log('Showing username modal');
+    usernameModal.show();
     
     // Encryption state
     let keyPair = null;
