@@ -262,32 +262,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const userList = document.getElementById('userList');
                     if (!userList) return;
 
-                    // Get current user's ID from the select element
-                    const currentUserId = presenceSelector ? presenceSelector.getAttribute('data-user-id') : null;
-
                     userList.innerHTML = '';
                     data.users.forEach(user => {
                         const userItem = document.createElement('div');
                         userItem.className = 'user-item';
-                        // Mark if this is the current user
-                        if (currentUserId && user.id.toString() === currentUserId) {
-                            userItem.setAttribute('data-self', 'true');
-                        }
                         userItem.innerHTML = `
-                            <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
                             <span class="username">${user.display_name}</span>
                             ${user.status ? `<span class="status">${user.status}</span>` : ''}
                         `;
                         userList.appendChild(userItem);
                     });
-                    
-                    // Update presence selector if it exists
-                    if (presenceSelector && currentUserId) {
-                        const currentUser = data.users.find(u => u.id.toString() === currentUserId);
-                        if (currentUser) {
-                            presenceSelector.value = currentUser.presence_state || 'online';
-                        }
-                    }
                 }
             });
         }

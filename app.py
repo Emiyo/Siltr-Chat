@@ -424,26 +424,20 @@ def handle_connect():
         
         logger.info("Authenticated user connecting: %s", current_user.username)
         
-        # Only update last_seen timestamp
+        # Update last seen
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
-        logger.info(f"Current presence state for {current_user.username}: {current_user.presence_state}")
         
-        # Send initial user data without modifying presence
+        # Send initial data
         user_data = current_user.to_dict()
-        logger.info("Sending user data: %s", user_data)
-        emit('user_connected', user_data)
-        
-        # Send initial user list
         users = User.query.all()
         users_data = [user.to_dict() for user in users]
-        logger.info("Sending user list with %d users", len(users_data))
-        emit('user_list', {'users': users_data})
-        
-        # Send categories list
         categories = Category.query.all()
         categories_data = [category.to_dict() for category in categories]
-        logger.info("Sending categories list with %d categories", len(categories_data))
+        
+        # Emit initial data
+        emit('user_connected', user_data)
+        emit('user_list', {'users': users_data})
         emit('categories_list', {'categories': categories_data})
         
         # Join user's room
