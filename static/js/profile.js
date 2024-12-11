@@ -12,23 +12,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedTheme = e.target.value;
             const root = document.documentElement;
             
-            // Apply theme with transition
+            // Apply theme with smooth transition
             root.style.transition = 'none';
             root.setAttribute('data-theme', selectedTheme);
             
-            // Force reflow
+            // Force reflow for smooth transition
             void root.offsetWidth;
-            root.style.transition = '';
+            root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
             
-            // Toggle custom theme options with animation
+            // Update preview container with theme-specific styles
+            if (preview) {
+                preview.style.opacity = '0';
+                setTimeout(() => {
+                    preview.style.opacity = '1';
+                }, 300);
+            }
+            
+            // Toggle custom theme options with enhanced animation
             if (customThemeOptions) {
                 if (selectedTheme === 'custom') {
                     customThemeOptions.style.display = 'block';
+                    customThemeOptions.style.transform = 'translateY(-10px)';
                     setTimeout(() => {
                         customThemeOptions.style.opacity = '1';
+                        customThemeOptions.style.transform = 'translateY(0)';
                     }, 10);
                 } else {
                     customThemeOptions.style.opacity = '0';
+                    customThemeOptions.style.transform = 'translateY(-10px)';
                     setTimeout(() => {
                         customThemeOptions.style.display = 'none';
                     }, 300);
