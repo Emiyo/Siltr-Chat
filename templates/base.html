@@ -84,14 +84,15 @@
     
     <!-- Load JavaScript -->
     <script>
-        // Debug logging for script loading
         console.log('Starting script loading...');
     </script>
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <!-- Load profile functionality first -->
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
     <script>
-        // Verify function is defined
-        console.log('modal.js loaded, fetchAndDisplayUserProfile defined:', typeof window.fetchAndDisplayUserProfile);
+        console.log('Profile functionality loaded:', typeof window.fetchAndDisplayUserProfile);
     </script>
+    <!-- Load other scripts -->
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script>
         console.log('All scripts loaded');
