@@ -271,12 +271,13 @@ body {
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: center;
     width: fit-content;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .message:hover {
     width: max-content;
     min-width: fit-content;
-    padding-right: 6rem;
+    padding-right: 8rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
