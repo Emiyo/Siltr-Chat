@@ -13,14 +13,17 @@ window.fetchAndDisplayUserProfile = async function(userId) {
             return;
         }
         
-        // Update modal content with presence indicator
-        const presenceClass = userData.presence_state || 'online';
+        // Store user ID for direct messaging
+        modal.dataset.userId = userData.id;
+        
+        // Update modal content
         document.getElementById('modalUsername').innerHTML = `
-            <span class="presence-indicator ${presenceClass}"></span>
-            ${userData.display_name || userData.username}
+            <div class="profile-header">
+                <span class="username">${userData.display_name || userData.username}</span>
+                ${userData.roles && userData.roles.includes('admin') ? '<span class="badge admin-badge">Admin</span>' : ''}
+            </div>
         `;
         document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-        document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
         document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
         document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
         
@@ -54,12 +57,35 @@ window.fetchAndDisplayUserProfile = async function(userId) {
         rolesDiv.innerHTML = userData.roles ? 
             userData.roles.map(role => `<span class="role-badge">${role}</span>`).join('') : '';
         
+        // Add direct message button if not viewing own profile
+        const userActionsDiv = modal.querySelector('.user-actions');
+        if (userId !== 'current') {
+            userActionsDiv.innerHTML = `
+                <button class="btn btn-terminal" onclick="startDirectMessage('${userData.id}')">Message</button>
+            `;
+        } else {
+            userActionsDiv.innerHTML = ''; // Clear actions for own profile
+        }
+        
         // Show modal
         modal.style.display = "block";
         
         console.log('Modal displayed for user:', userData.username);
     } catch (error) {
         console.error('Error fetching user profile:', error);
+    }
+};
+
+// Function to start a direct message
+window.startDirectMessage = function(userId) {
+    if (typeof socket !== 'undefined') {
+        socket.emit('start_direct_message', { target_user_id: userId });
+        const modal = document.getElementById('userProfileModal');
+        if (modal) {
+            modal.style.display = "none";
+        }
+    } else {
+        console.error('Socket connection not available');
     }
 };
 

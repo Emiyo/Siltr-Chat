@@ -9,7 +9,6 @@
     <!-- Additional styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/presence.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -48,14 +47,8 @@
                     <img id="modalUserAvatar" src="" alt="User avatar" class="modal-avatar">
                     <h2 id="modalUsername"></h2>
                     <p id="modalStatus" class="user-status"></p>
-                    <div class="presence-status">
-                        <span class="presence-indicator" id="modalPresenceIndicator"></span>
-                        <select id="presenceSelector" class="presence-selector">
-                            <option value="online">Online</option>
-                            <option value="idle">Idle</option>
-                            <option value="dnd">Do Not Disturb</option>
-                            <option value="invisible">Invisible</option>
-                        </select>
+                    <div class="user-actions">
+                        <button class="btn btn-terminal" onclick="startDirectMessage(this.dataset.userId)">Message</button>
                     </div>
                 </div>
                 <div class="profile-info">

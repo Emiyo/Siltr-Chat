@@ -1,26 +1,5 @@
-2024-12-11 19:44:34,739 ERROR: Error in handle_connect: 'User' object has no attribute 'presence_state' [in /home/runner/TornadoChatRoom/app.py:455]
-Traceback (most recent call last):
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 834, in _handle_event
-    ret = handler(auth)
-          ^^^^^^^^^^^^^
-TypeError: handle_connect() takes 0 positional arguments but 1 was given
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/TornadoChatRoom/app.py", line 430, in handle_connect
-    logger.info(f"Current presence state for {current_user.username}: {current_user.presence_state}")
-                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'User' object has no attribute 'presence_state'
-2024-12-11 19:45:26,094 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:45:27,773 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:572]
-2024-12-11 19:45:27,837 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:579]
-2024-12-11 19:45:29,166 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 19:45:30,398 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:45:30,791 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:572]
-2024-12-11 19:45:30,855 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:579]
-2024-12-11 19:45:30,991 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:45:33,177 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:45:33,760 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 19:46:56,690 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 19:46:57,276 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
+2024-12-11 19:58:31,919 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
+2024-12-11 19:58:32,992 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 19:58:34,666 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:572]
+2024-12-11 19:58:34,731 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:579]
+2024-12-11 19:58:42,595 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
