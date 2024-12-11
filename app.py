@@ -205,23 +205,43 @@ class Message(db.Model):
     file_url = db.Column(db.String(200), nullable=True)
     audio_url = db.Column(db.String(200), nullable=True)
     audio_duration = db.Column(db.Float, nullable=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)
+    type = db.Column(db.String(20), nullable=True)  # 'system', 'private', etc.
     
-    # Add relationship with User only, Channel relationship is handled by backref
+    # Add relationship with User and self-referential relationship for threading
     user = db.relationship('User', backref=db.backref('messages', lazy=True))
+    parent = db.relationship('Message', remote_side=[id], backref=db.backref('replies', lazy=True))
 
     def to_dict(self):
-        return {
+        data = {
             'id': self.id,
             'content': self.content,
+            'text': self.content,  # For frontend compatibility
             'timestamp': self.timestamp.isoformat(),
             'user_id': self.user_id,
             'channel_id': self.channel_id,
             'is_encrypted': self.is_encrypted,
             'encryption_key': self.encryption_key,
             'file_url': self.file_url,
-            'voice_url': self.voice_url,
-            'voice_duration': self.voice_duration
+            'audio_url': self.audio_url,
+            'audio_duration': self.audio_duration,
+            'type': self.type,
+            'parent_id': self.parent_id
         }
+        
+        # Include user data for regular messages
+        if not self.type == 'system':
+            data['user'] = self.user.to_dict() if self.user else None
+            
+        # Include parent message data for replies
+        if self.parent_id:
+            data['parent'] = {
+                'id': self.parent.id,
+                'content': self.parent.content,
+                'user': self.parent.user.to_dict() if self.parent.user else None
+            }
+            
+        return data
 
 @login_manager.user_loader
 def load_user(id):
@@ -531,6 +551,84 @@ def handle_get_user_list():
     except Exception as e:
         logger.error("Error fetching user list: %s", str(e), exc_info=True)
         emit('error', {'message': 'Failed to fetch user list'})
+
+@socketio.on('message')
+def handle_message(data):
+    """Handle message sent"""
+    if not current_user.is_authenticated:
+        return
+    
+    content = data.get('text', '').strip()
+    channel_id = data.get('channel_id')
+    parent_id = data.get('parent_id')
+    message_type = data.get('type')
+    
+    if content and channel_id:
+        try:
+            channel = Channel.query.get(channel_id)
+            if channel:
+                message = Message(
+                    content=content,
+                    user_id=current_user.id,
+                    channel_id=channel_id,
+                    parent_id=parent_id,
+                    type=message_type
+                )
+                
+                db.session.add(message)
+                db.session.commit()
+                
+                # Get complete message data with user information
+                message_data = message.to_dict()
+                
+                # Broadcast to all users in the channel
+                emit('message', message_data, room=f'channel_{channel_id}')
+                logger.info(f"Message sent by {current_user.username} in channel {channel.name}")
+                
+                # Send system message for user joins/leaves if needed
+                if message_type == 'join':
+                    system_message = Message(
+                        content=f"{current_user.username} has joined the channel",
+                        channel_id=channel_id,
+                        user_id=current_user.id,
+                        type='system'
+                    )
+                    db.session.add(system_message)
+                    db.session.commit()
+                    emit('message', system_message.to_dict(), room=f'channel_{channel_id}')
+                
+        except Exception as e:
+            logger.error(f"Error sending message: {str(e)}")
+            db.session.rollback()
+            emit('error', {'message': 'Failed to send message'})
+
+@socketio.on('system_message')
+def handle_system_message(data):
+    """Handle system messages"""
+    if not current_user.is_authenticated:
+        return
+        
+    try:
+        channel_id = data.get('channel_id')
+        content = data.get('content')
+        
+        if channel_id and content:
+            message = Message(
+                content=content,
+                channel_id=channel_id,
+                user_id=current_user.id,
+                type='system'
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            emit('message', message.to_dict(), room=f'channel_{channel_id}')
+            logger.info(f"System message sent in channel {channel_id}: {content}")
+            
+    except Exception as e:
+        logger.error(f"Error sending system message: {str(e)}")
+        db.session.rollback()
+        emit('error', {'message': 'Failed to send system message'})
 
 
 
