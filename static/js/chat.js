@@ -362,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('join', (data) => {
         if (data.username) {
-            // Also request categories on successful join
+            console.log('User joined, requesting categories');
+            // Request categories when user joins
             socket.emit('get_categories');
         }
     });
@@ -395,9 +396,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Categories and Channels
     socket.on('categories_list', (data) => {
+        console.log('Received categories:', data);
         if (data && data.categories) {
             categories = data.categories;
             updateCategoryList();
+        } else {
+            console.error('Invalid categories data received:', data);
         }
     });
 

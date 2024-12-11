@@ -575,18 +575,21 @@ def handle_leave_channel(data):
 
 @socketio.on('get_categories')
 def handle_get_categories():
+    print(f"Received get_categories request from {request.sid}")
     if request.sid not in active_users:
-        logger.warning(f"Unauthorized request for categories from {request.sid}")
+        print(f"Unauthorized request for categories from {request.sid}")
         return
     
     try:
         categories = Category.query.all()
-        logger.info(f"Found {len(categories)} categories")
-        emit('categories_list', {
+        print(f"Found {len(categories)} categories")
+        categories_data = {
             'categories': [category.to_dict() for category in categories]
-        })
+        }
+        print(f"Sending categories data: {categories_data}")
+        emit('categories_list', categories_data)
     except Exception as e:
-        logger.error(f"Error fetching categories: {str(e)}")
+        print(f"Error fetching categories: {str(e)}")
         emit('error', {'message': 'Error loading categories'})
 
 @socketio.on('create_category')
