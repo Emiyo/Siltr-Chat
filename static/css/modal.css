@@ -1,0 +1,108 @@
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    position: relative;
+    background-color: #1a1a1a;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    color: #ffffff;
+    animation: modalFade 0.3s ease-in-out;
+}
+
+@keyframes modalFade {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #fff;
+}
+
+.profile-preview {
+    padding: 20px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.modal-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #4a9eff;
+    margin-bottom: 15px;
+}
+
+.user-status {
+    color: #888;
+    font-style: italic;
+}
+
+.profile-info {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.info-section {
+    background: #2d2d2d;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.info-section h3 {
+    color: #4a9eff;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+#modalRoles .role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #4a9eff;
+    border-radius: 4px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-size: 0.875em;
+    color: #ffffff;
+}
+
+.social-links {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.social-links a {
+    color: #4a9eff;
+    text-decoration: none;
+}
+
+.social-links a:hover {
+    text-decoration: underline;
+}

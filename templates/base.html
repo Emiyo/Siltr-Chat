@@ -37,5 +37,39 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="profile-preview">
+                <div class="profile-header">
+                    <img id="modalUserAvatar" src="" alt="User avatar" class="modal-avatar">
+                    <h2 id="modalUsername"></h2>
+                    <p id="modalStatus" class="user-status"></p>
+                </div>
+                <div class="profile-info">
+                    <div class="info-section">
+                        <h3>About</h3>
+                        <p id="modalBio"></p>
+                        <p id="modalLocation"></p>
+                    </div>
+                    <div class="info-section">
+                        <h3>Contact</h3>
+                        <div id="modalContact"></div>
+                    </div>
+                    <div class="info-section">
+                        <h3>Member Info</h3>
+                        <p id="modalJoinDate"></p>
+                        <p id="modalLastSeen"></p>
+                        <div id="modalRoles"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 </body>
 </html>

@@ -453,6 +453,12 @@ def reset_password(token):
 def profile():
     return render_template('profile.html', user=current_user)
 
+@app.route('/api/user/<int:user_id>', methods=['GET'])
+@login_required
+def get_user_profile(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict(include_private=user.id == current_user.id))
+
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
