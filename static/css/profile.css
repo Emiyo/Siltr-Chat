@@ -1,57 +1,51 @@
-/* Discord-like Profile Modal */
+/* Discord-style Profile Modal */
 .discord-profile-modal {
-    background-color: #2f3136;
+    max-width: 800px;
+    margin: 2rem auto;
+    background-color: var(--terminal-bg);
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 340px;
-    margin: 20px auto;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    animation: modalFadeIn 0.2s ease-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Profile Header */
 .profile-banner {
     height: 120px;
-    background-color: #2f3136;
     position: relative;
+    transition: background-color 0.3s ease;
 }
 
 .profile-header {
     position: absolute;
-    bottom: -60px;
-    left: 16px;
+    bottom: -50px;
+    left: 30px;
     display: flex;
     align-items: flex-end;
-    gap: 16px;
+    gap: 1rem;
 }
 
-/* Avatar */
 .profile-avatar-container {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
 }
 
 .profile-avatar {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    border: 6px solid #36393f;
-    background-color: #2f3136;
+    border: 6px solid var(--terminal-bg);
     object-fit: cover;
 }
 
-/* Presence Indicator */
 .presence-indicator {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 16px;
-    height: 16px;
+    bottom: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 3px solid #36393f;
+    border: 4px solid var(--terminal-bg);
+    transition: background-color 0.3s ease;
 }
 
 .presence-indicator.online { background-color: #43b581; }
@@ -59,141 +53,149 @@
 .presence-indicator.dnd { background-color: #f04747; }
 .presence-indicator.offline { background-color: #747f8d; }
 
-/* Username and Status */
 .profile-username-container {
-    padding-bottom: 16px;
+    padding-bottom: 10px;
 }
 
 .profile-username {
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 600;
+    color: var(--terminal-text);
+    font-size: 1.5rem;
     margin: 0;
-    margin-bottom: 4px;
 }
 
 .profile-status {
     color: #b9bbbe;
-    font-size: 14px;
+    font-size: 0.9rem;
 }
 
-/* Profile Content */
 .profile-content {
-    padding: 80px 16px 16px;
+    padding: 60px 30px 30px;
 }
 
 .profile-section {
-    background-color: #2f3136;
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .profile-section h3 {
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 16px;
+    color: var(--terminal-text);
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
 }
 
-/* Form Styling */
+.theme-customization {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.theme-customization h4 {
+    color: var(--terminal-text);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.color-picker {
+    width: 100%;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
 .profile-form {
-    margin-bottom: 24px;
+    margin-bottom: 2rem;
 }
 
-.profile-form .form-group {
-    margin-bottom: 16px;
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
-.profile-form label {
+.form-group label {
     display: block;
-    color: #b9bbbe;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    text-transform: uppercase;
+    color: var(--terminal-text);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .form-control {
     width: 100%;
-    padding: 10px;
-    background-color: #202225;
-    border: none;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
-    color: #ffffff;
-    font-size: 14px;
-    transition: background-color 0.2s;
+    color: var(--terminal-text);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-control:focus {
     outline: none;
-    background-color: #40444b;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
 }
 
-/* Profile Info */
-.profile-info {
-    margin: 16px 0;
-    padding: 16px;
-    background-color: #202225;
-    border-radius: 4px;
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.3);
 }
 
-.member-since {
-    color: #b9bbbe;
-    font-size: 14px;
-    margin: 0;
-}
-
-/* Form Actions */
 .form-actions {
-    margin-top: 16px;
-    text-align: right;
-}
-
-.btn {
-    padding: 8px 16px;
-    border-radius: 3px;
-    font-size: 14px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    margin-top: 1.5rem;
 }
 
 .btn-primary {
-    background-color: #5865f2;
-    color: #ffffff;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-primary:hover {
     background-color: #4752c4;
+    transform: translateY(-1px);
 }
 
-.mt-4 {
-    margin-top: 24px;
+.member-since {
+    color: #b9bbbe;
+    font-size: 0.9rem;
+    margin-top: 1rem;
 }
 
-/* File Input Styling */
+/* File input styling */
 input[type="file"] {
-    padding: 8px;
-    background-color: #40444b;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .discord-profile-modal {
-        margin: 10px;
-    }
-
-    .profile-header {
-        flex-direction: column;
-        align-items: center;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .profile-content {
-        padding-top: 120px;
-    }
+input[type="file"]::file-selector-button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 1rem;
+    transition: background-color 0.3s ease;
 }
 
+input[type="file"]::file-selector-button:hover {
+    background-color: #4752c4;
+}
