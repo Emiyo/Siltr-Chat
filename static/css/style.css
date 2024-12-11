@@ -275,17 +275,19 @@ body {
     visibility: hidden;
     opacity: 0;
     margin-top: 0.5rem;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     gap: 0.5rem;
     align-items: center;
     justify-content: flex-start;
     padding: 0.25rem 0;
+    transform: translateY(-10px) scale(0.95);
 }
 
 .message:hover .message-actions {
     visibility: visible;
     opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
 .reply-btn {
@@ -299,12 +301,13 @@ body {
     border: 1px solid #4a9eff;
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
 }
 
 .reply-btn:hover {
     background-color: rgba(74, 158, 255, 0.2);
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.05);
     box-shadow: 0 2px 4px rgba(74, 158, 255, 0.2);
 }
 
