@@ -1334,6 +1334,20 @@ def handle_command(text, user_data, db_user):
                 # Update user list to reflect changes
                 emit('user_list', {'users': list(active_users.values())}, broadcast=True)
 
+# API Routes for User Profiles
+@app.route('/api/user/profile')
+@login_required
+def get_current_user_profile():
+    """Get the current user's profile"""
+    return jsonify(current_user.to_dict())
+
+@app.route('/api/user/by_id/<int:user_id>')
+@login_required
+def get_user_profile_by_id(user_id):
+    """Get a specific user's profile by ID"""
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
+
 # Initialize Flask-Migrate
 from flask_migrate import Migrate
 migrate = Migrate(app, db)

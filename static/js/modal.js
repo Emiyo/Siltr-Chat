@@ -1,6 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('userProfileModal');
     const closeBtn = modal.querySelector('.close');
+    const profileButton = document.querySelector('a[href="/profile"]');
+    
+    // Handle profile button click
+    if (profileButton) {
+        profileButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchAndDisplayUserProfile('current');
+        });
+    }
     
     // Close modal when clicking the close button
     closeBtn.onclick = function() {
@@ -28,7 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display user profile
     async function fetchAndDisplayUserProfile(userId) {
         try {
-            const response = await fetch(`/api/user/${userId}`);
+            const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
+            const response = await fetch(endpoint);
             if (!response.ok) throw new Error('Failed to fetch user profile');
             const userData = await response.json();
             
