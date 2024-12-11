@@ -537,10 +537,61 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="loading-spinner"></div>
                                 <span>Loading encrypted image...</span>
                             </div>
-                        </div>
-                        <button id="${downloadId}" class="btn btn-sm btn-terminal encrypted-download-btn">
-                            Download Original Image
-                        </button>`;
+                            <div class="image-controls">
+                                <button id="${downloadId}" class="btn btn-sm btn-terminal encrypted-download-btn">
+                                    Download Original Image
+                                </button>
+                            </div>
+                        </div>`;
+                    
+                    // Add CSS style for image preview if not already present
+                    if (!document.querySelector('#image-preview-styles')) {
+                        const style = document.createElement('style');
+                        style.id = 'image-preview-styles';
+                        style.textContent = `
+                            .image-preview {
+                                max-width: 100%;
+                                margin: 10px 0;
+                            }
+                            .encrypted-image-placeholder {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                min-height: 100px;
+                                background: rgba(0, 0, 0, 0.1);
+                                border-radius: 4px;
+                                margin-bottom: 10px;
+                            }
+                            .loading-spinner {
+                                border: 3px solid #f3f3f3;
+                                border-top: 3px solid #3498db;
+                                border-radius: 50%;
+                                width: 20px;
+                                height: 20px;
+                                animation: spin 1s linear infinite;
+                                margin-bottom: 10px;
+                            }
+                            @keyframes spin {
+                                0% { transform: rotate(0deg); }
+                                100% { transform: rotate(360deg); }
+                            }
+                            .image-preview img {
+                                max-width: 100%;
+                                height: auto;
+                                border-radius: 4px;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                    
+                    console.log('Created image preview HTML with IDs:', {
+                        previewContainerId: imageId,
+                        downloadButtonId: downloadId,
+                        fileType: fileType,
+                        originalName: message.original_name,
+                        metadata: message.file_metadata
+                    });
                     
                     console.log('Image preview HTML created with IDs:', {
                         previewContainerId: imageId,
