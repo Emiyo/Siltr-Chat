@@ -13,22 +13,14 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
+args = "Flask SocketIO Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
 args = "Flask Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Flask DB Upgrade"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Flask Migration Check"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Flask Server Debug"
-
 [[workflows.workflow]]
-name = "Flask Server"
+name = "Flask SocketIO Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -43,7 +35,7 @@ args = "python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "Flask DB Upgrade"
+name = "Flask Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -54,35 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flask db upgrade"
-
-[[workflows.workflow]]
-name = "Flask Migration Check"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "flask db current"
-
-[[workflows.workflow]]
-name = "Flask Server Debug"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python -u app.py"
+args = "python app.py"
 waitForPort = 5000
 
 [deployment]

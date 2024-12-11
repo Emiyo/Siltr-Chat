@@ -1,52 +1,16 @@
 // User profile functionality is loaded from profile.js
 
-// Import panel modules
-import UserPanel from './panels/userPanel.js';
-import ChannelPanel from './panels/channelPanel.js';
-import ChatPanel from './panels/chatPanel.js';
-import SocketHandler from './socketHandler.js';
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize socket handler
-    const socketHandler = new SocketHandler();
-    const socket = socketHandler.getSocket();
-    
-    // Initialize panels
-    const messageContainer = document.getElementById('messageContainer');
-    const channelPanel = new ChannelPanel(socket, messageContainer);
-    const userPanel = new UserPanel(socket);
-    const chatPanel = new ChatPanel(socket);
-    
-    // Connect panels
-    chatPanel.setChannelPanel(channelPanel);
+    const socket = io();
     
     // DOM Elements
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
+    const messageContainer = document.getElementById('messageContainer');
     const userList = document.getElementById('userList');
-    const categoryList = document.getElementById('categoryList');
     const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
         backdrop: 'static',
         keyboard: false
-    });
-    
-    // Debug socket connection
-    socket.on('connect', () => {
-        console.log('Socket connected successfully');
-        addMessage({
-            type: 'system',
-            text: 'Connected to server',
-            timestamp: new Date().toISOString()
-        });
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-        addMessage({
-            type: 'system',
-            text: 'Connection error: ' + error.message,
-            timestamp: new Date().toISOString()
-        });
     });
 
     // State variables
@@ -119,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Handle regular messages
+            // Handle regular messages with encryption
             if (!currentChannel) {
                 addMessage({
                     type: 'system',
@@ -129,13 +93,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Create simple message data
-            const messageData = {
-                text: message,
-                channel_id: currentChannel
-            };
+            try {
+                // Get or create symmetric key for the channel
+                let symmetricKey = channelKeys.get(currentChannel);
+                if (!symmetricKey) {
+                    symmetricKey = await CryptoManager.generateSymmetricKey();
+                    channelKeys.set(currentChannel, symmetricKey);
+                }
 
-            socket.emit('message', messageData);
+                // Create message payload
+                const messagePayload = {
+                    content: message,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Encrypt the message payload
+                const encryptedMessage = await CryptoManager.encryptMessage(
+                    JSON.stringify(messagePayload),
+                    symmetricKey
+                );
+                
+                const exportedKey = await CryptoManager.exportSymmetricKey(symmetricKey);
+
+                const messageData = {
+                    text: encryptedMessage,
+                    channel_id: currentChannel,
+                    encryption_key: exportedKey,
+                    is_encrypted: true
+                };
+
+                socket.emit('message', messageData);
+            } catch (error) {
+                console.error('Encryption error:', error);
+                addMessage({
+                    type: 'system',
+                    text: 'Failed to encrypt message: ' + error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
             messageHistory.push(message);
             historyIndex = messageHistory.length;
             messageInput.value = '';
@@ -311,17 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('join', (data) => {
         if (data.username) {
-            console.log('Successfully joined as:', data.username);
-            socket.emit('join', { username: data.username });
-        }
-    });
-    
-    // Handle channel groups update
-    socket.on('channel_groups', (data) => {
-        console.log('Received channel groups:', data);
-        if (data && data.groups) {
-            categories = data.groups; // Reuse categories array for groups
-            updateCategoryList();
+            // Also request categories on successful join
+            socket.emit('get_categories');
         }
     });
 
@@ -347,37 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
     });
 
-    socket.on('active_users', (data) => {
-        console.log('Received active users:', data);
-        if (data && data.users) {
-            updateUserList(data.users);
-        }
+    socket.on('user_list', (data) => {
+        updateUserList(data.users);
     });
-
-    function updateUserList(users) {
-        if (!userList || !Array.isArray(users)) {
-            console.error('Invalid users data or missing userList element');
-            return;
-        }
-        
-        console.log('Updating user list with:', users);
-        
-        userList.innerHTML = users.map(user => {
-            const rolesBadges = user.roles ? 
-                user.roles.map(role => `<span class="role-badge ${role.name}">${role.name}</span>`).join('') : '';
-            
-            return `
-                <div class="user-item ${user.presence_state || 'offline'}" data-user-id="${user.id}">
-                    <span class="user-status"></span>
-                    <span class="user-name">${user.display_name || user.username}</span>
-                    ${user.status ? `<div class="user-activity">${user.status_emoji || ''} ${user.status}</div>` : ''}
-                    ${rolesBadges ? `<div class="user-roles">${rolesBadges}</div>` : ''}
-                </div>
-            `;
-        }).join('');
-        
-        console.log('User list updated');
-    }
 
     // Categories and Channels
     socket.on('categories_list', (data) => {
@@ -420,64 +379,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper Functions
     function updateCategoryList() {
-        if (!categoryList || !Array.isArray(categories)) {
-            console.error('Invalid categories data or missing categoryList element');
-            return;
-        }
+        const categoryList = document.getElementById('categoryList');
+        if (!categoryList || !Array.isArray(categories)) return;
         
-        console.log('Updating category list with:', categories);
-        
-        categoryList.innerHTML = categories.map(group => {
-            const channels = group.channels || [];
-            const groupIcon = group.name.toLowerCase() === 'text' ? '#' : 
-                            group.name.toLowerCase() === 'voice' ? '🔊' : 
-                            group.name.toLowerCase() === 'announcement' ? '📢' : '💬';
-            
+        categoryList.innerHTML = categories.map(category => {
+            const channels = category.channels || [];
             return `
                 <div class="category-item">
                     <div class="category-header">
                         <span class="category-toggle">▼</span>
-                        ${groupIcon} ${group.name}
+                        ${category.name}
                     </div>
                     <div class="channel-list" style="display: block;">
                         ${channels.map(channel => `
                             <div class="channel-item ${channel.id === currentChannel ? 'active' : ''}" 
-                                 data-channel-id="${channel.id}"
-                                 data-channel-type="${channel.type || 'text'}">
-                                ${channel.type === 'voice' ? '🔊' : '#'} ${channel.name}
-                                ${channel.description ? `<div class="channel-description">${channel.description}</div>` : ''}
+                                 data-channel-id="${channel.id}">
+                                ${channel.is_private ? '🔒' : '#'} ${channel.name}
                             </div>
                         `).join('')}
                     </div>
                 </div>
             `;
         }).join('');
-        
-        // Reattach click handlers for channels
-        document.querySelectorAll('.channel-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const channelId = parseInt(item.dataset.channelId);
-                if (currentChannel !== channelId) {
-                    if (currentChannel) {
-                        socket.emit('leave_channel', { channel_id: currentChannel });
-                    }
-                    currentChannel = channelId;
-                    messageContainer.innerHTML = '';
-                    addMessage({
-                        type: 'system',
-                        text: `Joined channel #${item.textContent.trim()}`,
-                        timestamp: new Date().toISOString()
-                    });
-                    socket.emit('join_channel', { channel_id: channelId });
-                    document.querySelectorAll('.channel-item').forEach(ch => 
-                        ch.classList.toggle('active', ch.dataset.channelId === String(channelId))
-                    );
-                }
-            });
-        });
-        
-        console.log('Category list updated');
-    }
 
         // Add event listeners
         document.querySelectorAll('.category-header').forEach(header => {
@@ -740,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             imagePreview.innerHTML = `
                                                 <div class="encrypted-image-placeholder">
                                                     <div class="loading-spinner"></div>
-                                                    <span>Loading encrypted image...</span>
+                                                    Loading encrypted image...
                                                 </div>`;
                                             
                                             const img = document.createElement('img');
@@ -758,13 +681,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 // Clear loading state and show image
                                                 imagePreview.innerHTML = '';
                                                 imagePreview.appendChild(img);
-                                            console.log('Image preview created successfully');
-
+                                                
                                                 // Clean up download link after successful load
                                                 if (document.body.contains(downloadLink)) {
                                                     document.body.removeChild(downloadLink);
                                                 }
-                                            });
+                                                
+                                                console.log('Image preview created successfully');
+                                            };
                                             
                                             img.onerror = (error) => {
                                                 console.error('Failed to load image:', error);

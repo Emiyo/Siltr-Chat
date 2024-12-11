@@ -1,49 +1,192 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="profile-container">
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <div class="profile-info">
-            <h2 class="display-name">{{ user.display_name or user.username }}</h2>
-            <span class="username">@{{ user.username }}</span>
-        </div>
-        <div class="profile-status">
-            <span class="presence-indicator {{ user.presence_state }}"></span>
-            <span class="status-text">{{ user.status or 'No status set' }}</span>
-        </div>
-    </div>
-
-    <!-- Profile Settings -->
-    <div class="profile-settings">
-        <form method="POST" action="{{ url_for('update_profile') }}">
-            <div class="form-group">
-                <label for="display_name">Display Name</label>
-                <input type="text" id="display_name" name="display_name" 
-                       value="{{ user.display_name or '' }}" maxlength="50"
-                       placeholder="Enter display name">
+<div class="container">
+    <h2>Profile Settings</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="profile-container">
+        <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+            <div class="profile-section">
+                <h3>Profile Picture</h3>
+                <div class="avatar-container">
+                    {% if current_user.avatar %}
+                    <img src="{{ current_user.avatar }}" alt="Current avatar" class="current-avatar">
+                    {% else %}
+                    <div class="avatar-placeholder">No avatar set</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="avatar">Update Profile Picture:</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/*">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="bio">Bio</label>
-                <textarea id="bio" name="bio" maxlength="500" 
-                          placeholder="Tell us about yourself">{{ user.bio or '' }}</textarea>
+            <div class="profile-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="display_name">Display Name:</label>
+                    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name or '' }}" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" value="{{ current_user.email }}" readonly>
+                    <small class="form-text text-muted">Email cannot be changed</small>
+                    <div class="verification-status">
+                        {% if current_user.is_verified %}
+                        <span class="verified-badge">✓ Verified</span>
+                        {% else %}
+                        <div class="unverified-notice">
+                            <span class="unverified-badge">! Not Verified</span>
+                            <form method="POST" action="{{ url_for('resend_verification') }}" class="inline-form">
+                                <button type="submit" class="btn btn-link">Resend verification email</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="presence_state">Presence:</label>
+                    <select id="presence_state" name="presence_state" class="presence-selector">
+                        <option value="online" {% if current_user.presence_state == 'online' %}selected{% endif %}>Online</option>
+                        <option value="idle" {% if current_user.presence_state == 'idle' %}selected{% endif %}>Idle</option>
+                        <option value="dnd" {% if current_user.presence_state == 'dnd' %}selected{% endif %}>Do Not Disturb</option>
+                        <option value="invisible" {% if current_user.presence_state == 'invisible' %}selected{% endif %}>Invisible</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Custom Status:</label>
+                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" maxlength="100" placeholder="What's on your mind?">
+                </div>
+                <div class="form-group">
+                    <label for="bio">Bio:</label>
+                    <textarea id="bio" name="bio" maxlength="500" rows="3">{{ current_user.bio or '' }}</textarea>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="theme">Theme</label>
-                <select id="theme" name="profile_theme">
-                    <option value="dark" {% if user.profile_theme == 'dark' %}selected{% endif %}>Dark</option>
-                    <option value="light" {% if user.profile_theme == 'light' %}selected{% endif %}>Light</option>
-                </select>
+            <div class="profile-section">
+                <h3>Location & Time</h3>
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" value="{{ current_user.location or '' }}" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="timezone">Timezone:</label>
+                    <select id="timezone" name="timezone">
+                        <option value="">Select Timezone</option>
+                        <option value="UTC" {% if current_user.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                        <option value="America/New_York" {% if current_user.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                        <option value="America/Chicago" {% if current_user.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                        <option value="America/Denver" {% if current_user.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                        <option value="America/Los_Angeles" {% if current_user.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="accent_color">Accent Color</label>
-                <input type="color" id="accent_color" name="accent_color" 
-                       value="{{ user.accent_color or '#5865F2' }}">
+            <div class="profile-section">
+                <h3>Preferences</h3>
+                <div class="form-group">
+                    <label for="theme">Theme:</label>
+                    <select id="theme" name="theme">
+                        <option value="dark" {% if current_user.preferences and current_user.preferences.theme == 'dark' %}selected{% endif %}>Dark</option>
+                        <option value="light" {% if current_user.preferences and current_user.preferences.theme == 'light' %}selected{% endif %}>Light</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notifications">Notification Settings:</label>
+                    <select id="notifications" name="notifications">
+                        <option value="all" {% if current_user.preferences and current_user.preferences.notifications == 'all' %}selected{% endif %}>All Messages</option>
+                        <option value="mentions" {% if current_user.preferences and current_user.preferences.notifications == 'mentions' %}selected{% endif %}>Mentions Only</option>
+                        <option value="none" {% if current_user.preferences and current_user.preferences.notifications == 'none' %}selected{% endif %}>None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message_display">Message Display:</label>
+                    <select id="message_display" name="message_display">
+                        <option value="compact" {% if current_user.preferences and current_user.preferences.message_display == 'compact' %}selected{% endif %}>Compact</option>
+                        <option value="comfortable" {% if current_user.preferences and current_user.preferences.message_display == 'comfortable' %}selected{% endif %}>Comfortable</option>
+                    </select>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <div class="profile-section">
+                <h3>Social Links</h3>
+                <div class="form-group">
+                    <label for="email_visibility">Email Visibility:</label>
+                    <select id="email_visibility" name="email_visibility">
+                        <option value="private" {% if current_user.contact_info and current_user.contact_info.email_visibility == 'private' %}selected{% endif %}>Private</option>
+                        <option value="public" {% if current_user.contact_info and current_user.contact_info.email_visibility == 'public' %}selected{% endif %}>Public</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="github">GitHub:</label>
+                    <input type="url" id="github" name="github" value="{{ current_user.contact_info.social_links.github if current_user.contact_info and current_user.contact_info.social_links else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn:</label>
+                    <input type="url" id="linkedin" name="linkedin" value="{{ current_user.contact_info.social_links.linkedin if current_user.contact_info and current_user.contact_info.social_links else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="twitter">Twitter:</label>
+                    <input type="url" id="twitter" name="twitter" value="{{ current_user.contact_info.social_links.twitter if current_user.contact_info and current_user.contact_info.social_links else '' }}">
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Account Security</h3>
+                <div class="security-actions">
+                    <a href="{{ url_for('change_password') }}" class="btn btn-primary">Change Password</a>
+                </div>
+                <div class="account-info">
+                    <p>Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                    <p>Last seen: {{ current_user.last_seen.strftime('%B %d, %Y %H:%M:%S') if current_user.last_seen else 'Never' }}</p>
+                    <p>Roles: 
+                        {% for role in current_user.roles %}
+                        <span class="role-badge">{{ role.name }}</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Privacy Settings</h3>
+                <div class="form-group">
+                    <label for="profile_visibility">Profile Visibility:</label>
+                    <select id="profile_visibility" name="profile_visibility">
+                        <option value="public" {% if current_user.preferences and current_user.preferences.profile_visibility == 'public' %}selected{% endif %}>Public</option>
+                        <option value="registered" {% if current_user.preferences and current_user.preferences.profile_visibility == 'registered' %}selected{% endif %}>Registered Users Only</option>
+                        <option value="private" {% if current_user.preferences and current_user.preferences.profile_visibility == 'private' %}selected{% endif %}>Private</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="online_status">Online Status Visibility:</label>
+                    <select id="online_status" name="online_status">
+                        <option value="show" {% if current_user.preferences and current_user.preferences.online_status == 'show' %}selected{% endif %}>Show to Everyone</option>
+                        <option value="friends" {% if current_user.preferences and current_user.preferences.online_status == 'friends' %}selected{% endif %}>Show to Friends Only</option>
+                        <option value="hide" {% if current_user.preferences and current_user.preferences.online_status == 'hide' %}selected{% endif %}>Hidden</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message_privacy">Message Privacy:</label>
+                    <select id="message_privacy" name="message_privacy">
+                        <option value="everyone" {% if current_user.preferences and current_user.preferences.message_privacy == 'everyone' %}selected{% endif %}>Accept from Everyone</option>
+                        <option value="friends" {% if current_user.preferences and current_user.preferences.message_privacy == 'friends' %}selected{% endif %}>Friends Only</option>
+                        <option value="none" {% if current_user.preferences and current_user.preferences.message_privacy == 'none' %}selected{% endif %}>No Direct Messages</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
         </form>
     </div>
 </div>
