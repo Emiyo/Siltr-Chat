@@ -333,6 +333,47 @@ def update_avatar():
     return jsonify({'error': 'Invalid file type'}), 400
 
 # Authentication routes
+# Socket.IO event handlers
+@socketio.on('connect')
+def handle_connect():
+    """Handle client connection"""
+    if current_user.is_authenticated:
+        current_user.update_presence(state='online')
+        db.session.commit()
+        logger.info(f"User {current_user.username} connected")
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle client disconnection"""
+    if current_user.is_authenticated:
+        current_user.update_presence(state='offline')
+        db.session.commit()
+        logger.info(f"User {current_user.username} disconnected")
+
+@socketio.on('join')
+def handle_join(data):
+    """Handle user joining a channel"""
+    if current_user.is_authenticated:
+        # Emit active users list
+        active_users = User.query.filter(
+            User.last_seen >= (datetime.utcnow() - timedelta(minutes=5))
+        ).all()
+        socketio.emit('active_users', {
+            'users': [user.to_dict() for user in active_users]
+        })
+        
+        # Emit categories and channels
+        channels = Channel.query.all()
+        channel_data = [{
+            'id': channel.id,
+            'name': channel.name,
+            'description': channel.description,
+            'type': channel.type
+        } for channel in channels]
+        socketio.emit('channels', {'channels': channel_data})
+        
+        logger.info(f"Sent initial data to user {current_user.username}")
+
 # Main routes
 @app.route('/')
 @app.route('/index')
