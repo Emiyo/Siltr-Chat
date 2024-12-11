@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import logging
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
@@ -13,6 +14,13 @@ from email_validator import validate_email, EmailNotValidError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import json
 import secrets
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
@@ -439,18 +447,18 @@ def upload_file():
 
 @socketio.on('message')
 def handle_message(data):
-    logger.debug(f"Received message data: {data}")
+    print(f"Received message data: {data}")
     
     if request.sid not in active_users:
-        logger.error(f"User session {request.sid} not found in active_users")
+        print(f"User session {request.sid} not found in active_users")
         return
     
     user_data = active_users[request.sid]
     if not user_data:
-        logger.error(f"User data not found for session {request.sid}")
+        print(f"User data not found for session {request.sid}")
         return
     
-    logger.info(f"Processing message from user: {user_data['username']}")
+    print(f"Processing message from user: {user_data['username']}")
     text = data.get('text', '').strip()
     channel_id = data.get('channel_id')
     file_url = data.get('file_url')
