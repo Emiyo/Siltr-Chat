@@ -31,13 +31,15 @@ logger.addHandler(handler)
 
 # Initialize Flask app
 app = Flask(__name__)
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Configure app
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///chat.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    UPLOAD_FOLDER=os.path.join('static', 'uploads'),
+    UPLOAD_FOLDER=UPLOAD_FOLDER,
     MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max file size
     MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
@@ -45,9 +47,6 @@ app.config.update(
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD')
 )
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
@@ -179,6 +178,51 @@ def login():
         return redirect(url_for('login'))
 
     return render_template('login.html')
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not all([username, email, password]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('register'))
+
+        try:
+            # Validate email
+            validate_email(email)
+        except EmailNotValidError:
+            flash('Invalid email address', 'error')
+            return redirect(url_for('register'))
+
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists', 'error')
+            return redirect(url_for('register'))
+
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'error')
+            return redirect(url_for('register'))
+
+        user = User(username=username, email=email)
+        try:
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except ValueError as e:
+            flash(str(e), 'error')
+            return redirect(url_for('register'))
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('Error creating account', 'error')
+            return redirect(url_for('register'))
+
+    return render_template('register.html')
 
 @app.route('/logout')
 @login_required
@@ -196,6 +240,52 @@ def get_current_user_profile():
 def get_user_profile(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    try:
+        # Handle file uploads
+        if 'avatar' in request.files:
+            avatar_file = request.files['avatar']
+            if avatar_file and allowed_file(avatar_file.filename):
+                filename = secure_filename(f"avatar_{current_user.id}_{int(time.time())}.{avatar_file.filename.rsplit('.', 1)[1]}")
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                avatar_file.save(filepath)
+                current_user.avatar = f"/static/uploads/{filename}"
+
+        if 'banner' in request.files:
+            banner_file = request.files['banner']
+            if banner_file and allowed_file(banner_file.filename):
+                filename = secure_filename(f"banner_{current_user.id}_{int(time.time())}.{banner_file.filename.rsplit('.', 1)[1]}")
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                banner_file.save(filepath)
+                current_user.banner = f"/static/uploads/{filename}"
+
+        # Update other profile fields
+        if 'accent_color' in request.form:
+            current_user.accent_color = request.form['accent_color']
+        if 'status' in request.form:
+            current_user.status = request.form['status']
+        if 'presence_state' in request.form:
+            current_user.presence_state = request.form['presence_state']
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+    except Exception as e:
+        logger.error(f"Error updating profile: {str(e)}")
+        flash('Error updating profile', 'error')
+        db.session.rollback()
+
+    return redirect(url_for('profile'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,215 +1,207 @@
-.profile-container {
+/* Discord-like Profile Modal */
+.discord-profile-modal {
+    background-color: #36393f;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
     max-width: 600px;
     margin: 20px auto;
-    padding: 20px;
-    background: #36393f;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
-.profile-section {
-    margin-bottom: 24px;
-    padding: 16px;
-    background: #2f3136;
-    border-radius: 5px;
+/* Profile Banner */
+.profile-banner {
+    height: 180px;
+    background-color: #2f3136;
+    background-size: cover;
+    background-position: center;
     position: relative;
 }
 
-.profile-section h3 {
-    margin-bottom: 20px;
-    color: #ffffff;
-    border-bottom: 2px solid #4a9eff;
-    padding-bottom: 10px;
-    font-weight: 600;
-}
-
-.avatar-container {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.current-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #f0f0f0;
-}
-
-.avatar-placeholder {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: #f0f0f0;
+/* Profile Header */
+.profile-header {
+    position: absolute;
+    bottom: -60px;
+    left: 16px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    color: #666;
+    align-items: flex-end;
+    gap: 16px;
 }
 
-.form-group {
-    margin-bottom: 20px;
+/* Avatar */
+.profile-avatar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 6px solid #36393f;
+    background-color: #2f3136;
+    object-fit: cover;
+}
+
+/* Presence Indicator */
+.presence-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 4px solid #36393f;
+}
+
+.presence-indicator.online { background-color: #43b581; }
+.presence-indicator.idle { background-color: #faa61a; }
+.presence-indicator.dnd { background-color: #f04747; }
+.presence-indicator.offline { background-color: #747f8d; }
+
+/* Username and Status */
+.profile-username-container {
+    padding-bottom: 16px;
+}
+
+.profile-username {
     color: #ffffff;
+    font-size: 20px;
     font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    margin-bottom: 4px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="url"],
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    background-color: #2d2d2d;
-    border: 1px solid #444;
-    border-radius: 4px;
-    font-size: 16px;
+.profile-status {
+    color: #b9bbbe;
+    font-size: 14px;
+}
+
+/* Profile Content */
+.profile-content {
+    padding: 80px 16px 16px;
+}
+
+.profile-section {
+    background-color: #2f3136;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.profile-section h3 {
     color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 100px;
+/* Form Styling */
+.profile-form .form-group {
+    margin-bottom: 16px;
 }
 
-.form-group select {
+.profile-form label {
+    display: block;
+    color: #b9bbbe;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    background-color: #202225;
+    border: none;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    background-color: #40444b;
+}
+
+/* Color Picker */
+input[type="color"].form-control {
+    height: 40px;
+    padding: 2px;
+}
+
+/* File Inputs */
+input[type="file"].form-control {
+    padding: 8px;
+    background-color: #40444b;
+}
+
+/* Select Dropdown */
+select.form-control {
     appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    padding-right: 24px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 8px center;
-    background-size: 24px;
-    padding-right: 32px;
+    background-size: 16px;
 }
 
-.form-group select:focus,
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #4a9eff;
-    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
-}
-
-.form-group input[readonly] {
-    background-color: #f9f9f9;
-    cursor: not-allowed;
-}
-
-.form-text {
-    font-size: 0.875em;
-    color: #666;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background: #4a9eff;
+/* Profile Info */
+.profile-info {
+    margin: 16px 0;
+    padding: 16px;
+    background-color: #202225;
     border-radius: 4px;
-    margin-right: 8px;
-    font-size: 0.875em;
-    color: #ffffff;
-    font-weight: 500;
 }
 
+.member-since {
+    color: #b9bbbe;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Form Actions */
 .form-actions {
-    text-align: center;
-    margin-top: 30px;
+    margin-top: 24px;
+    text-align: right;
 }
 
 .btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 500;
     border: none;
+    cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .btn-primary {
-    background-color: #007bff;
-    color: white;
+    background-color: #5865f2;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: #4752c4;
 }
 
-.alert {
-    padding: 12px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.alert-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
-/* Verification Status Styles */
-.verification-status {
-    margin-top: 10px;
-}
-
-.verified-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 4px;
-    font-size: 0.875em;
-}
-
-.unverified-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.unverified-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #dc3545;
-    color: white;
-    border-radius: 4px;
-    font-size: 0.875em;
-}
-
-.inline-form {
-    display: inline-block;
-}
-
-.btn-link {
-    background: none;
-    border: none;
-    color: #4a9eff;
-    padding: 0;
-    font-size: 0.875em;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.btn-link:hover {
-    color: #0056b3;
-}
-
-    .profile-container {
+    .discord-profile-modal {
         margin: 10px;
-        padding: 15px;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .profile-content {
+        padding-top: 120px;
     }
 }

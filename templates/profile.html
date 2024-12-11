@@ -1,60 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h2>User Profile</h2>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <div class="profile-container">
-        <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
-            <div class="profile-section">
-                <div class="avatar-container">
-                    {% if current_user.avatar %}
-                    <img src="{{ current_user.avatar }}" alt="Current avatar" class="current-avatar">
-                    {% else %}
-                    <div class="avatar-placeholder">No avatar set</div>
-                    {% endif %}
-                    <div class="presence-indicator {{ current_user.presence_state }}"></div>
-                </div>
-                <div class="form-group">
-                    <label for="avatar">Update Avatar:</label>
-                    <input type="file" id="avatar" name="avatar" accept="image/*">
-                </div>
+<div class="discord-profile-modal" id="userProfileModal">
+    <div class="profile-banner" {% if current_user.banner %}style="background-image: url('{{ current_user.banner }}')"{% endif %}>
+        <div class="profile-header">
+            <div class="profile-avatar-container">
+                <img src="{{ current_user.avatar or '/static/images/default-avatar.png' }}" alt="Profile Avatar" class="profile-avatar">
+                <div class="presence-indicator {{ current_user.presence_state }}"></div>
             </div>
-
-            <div class="profile-section">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+            <div class="profile-username-container">
+                <h2 class="profile-username">{{ current_user.username }}</h2>
+                {% if current_user.status %}
+                <div class="profile-status">
+                    {{ current_user.status }}
                 </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-section">
+            <h3>User Profile</h3>
+            <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="profile-form">
                 <div class="form-group">
-                    <label for="presence_state">Status:</label>
-                    <select id="presence_state" name="presence_state" class="presence-selector">
+                    <label for="avatar">Avatar</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/*" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="banner">Banner</label>
+                    <input type="file" id="banner" name="banner" accept="image/*" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="accent_color">Accent Color</label>
+                    <input type="color" id="accent_color" name="accent_color" value="{{ current_user.accent_color or '#7289DA' }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="presence_state">Status</label>
+                    <select id="presence_state" name="presence_state" class="form-control">
                         <option value="online" {% if current_user.presence_state == 'online' %}selected{% endif %}>Online</option>
                         <option value="idle" {% if current_user.presence_state == 'idle' %}selected{% endif %}>Idle</option>
                         <option value="dnd" {% if current_user.presence_state == 'dnd' %}selected{% endif %}>Do Not Disturb</option>
-                        <option value="invisible" {% if current_user.presence_state == 'invisible' %}selected{% endif %}>Invisible</option>
+                        <option value="offline" {% if current_user.presence_state == 'offline' %}selected{% endif %}>Offline</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label for="status">Custom Status:</label>
+                    <label for="status">Custom Status</label>
                     <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" 
-                           maxlength="128" placeholder="What's on your mind?">
+                           maxlength="128" placeholder="What's on your mind?" class="form-control">
                 </div>
-            </div>
 
-            <div class="profile-section">
-                <p class="member-since">Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
-            </div>
+                <div class="profile-info">
+                    <p class="member-since">Discord Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </div>
-        </form>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
