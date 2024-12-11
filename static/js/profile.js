@@ -10,69 +10,86 @@ document.addEventListener('DOMContentLoaded', function() {
     if (themeSelect) {
         themeSelect.addEventListener('change', function(e) {
             const selectedTheme = e.target.value;
-            const root = document.documentElement;
-            
-            // Remove previous theme class
-            root.classList.forEach(className => {
-                if (className.startsWith('theme-')) {
-                    root.classList.remove(className);
-                }
-            });
-            
-            // Apply new theme with smooth transition
-            root.style.transition = 'none';
-            root.setAttribute('data-theme', selectedTheme);
-            root.classList.add(`theme-${selectedTheme}`);
-            
-            // Force reflow and restore transitions
-            void root.offsetWidth;
-            root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
-            
-            // Update preview container
-            if (preview) {
-                preview.style.opacity = '0';
-                preview.style.transform = 'translateY(10px)';
-                
-                setTimeout(() => {
-                    // Apply theme-specific styles to preview
-                    const previewContainer = preview.querySelector('.preview-container');
-                    if (previewContainer) {
-                        previewContainer.setAttribute('data-theme', selectedTheme);
-                    }
-                    
-                    // Fade preview back in
-                    preview.style.opacity = '1';
-                    preview.style.transform = 'translateY(0)';
-                }, 150);
-            }
-            
-            // Toggle custom theme options with enhanced animation
-            if (customThemeOptions) {
-                if (selectedTheme === 'custom') {
-                    customThemeOptions.style.display = 'block';
-                    customThemeOptions.style.transform = 'translateY(-10px)';
-                    setTimeout(() => {
-                        customThemeOptions.style.opacity = '1';
-                        customThemeOptions.style.transform = 'translateY(0)';
-                    }, 10);
-                } else {
-                    customThemeOptions.style.opacity = '0';
-                    customThemeOptions.style.transform = 'translateY(-10px)';
-                    setTimeout(() => {
-                        customThemeOptions.style.display = 'none';
-                    }, 300);
-                }
-            }
-            
-            // Save theme preference
-            fetch('/update_theme', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ theme: selectedTheme })
-            });
+            updateTheme(selectedTheme);
+            saveThemePreference(selectedTheme);
         });
+    }
+
+    function updateTheme(theme) {
+        const root = document.documentElement;
+        
+        // Update root theme
+        root.style.transition = 'none';
+        root.setAttribute('data-theme', theme);
+        document.body.className = `theme-${theme}`;
+        
+        // Force reflow and restore transitions
+        void root.offsetWidth;
+        root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+
+        // Update preview
+        if (preview) {
+            updatePreview(theme);
+        }
+
+        // Handle custom theme options
+        updateCustomThemeOptions(theme);
+    }
+
+    function updatePreview(theme) {
+        preview.style.opacity = '0';
+        preview.style.transform = 'translateY(5px)';
+        
+        setTimeout(() => {
+            const previewContainer = preview.querySelector('.preview-container');
+            if (previewContainer) {
+                previewContainer.setAttribute('data-theme', theme);
+            }
+            
+            // Update preview messages to match theme
+            const messages = preview.querySelectorAll('.preview-message');
+            messages.forEach(msg => {
+                msg.style.backgroundColor = `var(--background-${theme})`;
+                msg.style.color = `var(--text-${theme})`;
+            });
+            
+            preview.style.opacity = '1';
+            preview.style.transform = 'translateY(0)';
+        }, 150);
+    }
+
+    function updateCustomThemeOptions(theme) {
+        if (customThemeOptions) {
+            if (theme === 'custom') {
+                customThemeOptions.style.display = 'block';
+                setTimeout(() => {
+                    customThemeOptions.style.opacity = '1';
+                    customThemeOptions.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                customThemeOptions.style.opacity = '0';
+                customThemeOptions.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    customThemeOptions.style.display = 'none';
+                }, 300);
+            }
+        }
+    }
+
+    function saveThemePreference(theme) {
+        fetch('/update_theme', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ theme: theme })
+        }).then(response => response.json())
+          .then(data => {
+              if (!data.success) {
+                  console.error('Failed to save theme:', data.message);
+              }
+          })
+          .catch(error => console.error('Error saving theme:', error));
     }
 
     // Color Picker Handlers
@@ -90,47 +107,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const color = e.target.value;
             const root = document.documentElement;
             
-            // Update CSS variables with new accent color
-            root.style.setProperty('--primary-color', color);
-            root.style.setProperty('--interactive-active', color);
-            
-            // Create transparent versions for hover and active states
-            const rgba = hexToRGBA(color, 0.1);
-            const rgbaHover = hexToRGBA(color, 0.15);
-            root.style.setProperty('--primary-transparent', rgba);
-            root.style.setProperty('--primary-transparent-hover', rgbaHover);
-            
-            // Update preview elements
-            if (preview) {
-                preview.classList.add('transitioning');
-                setTimeout(() => {
-                    const previewMessages = preview.querySelectorAll('.preview-message');
-                    previewMessages.forEach(msg => {
-                        if (msg.classList.contains('preview-own')) {
-                            msg.style.borderLeft = `4px solid ${color}`;
-                            msg.style.backgroundColor = rgba;
-                        }
-                    });
-                    
-                    // Update preview input
-                    const previewInput = preview.querySelector('.preview-input');
-                    if (previewInput) {
-                        previewInput.style.borderColor = color;
-                    }
-                    
-                    preview.classList.remove('transitioning');
-                }, 150);
-            }
-
-            // Save accent color preference
-            fetch('/update_theme', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ accent_color: color })
-            });
+            updateAccentColor(color);
+            saveThemePreference({ accent_color: color });
         });
+    }
+
+    function updateAccentColor(color) {
+        const root = document.documentElement;
+        root.style.setProperty('--primary-color', color);
+        root.style.setProperty('--interactive-active', color);
+        
+        const rgba = hexToRGBA(color, 0.1);
+        const rgbaHover = hexToRGBA(color, 0.15);
+        root.style.setProperty('--primary-transparent', rgba);
+        root.style.setProperty('--primary-transparent-hover', rgbaHover);
+        
+        updatePreviewAccents(color);
+    }
+
+    function updatePreviewAccents(color) {
+        if (preview) {
+            const previewMessages = preview.querySelectorAll('.preview-message');
+            previewMessages.forEach(msg => {
+                if (msg.classList.contains('preview-own')) {
+                    msg.style.borderLeft = `4px solid ${color}`;
+                    msg.style.backgroundColor = hexToRGBA(color, 0.1);
+                }
+            });
+        }
     }
 
     // Helper function to convert hex to rgba
@@ -141,58 +145,36 @@ document.addEventListener('DOMContentLoaded', function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    // Initialize theme and accent color from user preferences
+    // Initialize theme from server
     function initializeTheme() {
-        if (themeSelect) {
-            // Fetch user's saved theme from the server
-            fetch('/profile', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const savedTheme = data.theme || themeSelect.value || 'dark';
-                themeSelect.value = savedTheme;
-                const root = document.documentElement;
-            
-            // Apply saved theme
-            root.style.transition = 'none';
-            root.setAttribute('data-theme', savedTheme);
-            void root.offsetWidth;
-            root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
-            
-            // Initialize custom theme options if needed
-            if (customThemeOptions) {
-                if (savedTheme === 'custom') {
-                    customThemeOptions.style.display = 'block';
-                    customThemeOptions.style.opacity = '1';
-                    
-                    // Apply saved accent color if available
-                    if (accentColorPicker && accentColorPicker.value) {
-                        const color = accentColorPicker.value;
-                        root.style.setProperty('--primary-color', color);
-                        root.style.setProperty('--interactive-active', color);
-                        
-                        const rgba = hexToRGBA(color, 0.1);
-                        const rgbaHover = hexToRGBA(color, 0.15);
-                        root.style.setProperty('--primary-transparent', rgba);
-                        root.style.setProperty('--primary-transparent-hover', rgbaHover);
-                    }
-                } else {
-                    customThemeOptions.style.display = 'none';
-                    customThemeOptions.style.opacity = '0';
-                }
+        fetch('/profile', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const savedTheme = data.theme || 'dark';
+            themeSelect.value = savedTheme;
+            updateTheme(savedTheme);
             
-            console.log('Theme initialized:', savedTheme);
-        }
+            if (data.accent_color) {
+                accentColorPicker.value = data.accent_color;
+                updateAccentColor(data.accent_color);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading theme:', error);
+            // Fallback to default theme
+            updateTheme('dark');
+        });
     }
-    
-    // Call initialization on page load
+
+    // Initialize on page load
     initializeTheme();
 });
+
 // Discord-like profile functionality
 let socket;
 let reconnectAttempts = 0;
