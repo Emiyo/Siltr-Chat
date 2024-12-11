@@ -31,6 +31,8 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 # Initialize Flask app
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 app = Flask(__name__)
 
 # Configure app
@@ -271,24 +273,94 @@ def index():
 @app.route('/profile')
 @login_required
 def profile():
+    """Render user's profile page"""
     return render_template('profile.html', user=current_user)
 
-@app.route('/update_profile', methods=['POST'])
+@app.route('/api/profile', methods=['GET', 'PATCH'])
 @login_required
-def update_profile():
-    current_user.display_name = request.form.get('display_name')
-    current_user.profile_theme = request.form.get('profile_theme')
-    current_user.accent_color = request.form.get('accent_color')
+def manage_profile():
+    """Get or update user profile"""
+    if request.method == 'GET':
+        return jsonify(current_user.to_dict(include_private=True))
     
     try:
+        data = request.get_json()
+        
+        # Update allowed fields
+        allowed_fields = ['display_name', 'bio', 'theme', 'accent_color']
+        for field in allowed_fields:
+            if field in data:
+                setattr(current_user, field, data[field])
+        
         db.session.commit()
-        flash('Profile updated successfully!', 'success')
+        return jsonify(current_user.to_dict()), 200
     except Exception as e:
         db.session.rollback()
-        flash('Error updating profile', 'error')
         logger.error(f"Profile update error: {str(e)}")
-    
-    return redirect(url_for('profile'))
+        return jsonify({'error': 'Failed to update profile'}), 500
+
+@app.route('/api/profile/presence', methods=['PATCH'])
+@login_required
+def update_presence():
+    """Update user's presence state"""
+    try:
+        data = request.get_json()
+        state = data.get('state', 'online')
+        current_user.update_presence(state=state)
+        db.session.commit()
+        return jsonify(current_user.to_dict())
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Presence update error: {str(e)}")
+        return jsonify({'error': 'Failed to update presence'}), 500
+
+@app.route('/api/profile/status', methods=['PATCH'])
+@login_required
+def update_status():
+    """Update user's custom status"""
+    try:
+        data = request.get_json()
+        text = data.get('status')
+        current_user.set_status(text=text)
+        db.session.commit()
+        return jsonify(current_user.to_dict())
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Status update error: {str(e)}")
+        return jsonify({'error': 'Failed to update status'}), 500
+
+@app.route('/api/profile/avatar', methods=['POST'])
+@login_required
+def update_avatar():
+    """Update user's avatar"""
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No avatar file provided'}), 400
+        
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    if file and allowed_file(file.filename, {'png', 'jpg', 'jpeg', 'gif'}):
+        try:
+            filename = secure_filename(file.filename)
+            timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+            filename = f"avatar_{current_user.id}_{timestamp}_{filename}"
+            
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            current_user.avatar = url_for('static', filename=f'uploads/{filename}')
+            
+            db.session.commit()
+            return jsonify(current_user.to_dict())
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Avatar update error: {str(e)}")
+            return jsonify({'error': 'Failed to update avatar'}), 500
+            
+    return jsonify({'error': 'Invalid file type'}), 400
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -465,37 +537,7 @@ def get_user_profile_by_id(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict(include_private=False))
 
-@app.route('/api/user/update_status', methods=['POST'])
-@login_required
-def update_status():
-    try:
-        data = request.get_json()
-        text = data.get('status')
-        
-        current_user.set_status(text=text)
-        db.session.commit()
-        return jsonify(current_user.to_dict())
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to update status'}), 500
-
-@app.route('/api/user/update_presence', methods=['POST'])
-@login_required
-def update_presence():
-    try:
-        data = request.get_json()
-        state = data.get('state', 'online')
-        
-        current_user.update_presence(state=state)
-        db.session.commit()
-        return jsonify(current_user.to_dict())
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to update presence'}), 500
+# Routes moved and consolidated under /api/profile/ namespace
 
 @app.route('/api/user/update_theme', methods=['POST'])
 @login_required
