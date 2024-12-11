@@ -362,15 +362,28 @@ def handle_join(data):
             'users': [user.to_dict() for user in active_users]
         })
         
-        # Emit categories and channels
+        # Emit categories and channels with proper structure
         channels = Channel.query.all()
-        channel_data = [{
-            'id': channel.id,
-            'name': channel.name,
-            'description': channel.description,
-            'type': channel.type
-        } for channel in channels]
-        socketio.emit('channels', {'channels': channel_data})
+        categories_data = []
+        seen_categories = set()
+        
+        for channel in channels:
+            if channel.category_id not in seen_categories:
+                seen_categories.add(channel.category_id)
+                category_channels = [ch for ch in channels if ch.category_id == channel.category_id]
+                categories_data.append({
+                    'id': channel.category_id,
+                    'name': channel.category.name if channel.category else 'General',
+                    'channels': [{
+                        'id': ch.id,
+                        'name': ch.name,
+                        'description': ch.description,
+                        'type': ch.type,
+                        'is_private': ch.is_private
+                    } for ch in category_channels]
+                })
+        
+        socketio.emit('categories_list', {'categories': categories_data})
         
         logger.info(f"Sent initial data to user {current_user.username}")
 

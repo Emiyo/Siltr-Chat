@@ -307,8 +307,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('join', (data) => {
         if (data.username) {
-            // Also request categories on successful join
-            socket.emit('get_categories');
+            console.log('Successfully joined, requesting categories...');
+            socket.emit('join', { username: data.username });
+        }
+    });
+    
+    // Handle categories list update
+    socket.on('categories_list', (data) => {
+        console.log('Received categories:', data);
+        if (data && data.categories) {
+            categories = data.categories;
+            updateCategoryList();
         }
     });
 
