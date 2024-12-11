@@ -216,6 +216,9 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime)
     warning_count = db.Column(db.Integer, default=0)  # Track number of warnings
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    verification_token = db.Column(db.String(100))
+    verification_sent_at = db.Column(db.DateTime)
     roles = db.relationship('Role', secondary=user_roles, back_populates='users')
     sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic')
     received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy='dynamic')
@@ -313,7 +316,8 @@ class User(UserMixin, db.Model):
             'location': self.location,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
             'created_at': self.created_at.isoformat(),
-            'is_muted': self.is_muted()
+            'is_muted': self.is_muted(),
+            'is_verified': self.is_verified
         }
         
         # Include private information if requested and available
@@ -815,27 +819,96 @@ def upload_file():
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"{timestamp}_{filename}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+# Profile verification routes and methods
+def generate_verification_token():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+def send_verification_email(user):
+    try:
+        if not user.verification_token:
+            user.verification_token = generate_verification_token()
+            user.verification_sent_at = datetime.utcnow()
+            db.session.commit()
+        
+        verification_url = url_for('verify_email', token=user.verification_token, _external=True)
+        
+        msg = FlaskMessage(
+            subject='Verify Your Email Address',
+            recipients=[user.email],
+            body=f'''Please verify your email address by clicking the following link:
+{verification_url}
+
+If you did not create an account, please ignore this email.
+'''
+        )
+        mail.send(msg)
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {str(e)}")
+        return False
+
+@app.route('/verify/resend', methods=['POST'])
+@login_required
+def resend_verification():
+    if current_user.is_verified:
+        flash('Your email is already verified.', 'info')
+        return redirect(url_for('profile'))
+    
+    # Check if we need to wait before sending another email
+    if current_user.verification_sent_at:
+        time_since_last = datetime.utcnow() - current_user.verification_sent_at
+        if time_since_last < timedelta(minutes=5):
+            flash('Please wait 5 minutes before requesting another verification email.', 'error')
+            return redirect(url_for('profile'))
+    
+    if send_verification_email(current_user):
+        flash('Verification email has been sent. Please check your inbox.', 'success')
+    else:
+        flash('Failed to send verification email. Please try again later.', 'error')
+    
+    return redirect(url_for('profile'))
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if not user:
+        flash('Invalid verification token.', 'error')
+        return redirect(url_for('profile'))
+    
+    if user.is_verified:
+        flash('Your email is already verified.', 'info')
+    else:
+        user.is_verified = True
+        user.verification_token = None
+        user.verification_sent_at = None
+        db.session.commit()
+        flash('Your email has been successfully verified!', 'success')
+    
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    return redirect(url_for('profile'))
         
         # Handle audio files
-        if file.mimetype.startswith('audio/'):
-            file.save(filepath)
-            try:
-                audio = AudioSegment.from_file(filepath)
-                duration = len(audio) / 1000.0  # Convert to seconds
-                return jsonify({
-                    'voice_url': f'/static/uploads/{filename}',
-                    'voice_duration': duration
-                })
-            except Exception as e:
-                logger.error(f"Error processing audio file: {e}")
-                return jsonify({'error': 'Error processing audio file'}), 500
-        
-        # Handle other files
-        if filename.split('.')[-1] in ALLOWED_EXTENSIONS:
-            file.save(filepath)
-            return jsonify({'file_url': url_for('static', filename=f'uploads/{filename}')})
-        else:
-            return jsonify({'error': 'File type not allowed'}), 400
+    if file.mimetype.startswith('audio/'):
+        file.save(filepath)
+        try:
+            audio = AudioSegment.from_file(filepath)
+            duration = len(audio) / 1000.0  # Convert to seconds
+            return jsonify({
+                'voice_url': f'/static/uploads/{filename}',
+                'voice_duration': duration
+            })
+        except Exception as e:
+            logger.error(f"Error processing audio file: {e}")
+            return jsonify({'error': 'Error processing audio file'}), 500
+    
+    # Handle other files
+    if filename.split('.')[-1] in ALLOWED_EXTENSIONS:
+        file.save(filepath)
+        return jsonify({'file_url': url_for('static', filename=f'uploads/{filename}')})
+    else:
+        return jsonify({'error': 'File type not allowed'}), 400
 
 # Socket Events
 @socketio.on('connect')
