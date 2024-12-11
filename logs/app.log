@@ -22,3 +22,5 @@ AttributeError: 'User' object has no attribute 'presence_state'
 2024-12-11 19:45:30,991 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
 2024-12-11 19:45:33,177 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
 2024-12-11 19:45:33,760 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
+2024-12-11 19:46:56,690 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
+2024-12-11 19:46:57,276 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
