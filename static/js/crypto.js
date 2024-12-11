@@ -297,11 +297,6 @@ class CryptoManager {
                 targetType: originalType
             });
 
-            // Validate inputs
-            if (!encryptedBlob || !symmetricKey) {
-                throw new Error('Missing required parameters for decryption');
-            }
-
             // Report initial progress
             if (onProgress) {
                 onProgress({
@@ -348,38 +343,13 @@ class CryptoManager {
             );
             console.log('Data decrypted successfully, size:', decryptedData.byteLength);
 
-            // Determine and validate MIME type
-            let safeType = originalType || 'application/octet-stream';
-            if (originalType && originalType.startsWith('image/')) {
-                // For images, verify the decrypted data starts with known image signatures
-                const header = new Uint8Array(decryptedData.slice(0, 4));
-                const signatures = {
-                    'image/jpeg': [0xFF, 0xD8, 0xFF],
-                    'image/png': [0x89, 0x50, 0x4E, 0x47],
-                    'image/gif': [0x47, 0x49, 0x46, 0x38]
-                };
-
-                let isValidImage = false;
-                for (const [type, signature] of Object.entries(signatures)) {
-                    if (signature.every((byte, i) => header[i] === byte)) {
-                        safeType = type;
-                        isValidImage = true;
-                        break;
-                    }
-                }
-
-                if (!isValidImage) {
-                    console.warn('Image signature validation failed, using generic type');
-                }
-            }
-
-            console.log('Creating decrypted blob with validated type:', safeType);
-            const decryptedBlob = new Blob([decryptedData], { type: safeType });
+            // Create a new Blob with the decrypted data and original type
+            console.log('Creating decrypted blob with type:', originalType);
+            const decryptedBlob = new Blob([decryptedData], { type: originalType });
             console.log('Decrypted blob created:', {
                 size: decryptedBlob.size,
                 type: decryptedBlob.type,
-                expectedType: safeType,
-                mimeCategory: safeType.split('/')[0]
+                expectedType: originalType
             });
 
             // Report completion
