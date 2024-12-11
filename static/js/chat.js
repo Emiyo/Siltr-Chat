@@ -919,6 +919,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Function to fetch and display user profile
+    function fetchAndDisplayUserProfile(userId, profileModal) {
+        fetch(`/api/user/${userId}/profile`)
+            .then(response => response.json())
+            .then(userData => {
+                // Update modal content
+                document.getElementById('modalUsername').innerHTML = `
+                    <span class="presence-indicator ${userData.presence_state || 'online'}"></span>
+                    ${userData.username}
+                `;
+                document.getElementById('modalUserAvatar').src = userData.avatar || '/static/img/default-avatar.png';
+                document.getElementById('modalStatus').textContent = userData.status || 'No status set';
+                document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
+                document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
+                document.getElementById('modalLocation').textContent = userData.location || 'Location not set';
+                
+                // Show the modal
+                profileModal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching user profile:', error);
+                alert('Failed to load user profile. Please try again.');
+            });
+    }
+
     function updateUserList(users) {
         const userList = document.getElementById('userList');
         if (!userList) return;
@@ -961,24 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     e.stopPropagation();
                 } else if (e.target.classList.contains('profile-btn')) {
-                    // Show profile modal
-                    fetch(`/api/user/${userId}/profile`)
-                        .then(response => response.json())
-                        .then(userData => {
-                            // Update modal content
-                            document.getElementById('modalUsername').innerHTML = `
-                                <span class="presence-indicator ${userData.presence_state || 'online'}"></span>
-                                ${userData.username}
-                            `;
-                            document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-                            document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
-                            document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
-                            document.getElementById('modalLocation').textContent = userData.location || '';
-                            
-                            // Show the modal
-                            profileModal.show();
-                        })
-                        .catch(error => console.error('Error fetching user profile:', error));
+                    fetchAndDisplayUserProfile(userId, profileModal);
                     e.stopPropagation();
                 }
             });
