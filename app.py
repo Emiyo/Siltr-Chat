@@ -123,7 +123,32 @@ class Channel(db.Model):
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(200))
     is_private = db.Column(db.Boolean, default=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     messages = db.relationship('Message', backref='channel', lazy=True)
+    category = db.relationship('Category', back_populates='channels')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'is_private': self.is_private,
+            'category_id': self.category_id
+        }
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(200))
+    channels = db.relationship('Channel', back_populates='category', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'channels': [channel.to_dict() for channel in self.channels]
+        }
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -158,9 +183,26 @@ class Message(db.Model):
             'username': self.author.username if self.author else None
         }
 
-# Create database tables
+# Create database tables and initial data
 with app.app_context():
     db.create_all()
+    
+    # Create default categories if they don't exist
+    if not Category.query.first():
+        general = Category(name='General', description='General discussion')
+        announcements = Category(name='Announcements', description='Important announcements')
+        
+        # Create general channel in General category
+        general_channel = Channel(
+            name='general',
+            description='General chat channel',
+            category=general,
+            is_private=False
+        )
+        
+        db.session.add(general)
+        db.session.add(announcements)
+        db.session.commit()
 
 # Socket event handlers
 @socketio.on('connect')
