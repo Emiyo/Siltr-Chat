@@ -160,6 +160,10 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.String(500))  # User biography
     display_name = db.Column(db.String(50))  # Display name (can be different from username)
     last_seen = db.Column(db.DateTime)  # Track user's last activity
+    location = db.Column(db.String(100))  # User's location
+    timezone = db.Column(db.String(50))  # User's timezone
+    preferences = db.Column(db.JSON)  # User preferences (notification settings, theme, etc)
+    contact_info = db.Column(db.JSON)  # Additional contact information (optional)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime)
     warning_count = db.Column(db.Integer, default=0)  # Track number of warnings
@@ -230,16 +234,34 @@ class User(UserMixin, db.Model):
             self.avatar = avatar
         return f'Profile updated successfully'
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_private=False):
+        """Convert user to dictionary with optional private information"""
+        data = {
             'id': self.id,
             'username': self.username,
+            'display_name': self.display_name or self.username,
             'is_moderator': self.is_moderator,
             'avatar': self.avatar,
             'status': self.status,
+            'bio': self.bio,
+            'location': self.location,
+            'last_seen': self.last_seen.isoformat() if self.last_seen else None,
             'created_at': self.created_at.isoformat(),
             'is_muted': self.is_muted()
         }
+        
+        # Include private information if requested and available
+        if include_private and self.preferences:
+            data['preferences'] = self.preferences
+            
+            # Only include contact info based on visibility settings
+            if self.contact_info and self.contact_info.get('email_visibility') == 'public':
+                data['contact_info'] = {
+                    'email': self.email,
+                    'social_links': self.contact_info.get('social_links', {})
+                }
+                
+        return data
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -429,7 +451,7 @@ def reset_password(token):
 @app.route('/profile', methods=['GET'])
 @login_required
 def profile():
-    return render_template('profile.html')
+    return render_template('profile.html', user=current_user)
 
 @app.route('/profile/update', methods=['POST'])
 @login_required
@@ -446,10 +468,34 @@ def update_profile():
                 file.save(filepath)
                 current_user.avatar = url_for('static', filename=f'uploads/{filename}')
     
+    # Basic profile fields
     username = request.form.get('username')
     status = request.form.get('status')
     bio = request.form.get('bio')
     display_name = request.form.get('display_name')
+    
+    # Extended profile fields
+    location = request.form.get('location')
+    timezone = request.form.get('timezone')
+    
+    # Handle preferences as JSON
+    preferences = {
+        'notifications': request.form.get('notifications', 'all'),
+        'theme': request.form.get('theme', 'dark'),
+        'message_display': request.form.get('message_display', 'compact'),
+        'language': request.form.get('language', 'en')
+    }
+    
+    # Handle contact info as JSON
+    contact_info = {
+        'email_visibility': request.form.get('email_visibility', 'private'),
+        'alternative_contact': request.form.get('alternative_contact'),
+        'social_links': {
+            'github': request.form.get('github'),
+            'linkedin': request.form.get('linkedin'),
+            'twitter': request.form.get('twitter')
+        }
+    }
     
     if username and username != current_user.username:
         if User.query.filter_by(username=username).first():
@@ -457,14 +503,26 @@ def update_profile():
             return redirect(url_for('profile'))
         current_user.username = username
     
+    # Update basic profile fields
     if status is not None:
         current_user.status = status[:100]  # Limit status to 100 characters
-        
     if bio is not None:
         current_user.bio = bio[:500]  # Limit bio to 500 characters
-        
     if display_name is not None:
         current_user.display_name = display_name[:50]  # Limit display name to 50 characters
+        
+    # Update extended profile fields
+    if location is not None:
+        current_user.location = location[:100]
+    if timezone is not None:
+        current_user.timezone = timezone[:50]
+    
+    # Update preferences and contact info
+    current_user.preferences = preferences
+    current_user.contact_info = contact_info
+    
+    # Update last seen
+    current_user.last_seen = datetime.utcnow()
     
     try:
         db.session.commit()
@@ -774,9 +832,10 @@ def handle_message(data):
     db.session.add(message)
     db.session.commit()
     
-    # Prepare message for broadcast
+    # Prepare message for broadcast with enhanced user profile information
     message_dict = message.to_dict()
-    message_dict['sender_username'] = user_data['username']
+    sender = User.query.get(user_data['id'])
+    message_dict['sender'] = sender.to_dict() if sender else {'username': user_data['username']}
     
     if receiver_id:
         receiver = User.query.get(receiver_id)
