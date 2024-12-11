@@ -53,17 +53,8 @@ app.config.update(
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
-bcrypt = Bcrypt(app)
-mail = Mail(app)
-
-# Configure login manager
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-login_manager.login_message_category = 'info'
+from extensions import db, migrate, socketio, bcrypt, mail, login_manager, init_app
+init_app(app)
 
 # Configure token serializer for password reset
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -103,10 +94,6 @@ def retry_on_db_error(max_retries=5, initial_delay=0.1):
 from models import User, Message, Channel, Role, Permission
 
 # User loader callback for Flask-Login
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -420,7 +407,7 @@ def get_user_profile_by_id(user_id):
 @login_required
 def update_theme():
     data = request.get_json()
-    current_user.profile_theme = data.get('profile_theme')
+    current_user.theme = data.get('theme')
     current_user.accent_color = data.get('accent_color')
     db.session.commit()
     return jsonify(current_user.to_dict())
@@ -432,64 +419,6 @@ def update_connections():
     current_user.connections = data
     db.session.commit()
     return jsonify(current_user.to_dict())
-class Channel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(500))
-    type = db.Column(db.String(20), default='text')  # text, voice, announcement
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    messages = db.relationship('Message', backref='channel', lazy='dynamic')
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20), nullable=False)  # 'public', 'private', 'system', 'voice', 'reply', 'forward'
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # For private messages
-    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'))  # Channel where message was sent
-    text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    file_url = db.Column(db.String(200))  # For file attachments
-    voice_url = db.Column(db.String(200))  # For voice messages
-    voice_duration = db.Column(db.Float)  # Duration of voice message in seconds
-    reactions = db.Column(db.JSON, default=dict)
-    is_encrypted = db.Column(db.Boolean, default=True)  # Whether the message is encrypted
-    encryption_key = db.Column(db.Text, nullable=True)  # Encrypted symmetric key for the message
-    reply_to_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For reply functionality
-    forwarded_from_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For forwarding functionality
-    thread_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)  # For message threading
-    is_edited = db.Column(db.Boolean, default=False)  # Track if message has been edited
-
-    # Add relationships for replies and forwarded messages
-    replies = db.relationship('Message', backref=db.backref('reply_to', remote_side=[id]),
-                              foreign_keys=[reply_to_id])
-    forwarded_messages = db.relationship('Message', backref=db.backref('forwarded_from', remote_side=[id]),
-                                         foreign_keys=[forwarded_from_id])
-    thread_messages = db.relationship('Message', backref=db.backref('thread_parent', remote_side=[id]),
-                                      foreign_keys=[thread_id])
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'type': self.type,
-            'sender_id': self.sender_id,
-            'receiver_id': self.receiver_id,
-            'channel_id': self.channel_id,
-            'text': self.text,
-            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
-            'file_url': self.file_url,
-            'voice_url': self.voice_url,
-            'voice_duration': self.voice_duration,
-            'reactions': {} if self.reactions is None else self.reactions,
-            'is_encrypted': self.is_encrypted,
-            'encryption_key': self.encryption_key if self.is_encrypted else None,
-            'reply_to_id': self.reply_to_id,
-            'forwarded_from_id': self.forwarded_from_id,
-            'thread_id': self.thread_id,
-            'is_edited': self.is_edited,
-            'reply_to': self.reply_to.to_dict() if self.reply_to_id and self.reply_to else None,
-            'forwarded_from': self.forwarded_from.to_dict() if self.forwarded_from_id and self.forwarded_from else None
-        }
-
 
 if __name__ == '__main__':
     with app.app_context():
