@@ -667,23 +667,6 @@ def change_password():
             return redirect(url_for('change_password'))
     
     return render_template('change_password.html')
-        flash('Profile updated successfully', 'success')
-
-        # Update active users list if in chat
-        if hasattr(request, 'sid') and request.sid in active_users:
-            active_users[request.sid].update({
-                'username': current_user.username,
-                'status': current_user.status,
-                'display_name': current_user.display_name
-            })
-            emit('user_list', {'users': list(active_users.values())}, broadcast=True)
-
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Profile update error: {str(e)}")
-        flash('Error updating profile. Please try again.', 'error')
-
-    return redirect(url_for('profile'))
 
 @app.route('/moderation/delete-message/<int:message_id>', methods=['POST'])
 @login_required
