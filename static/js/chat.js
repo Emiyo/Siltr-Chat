@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
-    const messageContainer = document.getElementById('messageContainer');
     const userList = document.getElementById('userList');
     const categoryList = document.getElementById('categoryList');
     const usernameModal = new bootstrap.Modal(document.getElementById('usernameModal'), {
