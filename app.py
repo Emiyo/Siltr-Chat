@@ -76,6 +76,9 @@ class User(UserMixin, db.Model):
     accent_color = db.Column(db.String(7), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(100), nullable=True)
+    banner_color = db.Column(db.String(7), nullable=True, server_default='#5865F2')
+    custom_status = db.Column(db.String(128), nullable=True)
+    status_emoji = db.Column(db.String(32), nullable=True)
     last_seen = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
     
@@ -282,14 +285,27 @@ def register():
 def profile():
     if request.method == 'POST':
         try:
+            # Update basic profile information
             current_user.bio = request.form.get('bio', '')
             current_user.location = request.form.get('location', '')
+            current_user.display_name = request.form.get('display_name', '')
+            current_user.banner_color = request.form.get('banner_color', '#5865F2')
+            current_user.accent_color = request.form.get('accent_color', '')
+            
+            # Update custom status with emoji support
+            custom_status = request.form.get('custom_status', '')
+            status_emoji = request.form.get('status_emoji', '')
+            if custom_status or status_emoji:
+                current_user.custom_status = custom_status
+                current_user.status_emoji = status_emoji
+            
             db.session.commit()
             flash('Profile updated successfully', 'success')
+            return jsonify({'success': True, 'message': 'Profile updated successfully'})
         except SQLAlchemyError as e:
             db.session.rollback()
             logger.error(f"Error updating profile: {str(e)}")
-            flash('An error occurred while updating your profile', 'error')
+            return jsonify({'success': False, 'message': 'An error occurred while updating your profile'}), 500
     return render_template('profile.html')
 
 @app.route('/update_status', methods=['POST'])

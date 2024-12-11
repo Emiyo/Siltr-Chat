@@ -1,5 +1,7 @@
-// Profile functionality
-window.fetchAndDisplayUserProfile = async function(userId) {
+// Discord-like profile functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch and display user profile in Discord style
+    window.fetchAndDisplayUserProfile = async function(userId) {
         try {
             const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
             const response = await fetch(endpoint);
@@ -13,59 +15,82 @@ window.fetchAndDisplayUserProfile = async function(userId) {
                 return;
             }
             
-            // Update modal content with presence indicator
+            // Update modal content with Discord-style presence indicator
             const presenceClass = userData.presence_state || 'online';
             document.getElementById('modalUsername').innerHTML = `
-                <span class="presence-indicator ${presenceClass}"></span>
-                ${userData.display_name || userData.username}
+                <div class="profile-header">
+                    <span class="presence-indicator ${presenceClass}"></span>
+                    <span class="username">${userData.display_name || userData.username}</span>
+                    ${userData.roles && userData.roles.includes('admin') ? '<span class="badge admin-badge">Admin</span>' : ''}
+                </div>
             `;
-            document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-            document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
-            document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
-            document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
-            
-            // Set avatar
-            const avatarElement = document.getElementById('modalUserAvatar');
-            avatarElement.src = userData.avatar || '/static/images/default-avatar.png';
-            
-            // Update contact information
-            const contactDiv = document.getElementById('modalContact');
-            contactDiv.innerHTML = '';
-            if (userData.contact_info && userData.contact_info.email_visibility === 'public') {
-                contactDiv.innerHTML += `<p>✉️ ${userData.email}</p>`;
-            }
-            if (userData.contact_info && userData.contact_info.social_links) {
-                const socialLinks = document.createElement('div');
-                socialLinks.className = 'social-links';
-                const links = userData.contact_info.social_links;
-                if (links.github) socialLinks.innerHTML += `<a href="${links.github}" target="_blank">GitHub</a>`;
-                if (links.linkedin) socialLinks.innerHTML += `<a href="${links.linkedin}" target="_blank">LinkedIn</a>`;
-                if (links.twitter) socialLinks.innerHTML += `<a href="${links.twitter}" target="_blank">Twitter</a>`;
-                if (socialLinks.children.length > 0) contactDiv.appendChild(socialLinks);
-            }
-            
-            // Update member information
-            document.getElementById('modalJoinDate').textContent = `Joined: ${new Date(userData.created_at).toLocaleDateString()}`;
-            document.getElementById('modalLastSeen').textContent = userData.last_seen ? 
-                `Last seen: ${new Date(userData.last_seen).toLocaleString()}` : 'Last seen: Never';
-            
-            // Update roles
-            const rolesDiv = document.getElementById('modalRoles');
-            rolesDiv.innerHTML = userData.roles ? 
-                userData.roles.map(role => `<span class="role-badge">${role}</span>`).join('') : '';
-            
+
+            // Set user status with emoji support
+            document.getElementById('modalStatus').innerHTML = `
+                <div class="status-container">
+                    ${userData.status || 'Set a custom status'}
+                </div>
+            `;
+
+            // Set avatar with presence ring
+            const avatarContainer = document.getElementById('modalAvatarContainer');
+            avatarContainer.innerHTML = `
+                <div class="avatar-wrapper ${presenceClass}">
+                    <img src="${userData.avatar || '/static/images/default-avatar.png'}" 
+                         alt="Profile Avatar" 
+                         class="profile-avatar">
+                </div>
+            `;
+
+            // Member information
+            document.getElementById('modalMemberInfo').innerHTML = `
+                <div class="member-info">
+                    <div class="member-since">
+                        <h4>Discord Member Since</h4>
+                        <span>${new Date(userData.created_at).toLocaleDateString()}</span>
+                    </div>
+                    ${userData.roles && userData.roles.length > 0 ? `
+                        <div class="roles">
+                            <h4>Roles</h4>
+                            <div class="role-badges">
+                                ${userData.roles.map(role => `<span class="role-badge">${role}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
             // Show modal
             modal.style.display = "block";
             
-            console.log('Modal displayed for user:', userData.username);
+            console.log('Discord-style profile modal displayed for user:', userData.username);
         } catch (error) {
             console.error('Error fetching user profile:', error);
         }
     };
-};
 
-// Initialize on DOM content loaded
-document.addEventListener('DOMContentLoaded', () => {
-    initializeProfileFunctionality();
-    console.log('Profile functionality loaded, fetchAndDisplayUserProfile is defined:', typeof window.fetchAndDisplayUserProfile);
+    // Close modal functionality
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        const closeBtn = modal.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.onclick = () => modal.style.display = "none";
+        }
+        window.onclick = event => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+    });
+
+    // Presence selector handler
+    const presenceSelector = document.getElementById('presenceSelector');
+    if (presenceSelector) {
+        presenceSelector.addEventListener('change', event => {
+            const newPresence = event.target.value;
+            if (typeof socket !== 'undefined') {
+                socket.emit('update_presence', { presence_state: newPresence });
+            }
+        });
+    }
 });
