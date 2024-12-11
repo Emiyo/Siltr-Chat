@@ -4,9 +4,119 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 3;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize socket connection
-    initializeSocket();
+    const presenceSelector = document.getElementById('presenceSelector');
     
+    if (presenceSelector) {
+        presenceSelector.addEventListener('change', event => {
+            const newPresence = event.target.value;
+            if (socket && socket.connected) {
+                socket.emit('update_presence', { presence_state: newPresence });
+            }
+        });
+    }
+
+    function initializeSocket() {
+        if (!socket) {
+            socket = io({
+                transports: ['websocket', 'polling'],
+                upgrade: true,
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                timeout: 20000,
+                query: { timestamp: Date.now() }
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                reconnectAttempts++;
+                if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                    console.error('Max reconnection attempts reached');
+                }
+            });
+            
+            socket.on('connect', () => {
+                console.log('Socket connected successfully');
+                reconnectAttempts = 0;
+                socket.emit('get_categories');
+                socket.emit('get_user_list');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Socket disconnected');
+            });
+
+            socket.on('error', (data) => {
+                console.error('Socket error:', data);
+            });
+
+            socket.on('user_connected', (userData) => {
+                console.log('User connected:', userData);
+            });
+
+            socket.on('categories_list', (data) => {
+                console.log('Received categories:', data);
+                if (data.categories) {
+                    updateCategories(data.categories);
+                }
+            });
+
+            socket.on('user_list', (data) => {
+                console.log('Received user list:', data);
+                if (data.users) {
+                    updateUserList(data.users);
+                }
+            });
+        }
+    }
+
+    function updateCategories(categories) {
+        const categoryList = document.getElementById('categoryList');
+        if (!categoryList) return;
+
+        categoryList.innerHTML = '';
+        categories.forEach(category => {
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item';
+            categoryItem.innerHTML = `
+                <div class="category-header">
+                    <span>${category.name}</span>
+                </div>
+                ${category.channels ? `
+                    <div class="channel-list">
+                        ${category.channels.map(channel => `
+                            <div class="channel-item ${channel.is_private ? 'channel-private' : ''}">
+                                <span>#${channel.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+            categoryList.appendChild(categoryItem);
+        });
+    }
+
+    function updateUserList(users) {
+        const userList = document.getElementById('userList');
+        if (!userList) return;
+
+        userList.innerHTML = '';
+        users.forEach(user => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
+                <span class="username">${user.username}</span>
+                ${user.status ? `<span class="status">${user.status}</span>` : ''}
+            `;
+            userList.appendChild(userItem);
+        });
+    }
+
+    // Initialize socket when the page loads
+    initializeSocket();
+
     // Fetch and display user profile in Discord style
     window.fetchAndDisplayUserProfile = async function(userId) {
         try {
@@ -89,108 +199,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     });
-
-    // Presence selector handler
-    const presenceSelector = document.getElementById('presenceSelector');
-    if (presenceSelector) {
-        presenceSelector.addEventListener('change', event => {
-    // Use existing socket from main application
-    function initializeSocket() {
-        // Check if socket already exists in window context
-        socket = window.mainSocket || io({
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: MAX_RECONNECT_ATTEMPTS
-        });
-        
-        if (!window.mainSocket) {
-            window.mainSocket = socket;
-        }
-
-        socket.on('connect', () => {
-            console.log('Profile socket connected successfully');
-            reconnectAttempts = 0;
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Profile socket disconnected');
-        });
-
-        socket.on('connect_error', (error) => {
-            console.error('Profile connection error:', error);
-        });
-
-        socket.on('user_connected', (userData) => {
-            console.log('User connected:', userData);
-        });
-
-        socket.on('categories_list', (data) => {
-            console.log('Received categories:', data);
-            if (data.categories) {
-                updateCategories(data.categories);
-            }
-        });
-
-        socket.on('user_list', (data) => {
-            console.log('Received users:', data);
-            if (data.users) {
-                updateUserList(data.users);
-            }
-        });
-
-        socket.on('error', (data) => {
-            console.error('Socket error:', data);
-            // Display error message to user if needed
-        });
-
-        function updateCategories(categories) {
-            const categoryList = document.getElementById('categoryList');
-            if (!categoryList) return;
-
-            categoryList.innerHTML = '';
-            categories.forEach(category => {
-                const categoryItem = document.createElement('div');
-                categoryItem.className = 'category-item';
-                categoryItem.innerHTML = `
-                    <div class="category-header">
-                        <span>${category.name}</span>
-                    </div>
-                    ${category.channels ? `
-                        <div class="channel-list">
-                            ${category.channels.map(channel => `
-                                <div class="channel-item ${channel.is_private ? 'channel-private' : ''}">
-                                    <span>#${channel.name}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                `;
-                categoryList.appendChild(categoryItem);
-            });
-        }
-    }
-
-    function updateUserList(users) {
-        const userListElement = document.getElementById('userList');
-        if (!userListElement) return;
-
-        userListElement.innerHTML = '';
-        users.forEach(user => {
-            const userItem = document.createElement('div');
-            userItem.className = 'user-item';
-            userItem.innerHTML = `
-                <span class="presence-indicator ${user.presence_state}"></span>
-                <span class="username">${user.username}</span>
-                ${user.status ? `<span class="status">${user.status}</span>` : ''}
-            `;
-            userListElement.appendChild(userItem);
-        });
-    }
-            const newPresence = event.target.value;
-            if (typeof socket !== 'undefined') {
-                socket.emit('update_presence', { presence_state: newPresence });
-            }
-        });
-    }
 });

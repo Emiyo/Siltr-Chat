@@ -1,3 +1,13 @@
+# Configure eventlet first
+import eventlet
+eventlet.monkey_patch(os=True, select=True, socket=True, thread=True, time=True)
+
+import logging
+import os
+import json
+from datetime import datetime
+
+# Flask imports after monkey patch
 from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session, abort, current_app
 from logging.handlers import RotatingFileHandler
 from flask_sqlalchemy import SQLAlchemy
@@ -43,17 +53,25 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 mail = Mail(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Initialize SocketIO after Flask app and extensions
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
     logger=True,
     engineio_logger=True,
-    manage_session=True,
+    manage_session=False,
+    async_mode='eventlet',
     ping_timeout=5000,
-    ping_interval=25000
+    ping_interval=25000,
+    reconnection=True,
+    reconnection_attempts=5,
+    reconnection_delay=1000,
+    reconnection_delay_max=5000
 )
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+
 
 logger.info('Application startup')
 
@@ -140,14 +158,14 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     channels = db.relationship('Channel', backref='category', lazy=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) #Retained from original
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'channels': [channel.to_dict() for channel in self.channels],
-            'created_at': self.created_at.isoformat() #Retained from original
+            'created_at': self.created_at.isoformat()
         }
 
 class Channel(db.Model):
@@ -156,7 +174,7 @@ class Channel(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     is_private = db.Column(db.Boolean, default=False)
     messages = db.relationship('Message', backref='channel', lazy=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) #Retained from original
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -164,7 +182,7 @@ class Channel(db.Model):
             'name': self.name,
             'category_id': self.category_id,
             'is_private': self.is_private,
-            'created_at': self.created_at.isoformat() #Retained from original
+            'created_at': self.created_at.isoformat()
         }
 
 class Message(db.Model):
@@ -175,9 +193,9 @@ class Message(db.Model):
     channel_id = db.Column(db.Integer, db.ForeignKey('channel.id'), nullable=False)
     is_encrypted = db.Column(db.Boolean, default=False)
     encryption_key = db.Column(db.Text, nullable=True)
-    file_url = db.Column(db.String(200)) #Retained from original
-    voice_url = db.Column(db.String(200)) #Retained from original
-    voice_duration = db.Column(db.Float) #Retained from original
+    file_url = db.Column(db.String(200))
+    voice_url = db.Column(db.String(200))
+    voice_duration = db.Column(db.Float)
 
     def to_dict(self):
         return {
@@ -188,16 +206,16 @@ class Message(db.Model):
             'channel_id': self.channel_id,
             'is_encrypted': self.is_encrypted,
             'encryption_key': self.encryption_key,
-            'file_url': self.file_url, #Retained from original
-            'voice_url': self.voice_url, #Retained from original
-            'voice_duration': self.voice_duration #Retained from original
+            'file_url': self.file_url,
+            'voice_url': self.voice_url,
+            'voice_duration': self.voice_duration
         }
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-# Routes (from original)
+# Routes
 @app.route('/')
 @login_required
 def index():
@@ -502,31 +520,37 @@ def handle_leave_channel(data):
         leave_room(f'channel_{channel_id}')
 
 if __name__ == '__main__':
-    with app.app_context():
-        try:
+    try:
+        # Initialize app context
+        with app.app_context():
             db.create_all()
+            
             # Initialize default roles and categories if needed
-            default_category = Category.query.filter_by(name="General").first()
-            if not default_category:
-                default_category = Category(name="General")
-                db.session.add(default_category)
-                db.session.commit()
-                logger.info("Created default category")
-            
-            # Log successful initialization
-            logger.info("Database initialized successfully")
-        except Exception as e:
-            logger.error(f"Database initialization error: {str(e)}")
-            db.session.rollback()
-            raise
-            
-    # Start the SocketIO server
-    logger.info("Starting SocketIO server...")
-    socketio.run(
-        app,
-        host='0.0.0.0',
-        port=5000,
-        debug=True,
-        use_reloader=True,
-        log_output=True
-    )
+            try:
+                default_category = Category.query.filter_by(name="General").first()
+                if not default_category:
+                    default_category = Category(name="General")
+                    db.session.add(default_category)
+                    db.session.commit()
+                    logger.info("Created default category")
+                
+                # Log successful initialization
+                logger.info("Database initialized successfully")
+            except Exception as e:
+                logger.error(f"Database initialization error: {str(e)}")
+                db.session.rollback()
+                # Don't raise, allow server to start even if db init fails
+        
+        # Start the SocketIO server
+        logger.info("Starting SocketIO server...")
+        socketio.run(
+            app,
+            host='0.0.0.0',
+            port=5000,
+            debug=True,
+            use_reloader=False,  # Disable reloader to prevent monkey patch issues
+            log_output=True
+        )
+    except Exception as e:
+        logger.error(f"Server startup error: {str(e)}")
+        raise
