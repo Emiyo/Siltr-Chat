@@ -407,16 +407,19 @@ def handle_get_categories():
         # Create default category if none exist
         if not categories_data:
             logger.info("No categories found, creating default category")
-            default_category = Category(name="General")
             try:
-                db.session.add(default_category)
-                db.session.commit()
-                logger.info("Created default category")
+                default_category = Category.query.filter_by(name="General").first()
+                if not default_category:
+                    default_category = Category(name="General")
+                    db.session.add(default_category)
+                    db.session.commit()
+                    logger.info("Created default category")
                 categories_data = [default_category.to_dict()]
             except Exception as e:
                 logger.error(f"Failed to create default category: {str(e)}")
                 db.session.rollback()
-                raise
+                emit('error', {'message': 'Failed to initialize categories'})
+                return
         
         emit('categories_list', {
             'categories': categories_data
@@ -489,13 +492,28 @@ if __name__ == '__main__':
     with app.app_context():
         try:
             db.create_all()
-            # Check if we need to create default roles and categories
-            if not Category.query.first():
+            # Initialize default roles and categories if needed
+            default_category = Category.query.filter_by(name="General").first()
+            if not default_category:
                 default_category = Category(name="General")
                 db.session.add(default_category)
                 db.session.commit()
                 logger.info("Created default category")
+            
+            # Log successful initialization
+            logger.info("Database initialized successfully")
         except Exception as e:
             logger.error(f"Database initialization error: {str(e)}")
             db.session.rollback()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+            raise
+            
+    # Start the SocketIO server
+    logger.info("Starting SocketIO server...")
+    socketio.run(
+        app,
+        host='0.0.0.0',
+        port=5000,
+        debug=True,
+        use_reloader=True,
+        log_output=True
+    )

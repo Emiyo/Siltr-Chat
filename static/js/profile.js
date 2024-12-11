@@ -94,37 +94,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const presenceSelector = document.getElementById('presenceSelector');
     if (presenceSelector) {
         presenceSelector.addEventListener('change', event => {
-    // Socket initialization and management
+    // Use existing socket from main application
     function initializeSocket() {
-        if (socket) {
-            socket.disconnect();
-        }
-        
-        socket = io({
+        // Check if socket already exists in window context
+        socket = window.mainSocket || io({
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
             reconnectionAttempts: MAX_RECONNECT_ATTEMPTS
         });
+        
+        if (!window.mainSocket) {
+            window.mainSocket = socket;
+        }
 
         socket.on('connect', () => {
-            console.log('Socket connected successfully');
+            console.log('Profile socket connected successfully');
             reconnectAttempts = 0;
+            // Request initial data
+            socket.emit('get_categories');
+            socket.emit('get_user_list');
         });
 
         socket.on('disconnect', () => {
-            console.log('Socket disconnected');
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttempts++;
-                setTimeout(initializeSocket, 1000 * reconnectAttempts);
-            }
+            console.log('Profile socket disconnected');
         });
 
         socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
-            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-                console.error('Max reconnection attempts reached');
-            }
+            console.error('Profile connection error:', error);
         });
     }
             const newPresence = event.target.value;
