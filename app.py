@@ -1231,6 +1231,25 @@ def handle_create_channel(data):
     emit('channel_created', channel.to_dict(), broadcast=True)
 
 @socketio.on('disconnect')
+@socketio.on('update_presence')
+def handle_presence_update(data):
+    if request.sid not in active_users:
+        return
+    
+    user_data = active_users[request.sid]
+    user = User.query.filter_by(id=user_data['id']).first()
+    new_presence = data.get('presence_state', 'online')
+    
+    # Update user's presence state in database
+    if user:
+        user.presence_state = new_presence
+        db.session.commit()
+        
+        # Update active users list
+        active_users[request.sid]['presence_state'] = new_presence
+        
+        # Broadcast updated user list to all clients
+        emit('user_list', {'users': list(active_users.values())}, broadcast=True)
 def handle_disconnect():
     if request.sid in active_users:
         username = active_users[request.sid]['username']

@@ -1,0 +1,53 @@
+/* Presence Indicator Styles */
+.presence-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    position: relative;
+}
+
+.presence-indicator.online {
+    background-color: #43b581;
+    box-shadow: 0 0 0 2px rgba(67, 181, 129, 0.3);
+}
+
+.presence-indicator.idle {
+    background-color: #faa61a;
+    box-shadow: 0 0 0 2px rgba(250, 166, 26, 0.3);
+}
+
+.presence-indicator.dnd {
+    background-color: #f04747;
+    box-shadow: 0 0 0 2px rgba(240, 71, 71, 0.3);
+}
+
+.presence-indicator.offline {
+    background-color: #747f8d;
+    box-shadow: 0 0 0 2px rgba(116, 127, 141, 0.3);
+}
+
+/* Presence Status Container */
+.presence-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.presence-status select {
+    margin-left: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* User List Presence Styles */
+.user-item .presence-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--background-primary);
+}

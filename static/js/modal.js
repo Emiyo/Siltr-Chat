@@ -39,9 +39,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Update modal content
-            document.getElementById('modalUsername').textContent = userData.display_name || userData.username;
+            // Update modal content with presence indicator
+            const presenceClass = userData.presence_state || 'online';
+            document.getElementById('modalUsername').innerHTML = `
+                <span class="presence-indicator ${presenceClass}"></span>
+                ${userData.display_name || userData.username}
+            `;
             document.getElementById('modalStatus').textContent = userData.status || 'No status set';
+            document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
             document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
             document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
             
