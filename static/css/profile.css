@@ -206,14 +206,39 @@ input[type="file"]::file-selector-button:hover {
     padding: 1rem;
     background-color: var(--background-secondary);
     border-radius: 8px;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 1;
     transform: translateY(0);
+    will-change: opacity, transform;
 }
 
-.theme-preview.transitioning {
-    opacity: 0;
-    transform: translateY(10px);
+.preview-container {
+    background-color: var(--background-primary);
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: var(--elevation-low);
+    transition: all 0.3s ease;
+    will-change: background-color, border-color;
+}
+
+[data-theme="dark"] .preview-container {
+    --preview-bg: var(--background-dark);
+    --preview-text: var(--text-light);
+}
+
+[data-theme="light"] .preview-container {
+    --preview-bg: var(--background-light);
+    --preview-text: var(--text-dark);
+}
+
+[data-theme="midnight"] .preview-container {
+    --preview-bg: var(--background-midnight);
+    --preview-text: var(--text-light);
+}
+
+[data-theme="sunset"] .preview-container {
+    --preview-bg: var(--background-sunset);
+    --preview-text: var(--text-light);
 }
 
 .theme-preview h5 {

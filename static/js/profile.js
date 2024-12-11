@@ -12,21 +12,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedTheme = e.target.value;
             const root = document.documentElement;
             
-            // Apply theme with smooth transition
+            // Remove previous theme class
+            root.classList.forEach(className => {
+                if (className.startsWith('theme-')) {
+                    root.classList.remove(className);
+                }
+            });
+            
+            // Apply new theme with smooth transition
             root.style.transition = 'none';
             root.setAttribute('data-theme', selectedTheme);
+            root.classList.add(`theme-${selectedTheme}`);
             
-            // Force reflow for smooth transition
+            // Force reflow and restore transitions
             void root.offsetWidth;
             root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
             
-            // Update preview container with smooth transition
+            // Update preview container
             if (preview) {
-                preview.classList.add('transitioning');
+                preview.style.opacity = '0';
+                preview.style.transform = 'translateY(10px)';
+                
                 setTimeout(() => {
-                    // Update theme-specific styles
-                    preview.classList.remove('transitioning');
-                }, 300);
+                    // Apply theme-specific styles to preview
+                    const previewContainer = preview.querySelector('.preview-container');
+                    if (previewContainer) {
+                        previewContainer.setAttribute('data-theme', selectedTheme);
+                    }
+                    
+                    // Fade preview back in
+                    preview.style.opacity = '1';
+                    preview.style.transform = 'translateY(0)';
+                }, 150);
             }
             
             // Toggle custom theme options with enhanced animation
