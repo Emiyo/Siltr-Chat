@@ -334,6 +334,46 @@ def update_avatar():
 
 # Authentication routes
 # Socket.IO event handlers
+@socketio.on('message')
+def handle_message(message):
+    """Handle incoming messages"""
+    if not current_user.is_authenticated:
+        return
+    
+    try:
+        # Create new message
+        new_message = Message(
+            sender_id=current_user.id,
+            channel_id=message.get('channel_id'),
+            content=message.get('text'),
+            is_encrypted=message.get('is_encrypted', False)
+        )
+        
+        if message.get('file_url'):
+            new_message.file_url = message['file_url']
+        if message.get('voice_url'):
+            new_message.voice_url = message['voice_url']
+        
+        db.session.add(new_message)
+        db.session.commit()
+        
+        # Prepare message data for broadcast
+        message_data = new_message.to_dict()
+        message_data.update({
+            'sender_name': current_user.username,
+            'timestamp': datetime.utcnow().isoformat(),
+            'encryption_key': message.get('encryption_key')
+        })
+        
+        # Emit message to all users in the channel
+        socketio.emit('new_message', message_data)
+        logger.info(f"Message sent by {current_user.username} in channel {message.get('channel_id')}")
+        
+    except Exception as e:
+        logger.error(f"Error handling message: {str(e)}")
+        db.session.rollback()
+        socketio.emit('error', {'message': 'Failed to send message'})
+
 @socketio.on('connect')
 def handle_connect():
     """Handle client connection"""

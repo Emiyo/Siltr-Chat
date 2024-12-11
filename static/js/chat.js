@@ -343,9 +343,25 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
     });
 
-    socket.on('user_list', (data) => {
-        updateUserList(data.users);
+    socket.on('active_users', (data) => {
+        console.log('Received active users:', data);
+        if (data && data.users) {
+            updateUserList(data.users);
+        }
     });
+
+    function updateUserList(users) {
+        const userList = document.getElementById('userList');
+        if (!userList || !Array.isArray(users)) return;
+        
+        userList.innerHTML = users.map(user => `
+            <div class="user-item ${user.presence_state || 'offline'}">
+                <span class="user-status"></span>
+                <span class="user-name">${user.username}</span>
+                ${user.activity_status ? `<div class="user-activity">${user.activity_status}</div>` : ''}
+            </div>
+        `).join('');
+    }
 
     // Categories and Channels
     socket.on('categories_list', (data) => {
