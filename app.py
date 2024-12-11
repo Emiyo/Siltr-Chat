@@ -811,6 +811,49 @@ def handle_create_channel(data):
     
     emit('channel_created', channel.to_dict(), broadcast=True)
 
+    # Key rotation request handler
+    @socketio.on('key_rotation_request')
+    def handle_key_rotation_request(data):
+        if request.sid not in active_users:
+            return
+        
+        channel_id = data.get('channel_id')
+        public_key = data.get('public_key')
+        
+        if not channel_id or not public_key:
+            emit('error', {'message': 'Invalid key rotation request'})
+            return
+        
+        user_data = active_users[request.sid]
+        
+        # Broadcast the key rotation request to all users in the channel
+        emit('key_rotation_request', {
+            'channel_id': channel_id,
+            'initiator_id': user_data['id'],
+            'public_key': public_key
+        }, room=f'channel_{channel_id}')
+
+    # Key rotation response handler
+    @socketio.on('key_rotation_response')
+    def handle_key_rotation_response(data):
+        if request.sid not in active_users:
+            return
+        
+        channel_id = data.get('channel_id')
+        public_key = data.get('public_key')
+        
+        if not channel_id or not public_key:
+            emit('error', {'message': 'Invalid key rotation response'})
+            return
+        
+        user_data = active_users[request.sid]
+        
+        # Broadcast the response to all users in the channel
+        emit('user_key_exchange', {
+            'channel_id': channel_id,
+            'user_id': user_data['id'],
+            'public_key': public_key
+        }, room=f'channel_{channel_id}')
 @socketio.on('disconnect')
 def handle_disconnect():
     if request.sid in active_users:
