@@ -76,20 +76,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function saveThemePreference(theme) {
-        fetch('/update_theme', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ theme: theme })
-        }).then(response => response.json())
-          .then(data => {
-              if (!data.success) {
-                  console.error('Failed to save theme:', data.message);
-              }
-          })
-          .catch(error => console.error('Error saving theme:', error));
+    async function saveThemePreference(theme) {
+        try {
+            const response = await fetch('/update_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: theme })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update theme immediately after successful save
+                updateTheme(theme);
+                // Store in localStorage as fallback
+                localStorage.setItem('selectedTheme', theme);
+            } else {
+                console.error('Failed to save theme:', data.message);
+            }
+        } catch (error) {
+            console.error('Error saving theme:', error);
+        }
     }
 
     // Color Picker Handlers
@@ -145,30 +153,46 @@ document.addEventListener('DOMContentLoaded', function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    // Initialize theme from server
-    function initializeTheme() {
-        fetch('/profile', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
+    // Initialize theme from server with proper transitions
+    async function initializeTheme() {
+        try {
+            // First try to load from localStorage for immediate display
+            const cachedTheme = localStorage.getItem('selectedTheme');
+            if (cachedTheme) {
+                themeSelect.value = cachedTheme;
+                updateTheme(cachedTheme, false); // Don't animate initial load
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const savedTheme = data.theme || 'dark';
-            themeSelect.value = savedTheme;
-            updateTheme(savedTheme);
+
+            // Then fetch from server
+            const response = await fetch('/profile', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            const serverTheme = data.theme || 'dark';
+            if (serverTheme !== cachedTheme) {
+                themeSelect.value = serverTheme;
+                updateTheme(serverTheme, true); // Animate if different from cache
+            }
             
             if (data.accent_color) {
                 accentColorPicker.value = data.accent_color;
                 updateAccentColor(data.accent_color);
             }
-        })
-        .catch(error => {
+            
+            // Update localStorage
+            localStorage.setItem('selectedTheme', serverTheme);
+        } catch (error) {
             console.error('Error loading theme:', error);
             // Fallback to default theme
-            updateTheme('dark');
-        });
+            const fallbackTheme = 'dark';
+            themeSelect.value = fallbackTheme;
+            updateTheme(fallbackTheme, false);
+            localStorage.setItem('selectedTheme', fallbackTheme);
+        }
     }
 
     // Initialize on page load
@@ -242,7 +266,20 @@ document.addEventListener('DOMContentLoaded', function() {
             socket.on('user_list', (data) => {
                 console.log('Received user list:', data);
                 if (data.users) {
-                    updateUserList(data.users);
+                    const userList = document.getElementById('userList');
+                    if (!userList) return;
+
+                    userList.innerHTML = '';
+                    data.users.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-item';
+                        userItem.innerHTML = `
+                            <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
+                            <span class="username">${user.display_name}</span>
+                            ${user.status ? `<span class="status">${user.status}</span>` : ''}
+                        `;
+                        userList.appendChild(userItem);
+                    });
                 }
             });
         }

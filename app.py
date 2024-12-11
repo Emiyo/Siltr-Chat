@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
+# GitHub OAuth Configuration
+app.config['GITHUB_CLIENT_ID'] = os.environ.get('GITHUB_CLIENT_ID')
+app.config['GITHUB_CLIENT_SECRET'] = os.environ.get('GITHUB_CLIENT_SECRET')
+app.config['GITHUB_CALLBACK_URL'] = os.environ.get('GITHUB_CALLBACK_URL', 'http://localhost:5000/auth/github/callback')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///chat.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -103,6 +107,14 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
     
+    # Connection integrations
+    github_id = db.Column(db.String(100), nullable=True, unique=True)
+    github_username = db.Column(db.String(100), nullable=True)
+    spotify_id = db.Column(db.String(100), nullable=True, unique=True)
+    spotify_display_name = db.Column(db.String(100), nullable=True)
+    discord_id = db.Column(db.String(100), nullable=True, unique=True)
+    discord_username = db.Column(db.String(100), nullable=True)
+    
     roles = db.relationship('Role', secondary=user_roles, lazy='subquery',
                           backref=db.backref('users', lazy=True))
     
@@ -117,12 +129,12 @@ class User(UserMixin, db.Model):
             'is_verified': self.is_verified,
             'is_moderator': self.is_moderator,
             'avatar': self.avatar,
-            'display_name': self.display_name,
-            'status': self.status,
-            'presence_state': self.presence_state,
-            'accent_color': self.accent_color,
-            'bio': self.bio,
-            'location': self.location,
+            'display_name': self.display_name or self.username,
+            'status': self.status or '',
+            'presence_state': self.presence_state or 'online',
+            'accent_color': self.accent_color or '#5865F2',
+            'bio': self.bio or '',
+            'location': self.location or '',
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
             'created_at': self.created_at.isoformat(),
             'roles': [role.name for role in self.roles]
