@@ -1,3 +1,58 @@
+// Define fetchAndDisplayUserProfile in the global scope first
+async function fetchAndDisplayUserProfile(userId) {
+    try {
+        const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Failed to fetch user profile');
+        const userData = await response.json();
+        
+        // Get modal
+        const modal = document.getElementById('userProfileModal');
+        if (!modal) {
+            console.error('Modal element not found');
+            return;
+        }
+        
+        // Update modal content with presence indicator
+        const presenceClass = userData.presence_state || 'online';
+        document.getElementById('modalUsername').innerHTML = `
+            <span class="presence-indicator ${presenceClass}"></span>
+            ${userData.display_name || userData.username}
+        `;
+        document.getElementById('modalStatus').textContent = userData.status || 'No status set';
+        document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
+        document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
+        document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
+        
+        // Set avatar
+        const avatarElement = document.getElementById('modalUserAvatar');
+        avatarElement.src = userData.avatar || '/static/images/default-avatar.png';
+        
+        // Update contact information
+        const contactDiv = document.getElementById('modalContact');
+        contactDiv.innerHTML = '';
+        if (userData.contact_info && userData.contact_info.email_visibility === 'public') {
+            contactDiv.innerHTML += `<p>✉️ ${userData.email}</p>`;
+        }
+        if (userData.contact_info && userData.contact_info.social_links) {
+            const socialLinks = document.createElement('div');
+            socialLinks.className = 'social-links';
+            const links = userData.contact_info.social_links;
+            if (links.github) socialLinks.innerHTML += `<a href="${links.github}" target="_blank">GitHub</a>`;
+            if (links.linkedin) socialLinks.innerHTML += `<a href="${links.linkedin}" target="_blank">LinkedIn</a>`;
+            if (links.twitter) socialLinks.innerHTML += `<a href="${links.twitter}" target="_blank">Twitter</a>`;
+            if (socialLinks.children.length > 0) contactDiv.appendChild(socialLinks);
+        }
+        
+        // Show modal
+        modal.style.display = "block";
+        
+        console.log('Modal displayed for user:', userData.username);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     
@@ -865,49 +920,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateUserList(users) {
-        userList.innerHTML = users.map(user => `
-            <div class="user-item" data-user-id="${user.id}" title="Click to view profile or send private message">
-                <span class="user-status">></span>
-                ${user.username}
-                <div class="user-actions" style="display: none;">
-                    <button class="btn btn-sm btn-terminal">Message</button>
-                    <button class="btn btn-sm btn-terminal">Profile</button>
+        const userList = document.getElementById('userList');
+        if (!userList) return;
+
+        userList.innerHTML = users.map(user => {
+            const presenceClass = user.presence_state || 'online';
+            return `
+                <div class="user-item" data-user-id="${user.id}" title="Click to view profile or send private message">
+                    <div class="d-flex align-items-center">
+                        <span class="presence-indicator ${presenceClass}"></span>
+                        <span class="user-name">${user.username}</span>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn btn-sm btn-terminal message-btn">Message</button>
+                        <button class="btn btn-sm btn-terminal profile-btn">Profile</button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+
+        // Initialize Bootstrap modal if not already done
+        const profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'), {
+            keyboard: true
+        });
 
         // Add click handlers for user profiles and messages
         document.querySelectorAll('.user-item').forEach(element => {
             element.addEventListener('click', function(e) {
                 const userId = this.getAttribute('data-user-id');
-                const username = this.textContent.trim();
+                const username = this.querySelector('.user-name').textContent.trim();
                 
                 if (!userId) return;
-                
-                // Toggle actions menu
-                const actionsMenu = this.querySelector('.user-actions');
-                if (actionsMenu) {
-                    const isVisible = actionsMenu.style.display === 'block';
-                    // Hide all other action menus
-                    document.querySelectorAll('.user-actions').forEach(menu => {
-                        menu.style.display = 'none';
-                    });
-                    // Toggle this menu
-                    actionsMenu.style.display = isVisible ? 'none' : 'block';
-                }
 
                 // Handle button clicks
-                if (e.target.tagName === 'BUTTON') {
-                    if (e.target.textContent === 'Message') {
-                        // Pre-fill message input with @username
-                        const messageInput = document.getElementById('messageInput');
-                        if (messageInput) {
-                            messageInput.value = `@${username} `;
-                            messageInput.focus();
-                        }
-                    } else if (e.target.textContent === 'Profile') {
-                        fetchAndDisplayUserProfile(userId);
+                if (e.target.classList.contains('message-btn')) {
+                    const messageInput = document.getElementById('messageInput');
+                    if (messageInput) {
+                        messageInput.value = `@${username} `;
+                        messageInput.focus();
                     }
+                    e.stopPropagation();
+                } else if (e.target.classList.contains('profile-btn')) {
+                    // Show profile modal
+                    fetch(`/api/user/${userId}/profile`)
+                        .then(response => response.json())
+                        .then(userData => {
+                            // Update modal content
+                            document.getElementById('modalUsername').innerHTML = `
+                                <span class="presence-indicator ${userData.presence_state || 'online'}"></span>
+                                ${userData.username}
+                            `;
+                            document.getElementById('modalStatus').textContent = userData.status || 'No status set';
+                            document.getElementById('modalPresence').textContent = userData.presence_state || 'online';
+                            document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
+                            document.getElementById('modalLocation').textContent = userData.location || '';
+                            
+                            // Show the modal
+                            profileModal.show();
+                        })
+                        .catch(error => console.error('Error fetching user profile:', error));
                     e.stopPropagation();
                 }
             });

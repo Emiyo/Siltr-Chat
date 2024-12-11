@@ -19,4 +19,7 @@ dependencies = [
     "flask-bcrypt",
     "flask-mail>=0.10.0",
     "itsdangerous",
+    "eventlet>=0.38.1",
+    "gevent>=24.11.1",
+    "gevent-websocket>=0.10.1",
 ]

@@ -127,12 +127,45 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # Initialize extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO()
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-login_manager.login_message_category = 'info' # Retained from original
+login_manager.login_message_category = 'info'
+
+# SocketIO Event Handlers
+@socketio.on('connect')
+def handle_connect():
+    if current_user.is_authenticated:
+        logger.info(f"User {current_user.username} connected")
+        current_user.presence_state = 'online'
+        db.session.commit()
+        # Broadcast updated user list to all clients
+        emit('user_list_update', {'users': [user.to_dict() for user in User.query.all()]}, broadcast=True)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if current_user.is_authenticated:
+        logger.info(f"User {current_user.username} disconnected")
+        current_user.presence_state = 'offline'
+        db.session.commit()
+        # Broadcast updated user list to all clients
+        emit('user_list_update', {'users': [user.to_dict() for user in User.query.all()]}, broadcast=True)
+
+@socketio.on('presence_update')
+def handle_presence_update(data):
+    if current_user.is_authenticated:
+        presence_state = data.get('presence_state', 'online')
+        status = data.get('status', '')
+        logger.info(f"User {current_user.username} updated presence to {presence_state} with status: {status}")
+        
+        current_user.presence_state = presence_state
+        current_user.status = status
+        db.session.commit()
+        
+        # Broadcast the update to all clients
+        emit('user_list_update', {'users': [user.to_dict() for user in User.query.all()]}, broadcast=True)
 
 
 # Constants
