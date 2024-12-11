@@ -3,36 +3,41 @@ import time
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
+from flask import Flask
+from flask_login import LoginManager
 
-from flask import (
-    Flask, request, jsonify, render_template, redirect,
-    url_for, flash, send_from_directory, session
-)
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import (
-    LoginManager, UserMixin, login_user,
-    logout_user, current_user, login_required
-)
-from flask_bcrypt import Bcrypt
-from flask_mail import Mail, Message
-from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeTimedSerializer
-from email_validator import validate_email, EmailNotValidError
-from sqlalchemy.exc import SQLAlchemyError
+# Initialize Flask app
+app = Flask(__name__)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize LoginManager first
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
+login_manager.init_app(app)
+
+# Import extensions and models after app creation
+from extensions import db, socketio, bcrypt, mail, init_app
+from models import User, Message, Channel
+
+# Import remaining Flask modules after initialization
+from flask import request, jsonify, render_template, redirect, url_for, flash, send_from_directory, session
+from flask_login import UserMixin, login_user, logout_user, current_user, login_required
+from werkzeug.utils import secure_filename
+from email_validator import validate_email, EmailNotValidError
+from itsdangerous import URLSafeTimedSerializer
+from sqlalchemy.exc import SQLAlchemyError
+from flask_mail import Message
 
 # Load configuration
 app.config.update(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'your-secret-key'),
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///chat.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SQLALCHEMY_ENGINE_OPTIONS={'pool_pre_ping': True},  # Add connection validation
     UPLOAD_FOLDER=os.path.join('static', 'uploads'),
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50MB max file size
     MAIL_SERVER='smtp.gmail.com',
@@ -40,7 +45,10 @@ app.config.update(
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
-    MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER')
+    MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER'),
+    SESSION_TYPE='filesystem',
+    SESSION_PERMANENT=False,
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=60)
 )
 
 # Initialize extensions
@@ -325,56 +333,70 @@ def update_avatar():
     return jsonify({'error': 'Invalid file type'}), 400
 
 # Authentication routes
+# Main routes
+@app.route('/')
+@app.route('/index')
+@login_required
+def index():
+    """Main dashboard page after login"""
+    return render_template('index.html', user=current_user)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle user login with proper redirection"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        logger.info(f"Login attempt for email: {email}")
-
-        if not all([email, password]):
-            logger.warning("Login failed: Missing email or password")
-            flash('All fields are required', 'error')
-            return redirect(url_for('login'))
-
         try:
+            email = request.form.get('email')
+            password = request.form.get('password')
+            remember = request.form.get('remember', False)
+
+            logger.info(f"Login attempt for email: {email}")
+
+            if not all([email, password]):
+                logger.warning("Login failed: Missing email or password")
+                flash('Please fill in both email and password.', 'error')
+                return render_template('login.html')
+
             user = User.query.filter_by(email=email).first()
-            
+
             if user is None:
                 logger.warning(f"Login failed: No user found with email {email}")
-                time.sleep(1)  # Security delay to prevent timing attacks
-                flash('Invalid email or password', 'error')
+                time.sleep(1)  # Security delay
+                flash('Invalid email or password.', 'error')
                 return render_template('login.html')
 
             if not user.is_active:
                 logger.warning(f"Login attempt for inactive user: {email}")
-                flash('Account is inactive. Please contact support.', 'error')
+                flash('This account has been deactivated.', 'error')
                 return render_template('login.html')
-            
+
             if user.check_password(password):
-                login_user(user)
+                login_user(user, remember=bool(remember))
                 user.last_seen = datetime.utcnow()
+                user.update_presence(state='online')
                 db.session.commit()
+                
                 logger.info(f"User {user.username} logged in successfully")
+                flash(f'Welcome back, {user.username}!', 'success')
                 
                 next_page = request.args.get('next')
-                if not next_page or not next_page.startswith('/'):
-                    next_page = url_for('index')
-                return redirect(next_page)
-            
-            logger.warning(f"Login failed: Invalid password for user {user.username}")
-            flash('Invalid email or password', 'error')
-            return render_template('login.html')
+                if next_page and next_page.startswith('/'):
+                    return redirect(next_page)
+                return redirect(url_for('index'))
 
+            logger.warning(f"Login failed: Invalid password for user {user.username}")
+            flash('Invalid email or password.', 'error')
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during login: {str(e)}")
+            db.session.rollback()
+            flash('A database error occurred. Please try again.', 'error')
         except Exception as e:
             logger.error(f"Login error: {str(e)}")
-            db.session.rollback()
-            flash('An error occurred during login. Please try again.', 'error')
-            return render_template('login.html')
+            flash('An error occurred. Please try again.', 'error')
 
     return render_template('login.html')
 
