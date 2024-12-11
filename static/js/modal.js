@@ -89,6 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Setup presence selector handler
+    const presenceSelector = document.getElementById('presenceSelector');
+    if (presenceSelector) {
+        presenceSelector.addEventListener('change', function(event) {
+            const newPresence = event.target.value;
+            if (typeof socket !== 'undefined') {
+                socket.emit('update_presence', { presence_state: newPresence });
+            }
+        });
+    }
+
     // Setup initial handlers
     setupUserClickHandlers();
 
@@ -97,6 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
         socket.on('user_list', function(data) {
             // After user list is updated, reattach click handlers
             setTimeout(setupUserClickHandlers, 100);
+            
+            // Update presence indicator if modal is open
+            const modal = document.getElementById('userProfileModal');
+            if (modal.style.display === "block") {
+                const currentUserId = modal.dataset.currentUserId;
+                const currentUser = data.users.find(u => u.id === currentUserId);
+                if (currentUser) {
+                    const indicator = document.getElementById('modalPresenceIndicator');
+                    if (indicator) {
+                        indicator.className = `presence-indicator ${currentUser.presence_state || 'online'}`;
+                    }
+                    const selector = document.getElementById('presenceSelector');
+                    if (selector) {
+                        selector.value = currentUser.presence_state || 'online';
+                    }
+                }
+            }
         });
     }
 });
