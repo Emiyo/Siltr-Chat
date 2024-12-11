@@ -12,6 +12,7 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail, Message
@@ -51,6 +52,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize extensions
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 bcrypt = Bcrypt(app)
 mail = Mail(app)
@@ -125,23 +127,41 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_moderator = db.Column(db.Boolean, default=False)
+    
+    # Core profile fields (Discord-like)
+    display_name = db.Column(db.String(50))
+    discriminator = db.Column(db.String(4))  # The #0000 part of Discord usernames
     avatar = db.Column(db.String(200))
     banner = db.Column(db.String(200))
-    accent_color = db.Column(db.String(7))  # Hex color code
-    status = db.Column(db.String(100))
-    status_emoji = db.Column(db.String(50))
-    presence_state = db.Column(db.String(20), default='online')
-    activity_type = db.Column(db.String(50))  # gaming, streaming, listening, etc.
-    activity_name = db.Column(db.String(100))
-    bio = db.Column(db.String(500))
-    display_name = db.Column(db.String(50))
-    last_seen = db.Column(db.DateTime)
-    location = db.Column(db.String(100))
-    timezone = db.Column(db.String(50))
-    profile_theme = db.Column(db.String(50), default='dark')
+    accent_color = db.Column(db.String(7), default='#5865F2')  # Discord's default color
+    
+    # Presence and Status
+    status = db.Column(db.String(100))  # Custom status message
+    status_emoji = db.Column(db.String(50))  # Custom status emoji
+    presence_state = db.Column(db.String(20), default='online')  # online, idle, dnd, offline
+    
+    # Activity
+    activity_type = db.Column(db.String(50))  # playing, streaming, listening, watching, custom
+    activity_name = db.Column(db.String(100))  # Name of the game/activity
+    
+    # About Me
+    bio = db.Column(db.String(500))  # Discord's "About Me" section
+    
+    # Preferences and Settings
+    profile_theme = db.Column(db.String(20), default='dark')  # dark/light
+    locale = db.Column(db.String(10), default='en-US')
     preferences = db.Column(db.JSON, default={})
-    contact_info = db.Column(db.JSON, default={})
-    connections = db.Column(db.JSON, default={})
+    
+    # Social and Connections
+    connections = db.Column(db.JSON, default={})  # Connected accounts (GitHub, Spotify, etc.)
+    
+    # System Fields
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_seen = db.Column(db.DateTime)
+    muted_until = db.Column(db.DateTime)
+    is_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(100))
+    verification_sent_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     muted_until = db.Column(db.DateTime)
     warning_count = db.Column(db.Integer, default=0)
@@ -259,6 +279,28 @@ If you did not make this request, please ignore this email.
 @login_required
 def index():
     return render_template('index.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    current_user.display_name = request.form.get('display_name')
+    current_user.profile_theme = request.form.get('profile_theme')
+    current_user.accent_color = request.form.get('accent_color')
+    
+    try:
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error updating profile', 'error')
+        logger.error(f"Profile update error: {str(e)}")
+    
+    return redirect(url_for('profile'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -466,6 +508,14 @@ def get_current_user_profile():
 def get_user_profile(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())
+
+class Channel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500))
+    type = db.Column(db.String(20), default='text')  # text, voice, announcement
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    messages = db.relationship('Message', backref='channel', lazy='dynamic')
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)

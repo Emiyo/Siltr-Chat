@@ -1,6 +1,8 @@
 /* Profile Container */
 .profile-container {
-    max-width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
     background: var(--background-primary);
     color: var(--text-normal);
 }
@@ -9,6 +11,10 @@
 .profile-header {
     position: relative;
     height: 300px;
+    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 8px;
+    background: var(--background-secondary);
 }
 
 .profile-banner {
@@ -104,15 +110,21 @@
     margin: 0 auto;
 }
 
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .display-name {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: bold;
     margin: 0;
 }
 
 .username {
-    font-size: 14px;
-    margin-left: 8px;
+    color: var(--text-muted);
+    font-size: 16px;
 }
 
 /* Roles */
@@ -211,13 +223,41 @@
     margin: 12px 0;
 }
 
+/* Profile Settings */
+.profile-settings {
+    background: var(--background-primary);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--background-tertiary);
+    border-radius: 4px;
+    background: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+
 /* Custom Button Styles */
 .btn-primary {
-    background: var(--accent-color);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    background-color: var(--accent-color, #5865F2);
     color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
     transition: filter 0.2s;
 }
@@ -230,6 +270,7 @@
 :root[data-theme="dark"] {
     --background-primary: #36393f;
     --background-secondary: #2f3136;
+    --background-tertiary: #202225;
     --text-normal: #dcddde;
     --text-muted: #72767d;
 }
@@ -238,6 +279,7 @@
 :root[data-theme="light"] {
     --background-primary: #ffffff;
     --background-secondary: #f2f3f5;
+    --background-tertiary: #e3e5e8;
     --text-normal: #2e3338;
     --text-muted: #747f8d;
 }
