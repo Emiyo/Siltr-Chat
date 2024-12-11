@@ -239,9 +239,6 @@ class User(UserMixin, db.Model):
             logger.error(f"Error converting user {self.username} to dict: {str(e)}")
             raise
 
-            
-        return data
-
 class Message(db.Model):
     """Message model for user communications"""
     __tablename__ = 'message'

@@ -13,8 +13,11 @@
     height: 300px;
     margin-bottom: 30px;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 8px 8px 0 0;
     background: var(--background-secondary);
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.3s ease;
 }
 
 .profile-banner {
@@ -82,7 +85,7 @@
     opacity: 1;
 }
 
-/* Presence Indicator */
+/* Presence Indicator and Status */
 .presence-indicator {
     position: absolute;
     bottom: 12px;
@@ -91,12 +94,54 @@
     height: 24px;
     border-radius: 50%;
     border: 4px solid var(--background-primary);
+    transition: background-color 0.2s ease;
 }
 
 .presence-indicator.online { background-color: #3ba55c; }
 .presence-indicator.idle { background-color: #faa61a; }
 .presence-indicator.dnd { background-color: #ed4245; }
 .presence-indicator.offline { background-color: #747f8d; }
+.presence-indicator.invisible { background-color: #747f8d; }
+
+/* Status Display */
+.status-emoji {
+    font-size: 1.2em;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.status-text {
+    color: var(--text-normal);
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+
+.rich-presence {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--background-secondary);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.activity-type {
+    color: var(--text-muted);
+    font-size: 0.8em;
+    text-transform: uppercase;
+    margin-right: 6px;
+}
+
+.activity-name {
+    color: var(--text-normal);
+    font-weight: 500;
+}
+
+.activity-details,
+.activity-state {
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-size: 0.9em;
+}
 
 /* Profile Content */
 .profile-content {
