@@ -1,5 +1,12 @@
 // Discord-like profile functionality
+let socket;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize socket connection
+    initializeSocket();
+    
     // Fetch and display user profile in Discord style
     window.fetchAndDisplayUserProfile = async function(userId) {
         try {
@@ -87,6 +94,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const presenceSelector = document.getElementById('presenceSelector');
     if (presenceSelector) {
         presenceSelector.addEventListener('change', event => {
+    // Socket initialization and management
+    function initializeSocket() {
+        if (socket) {
+            socket.disconnect();
+        }
+        
+        socket = io({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: MAX_RECONNECT_ATTEMPTS
+        });
+
+        socket.on('connect', () => {
+            console.log('Socket connected successfully');
+            reconnectAttempts = 0;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Socket disconnected');
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttempts++;
+                setTimeout(initializeSocket, 1000 * reconnectAttempts);
+            }
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error('Max reconnection attempts reached');
+            }
+        });
+    }
             const newPresence = event.target.value;
             if (typeof socket !== 'undefined') {
                 socket.emit('update_presence', { presence_state: newPresence });
