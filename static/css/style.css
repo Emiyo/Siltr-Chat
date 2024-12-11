@@ -649,11 +649,14 @@ body {
     align-items: center;
     gap: 0.5rem;
     border-radius: 4px;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
 }
 
 .user-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(74, 158, 255, 0.1);
+    border-left-color: #4a9eff;
 }
 
 .user-status {

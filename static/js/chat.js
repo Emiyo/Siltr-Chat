@@ -844,11 +844,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUserList(users) {
         userList.innerHTML = users.map(user => `
-            <div class="user-item">
+            <div class="user-item" data-user-id="${user.id}">
                 <span class="user-status">></span>
                 ${user.username}
             </div>
         `).join('');
+
+        // Add click handlers for user profiles
+        document.querySelectorAll('.user-item').forEach(element => {
+            element.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                if (userId) {
+                    fetchAndDisplayUserProfile(userId);
+                }
+            });
+        });
     }
 
     function scrollToBottom() {
