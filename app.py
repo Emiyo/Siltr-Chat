@@ -17,6 +17,33 @@ from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
 import json
 
+import functools
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from time import sleep
+
+def retry_on_db_error(max_retries=5, initial_delay=0.1):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    if retries > 0:
+                        db.session.remove()  # Clean up the session before retry
+                        db.engine.dispose()  # Dispose engine connections
+                    return f(*args, **kwargs)
+                except (OperationalError, SQLAlchemyError) as e:
+                    retries += 1
+                    if retries == max_retries:
+                        logger.error(f"Database operation failed after {max_retries} retries: {str(e)}")
+                        raise
+                    delay = initial_delay * (2 ** (retries - 1))  # Exponential backoff
+                    logger.warning(f"Database operation failed, attempt {retries} of {max_retries}, retrying in {delay:.2f}s: {str(e)}")
+                    sleep(delay)
+            return None
+        return wrapper
+    return decorator
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,8 +51,30 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app and extensions
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL')) #Using os.getenv as per modified code, but keeping original method as fallback
+# Configure database with enhanced SSL and connection settings
+database_url = os.getenv('DATABASE_URL', os.environ.get('DATABASE_URL'))
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,     # Enable automatic reconnection
+    'pool_recycle': 120,       # Recycle connections every 2 minutes
+    'pool_timeout': 10,        # Connection timeout of 10 seconds
+    'pool_size': 3,            # Very conservative pool size
+    'max_overflow': 1,         # Minimal overflow connections
+    'connect_args': {
+        'sslmode': 'require',    # Require SSL without strict verification
+        'connect_timeout': 5,    # Shorter connection timeout
+        'keepalives': 1,         # Enable keepalive
+        'keepalives_idle': 15,   # Shorter idle time
+        'keepalives_interval': 5, # Shorter keepalive interval
+        'keepalives_count': 3,    # Fewer retries before giving up
+        'application_name': 'chat_app',  # Identify application in pg_stat_activity
+        'client_encoding': 'utf8'
+    }
+}
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
@@ -776,6 +825,7 @@ def handle_join(data):
     emit('new_message', join_message.to_dict(), broadcast=True)
 
 @socketio.on('message')
+@retry_on_db_error(max_retries=3)
 def handle_message(data):
     logger.debug(f"Received message data: {data}")
     
