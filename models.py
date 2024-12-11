@@ -3,6 +3,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from app import db
 
+# Association tables
+role_permissions = db.Table('role_permissions',
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id', ondelete='CASCADE'), primary_key=True)
+)
+
+user_roles = db.Table('user_roles',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id', ondelete='CASCADE'), primary_key=True)
+)
+
+class Role(db.Model):
+    """Role model for user permissions"""
+    __tablename__ = 'role'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    permissions = db.relationship('Permission', secondary=role_permissions, back_populates='roles')
+    users = db.relationship('User', secondary=user_roles, back_populates='roles')
+
+class Permission(db.Model):
+    """Permission model for granular access control"""
+    __tablename__ = 'permission'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    roles = db.relationship('Role', secondary=role_permissions, back_populates='permissions')
+
 class User(UserMixin, db.Model):
     """User model with Discord-like profile features"""
     __tablename__ = 'user'
@@ -14,31 +44,35 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     
     # Profile fields
-    display_name = db.Column(db.String(50))
-    avatar = db.Column(db.String(200))
-    bio = db.Column(db.String(500))
+    display_name = db.Column(db.String(50), nullable=True)
+    avatar = db.Column(db.String(200), nullable=True)
+    bio = db.Column(db.String(500), nullable=True)
     
     # Presence and status
-    status = db.Column(db.String(100))
-    presence_state = db.Column(db.String(20), default='offline')
-    last_seen = db.Column(db.DateTime)
+    status = db.Column(db.String(100), nullable=True)
+    presence_state = db.Column(db.String(20), nullable=False, default='offline')
+    last_seen = db.Column(db.DateTime, nullable=True)
     
     # Customization
-    theme = db.Column(db.String(20), default='dark')
+    theme = db.Column(db.String(20), nullable=False, default='dark')
+    accent_color = db.Column(db.String(7), nullable=True, default='#5865F2')
+    preferences = db.Column(db.JSON, nullable=True)
     
     # System fields
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    is_active = db.Column(db.Boolean, default=True)
-    is_verified = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    warning_count = db.Column(db.Integer, nullable=True, default=0)
 
     # Relationships
+    roles = db.relationship('Role', secondary=user_roles, back_populates='users')
     sent_messages = db.relationship('Message', foreign_keys='Message.sender_id',
-                                  backref='sender', lazy='dynamic')
+                                   backref='sender', lazy='dynamic')
     received_messages = db.relationship('Message', foreign_keys='Message.receiver_id',
-                                      backref='receiver', lazy='dynamic')
+                                       backref='receiver', lazy='dynamic')
 
     def set_password(self, password):
-        """Set password hash"""
+        """Set password with proper hashing"""
         if not self.validate_password_strength(password):
             raise ValueError("Password must be at least 8 characters and include numbers and letters")
         self.password_hash = generate_password_hash(password)
@@ -68,6 +102,13 @@ class User(UserMixin, db.Model):
             raise ValueError("Status message cannot exceed 100 characters")
         self.status = text
 
+    def has_permission(self, permission_name):
+        """Check if user has a specific permission through any of their roles"""
+        return any(
+            any(p.name == permission_name for p in role.permissions)
+            for role in self.roles
+        )
+
     def to_dict(self, include_private=False):
         """Convert user object to dictionary with profile structure"""
         data = {
@@ -79,14 +120,19 @@ class User(UserMixin, db.Model):
             'status': self.status,
             'presence_state': self.presence_state,
             'theme': self.theme,
+            'accent_color': self.accent_color,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None,
-            'is_verified': self.is_verified
+            'is_verified': self.is_verified,
+            'is_active': self.is_active,
+            'roles': [{'id': role.id, 'name': role.name} for role in self.roles]
         }
         
         if include_private:
             data.update({
                 'email': self.email,
+                'preferences': self.preferences or {},
+                'warning_count': self.warning_count
             })
             
         return data
@@ -96,13 +142,17 @@ class Message(db.Model):
     __tablename__ = 'message'
     
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(20), nullable=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type = db.Column(db.String(20), nullable=False)  # public, private, system
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
+    channel_id = db.Column(db.Integer, db.ForeignKey('channel.id', ondelete='CASCADE'))
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    file_url = db.Column(db.String(200))
-
+    file_url = db.Column(db.String(200), nullable=True)
+    voice_url = db.Column(db.String(200), nullable=True)
+    voice_duration = db.Column(db.Float, nullable=True)
+    reactions = db.Column(db.JSON, default=dict)
+    
     def to_dict(self):
         """Convert message to dictionary"""
         return {
@@ -110,7 +160,22 @@ class Message(db.Model):
             'type': self.type,
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id,
+            'channel_id': self.channel_id,
             'text': self.text,
-            'timestamp': self.timestamp.isoformat(),
-            'file_url': self.file_url
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'file_url': self.file_url,
+            'voice_url': self.voice_url,
+            'voice_duration': self.voice_duration,
+            'reactions': self.reactions or {}
         }
+
+class Channel(db.Model):
+    """Channel model for organizing messages"""
+    __tablename__ = 'channel'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500))
+    type = db.Column(db.String(20), default='text')  # text, voice, announcement
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    messages = db.relationship('Message', backref='channel', lazy='dynamic')

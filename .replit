@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flask db upgrade core_profile_system"
+args = "flask db upgrade fix_user_profile_schema"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
