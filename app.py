@@ -96,7 +96,7 @@ class User(UserMixin, db.Model):
     avatar = db.Column(db.String(200), nullable=True)
     display_name = db.Column(db.String(100), nullable=True)
     status = db.Column(db.String(200), nullable=True)
-    presence_state = db.Column(db.String(20), nullable=False, server_default='online')
+    presence_state = db.Column(db.String(20), nullable=False, server_default='offline')
     accent_color = db.Column(db.String(7), nullable=True)
     theme = db.Column(db.String(20), nullable=False, server_default='dark')
     bio = db.Column(db.Text, nullable=True)
@@ -131,7 +131,7 @@ class User(UserMixin, db.Model):
             'avatar': self.avatar,
             'display_name': self.display_name or self.username,
             'status': self.status or '',
-            'presence_state': self.presence_state,
+            'presence_state': self.presence_state if self.last_seen and (datetime.utcnow() - self.last_seen).total_seconds() < 300 else 'offline',
             'accent_color': self.accent_color or '#5865F2',
             'bio': self.bio or '',
             'location': self.location or '',
@@ -434,9 +434,7 @@ def handle_connect():
         
         logger.info("Authenticated user connecting: %s", current_user.username)
         
-        # Restore last known presence state or set to online
-        if not current_user.presence_state:
-            current_user.presence_state = 'online'
+        # Update last seen without changing presence state
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
         
