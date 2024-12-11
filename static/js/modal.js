@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Fetch and display user profile
-    async function fetchAndDisplayUserProfile(userId) {
+    // Make fetchAndDisplayUserProfile available globally
+    window.fetchAndDisplayUserProfile = async function(userId) {
         try {
             const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
             const response = await fetch(endpoint);
