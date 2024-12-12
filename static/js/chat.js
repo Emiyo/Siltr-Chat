@@ -223,15 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<div class="message-timestamp">
                     <span class="message-username">${message.user ? message.user.username : "Unknown"}</span> • ${timestamp}
                 </div>`;
-      // Parse markdown if it's not a system message
-      if (!message.type) {
-          messageContent = marked.parse(messageContent);
-      }
-      
-      // Parse markdown if it's not a system message
-      if (!message.type) {
-          messageContent = marked.parse(messageContent);
-      }
+      // Display message content as plain text
       
       messageDiv.innerHTML = `
           ${messageHeader}
