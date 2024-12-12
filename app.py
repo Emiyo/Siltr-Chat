@@ -35,13 +35,16 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 # Session configuration
 app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for now
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = None  # Allow cross-site cookies
 app.config['SESSION_COOKIE_NAME'] = 'session'
+app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP for now
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
 app.config['REMEMBER_COOKIE_NAME'] = 'remember_token'
+app.config['REMEMBER_COOKIE_DOMAIN'] = None  # Allow all domains
+app.config['REMEMBER_COOKIE_SAMESITE'] = None  # Allow cross-site cookies
 
 # Initialize extensions
 init_extensions(app)
@@ -170,6 +173,9 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
+        # Clear any existing session
+        session.clear()
+        
         # Check if user is already authenticated
         if current_user.is_authenticated:
             logger.info("Already authenticated user accessing login page")
@@ -185,7 +191,7 @@ def login():
             if not email or not password:
                 logger.warning("Login attempt with missing credentials")
                 flash('Please provide both email and password', 'error')
-                return render_template('login.html'), 400
+                return render_template('login.html')
 
             user = User.query.filter_by(email=email).first()
             
@@ -193,6 +199,7 @@ def login():
                 logger.info(f"User {user.username} authenticated successfully")
                 
                 # Set session parameters
+                session.clear()
                 session.permanent = True
                 
                 # Login the user
@@ -200,9 +207,12 @@ def login():
                 
                 # Get the next page from args
                 next_page = request.args.get('next')
+                if next_page:
+                    # Remove query parameters from next_page
+                    next_page = next_page.split('?')[0]
                 
                 # Validate the next URL
-                if not next_page or not next_page.startswith('/') or url_parse(next_page).netloc:
+                if not next_page or not next_page.startswith('/'):
                     next_page = url_for('index')
                 
                 logger.info(f"Redirecting authenticated user to: {next_page}")
