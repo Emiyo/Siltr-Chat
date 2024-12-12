@@ -41,14 +41,23 @@
     <!-- User Profile Modal -->
     <div id="userProfileModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="terminal-button terminal-button-red close"></span>
+                    <span class="terminal-button terminal-button-yellow"></span>
+                    <span class="terminal-button terminal-button-green"></span>
+                </div>
+                <span>profile.sh</span>
+            </div>
             <div class="profile-preview">
                 <div class="profile-header">
-                    <img id="modalUserAvatar" src="" alt="User avatar" class="modal-avatar">
-                    <h2 id="modalUsername"></h2>
-                    <p id="modalStatus" class="user-status"></p>
-                    <div class="user-actions">
-                        <button class="btn btn-terminal" onclick="startDirectMessage(this.dataset.userId)">Message</button>
+                    <div class="profile-avatar-container">
+                        <img id="modalUserAvatar" src="" alt="User avatar" class="profile-avatar">
+                        <div class="presence-indicator" id="modalPresenceIndicator"></div>
+                    </div>
+                    <div class="profile-username-container">
+                        <h2 id="modalUsername"></h2>
+                        <p id="modalStatus" class="user-status"></p>
                     </div>
                 </div>
                 <div class="profile-info">
@@ -66,6 +75,9 @@
                         <p id="modalJoinDate"></p>
                         <p id="modalLastSeen"></p>
                         <div id="modalRoles"></div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn btn-terminal" id="startDirectMessageBtn">Message</button>
                     </div>
                 </div>
             </div>
