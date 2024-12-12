@@ -358,6 +358,30 @@
           </div>
           <div class="modal-body">
             <div class="settings-section">
+              <h3>Profile Settings</h3>
+              <div class="profile-form">
+                <div class="form-group">
+                  <label for="avatarUpload">Profile Picture</label>
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <img id="currentAvatar" src="/static/images/default-avatar.svg" alt="Current Avatar" class="profile-avatar" style="width: 64px; height: 64px;">
+                    <input type="file" class="form-control" id="avatarUpload" accept="image/*">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="displayName">Display Name</label>
+                  <input type="text" class="form-control" id="displayName" placeholder="Enter your display name">
+                </div>
+                <div class="form-group">
+                  <label for="bioText">Bio</label>
+                  <textarea class="form-control" id="bioText" rows="3" placeholder="Tell us about yourself"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="location">Location</label>
+                  <input type="text" class="form-control" id="location" placeholder="Enter your location">
+                </div>
+              </div>
+            </div>
+            <div class="settings-section">
               <h3>Theme Settings</h3>
               <div class="mb-3">
                 <label for="themeSelect" class="form-label">Interface Theme</label>
@@ -367,6 +391,10 @@
                   <option value="midnight">Midnight Theme</option>
                   <option value="sunset">Sunset Theme</option>
                 </select>
+              </div>
+              <div class="theme-customization">
+                <label for="accentColor">Accent Color</label>
+                <input type="color" class="form-control form-control-color w-100" id="accentColor" value="#5865F2">
               </div>
             </div>
             <div class="settings-section">
