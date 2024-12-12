@@ -682,13 +682,17 @@ def handle_typing_indicator(data):
 @socketio.on('get_dm_history')
 def handle_get_dm_history(data):
     """Handle request for DM history with a specific user"""
-    if not current_user.is_authenticated:
-        return
-        
     try:
+        if not current_user.is_authenticated:
+            logger.warning("Unauthenticated user attempting to fetch DM history")
+            return
+            
         other_user_id = data.get('user_id')
         if not other_user_id:
+            logger.warning("No user_id provided for DM history")
             return
+            
+        logger.info(f"Fetching DM history between {current_user.id} and {other_user_id}")
             
         # Get messages between the two users
         messages = DirectMessage.query.filter(
@@ -700,23 +704,36 @@ def handle_get_dm_history(data):
             )
         ).order_by(DirectMessage.timestamp.desc()).limit(50).all()
         
+        logger.info(f"Found {len(messages)} messages")
+        
         # Mark received messages as read
         unread_messages = [msg for msg in messages 
                           if msg.recipient_id == current_user.id and not msg.is_read]
-        for msg in unread_messages:
-            msg.is_read = True
         
-        if unread_messages:
-            db.session.commit()
+        try:
+            for msg in unread_messages:
+                msg.is_read = True
+            
+            if unread_messages:
+                db.session.commit()
+                logger.info(f"Marked {len(unread_messages)} messages as read")
+        except Exception as e:
+            logger.error(f"Error marking messages as read: {str(e)}")
+            db.session.rollback()
+        
+        # Convert messages to dict and reverse chronological order
+        message_data = [msg.to_dict() for msg in reversed(messages)]
         
         # Send history to user
         emit('dm_history', {
             'user_id': other_user_id,
-            'messages': [msg.to_dict() for msg in reversed(messages)]
+            'messages': message_data
         })
+        logger.info(f"Sent {len(message_data)} messages to user")
         
     except Exception as e:
-        logger.error(f"Error fetching DM history: {str(e)}")
+        logger.error(f"Error fetching DM history: {str(e)}", exc_info=True)
+        db.session.rollback()
         emit('error', {'message': 'Failed to fetch message history'})
 
 @socketio.on('mark_dm_read')
