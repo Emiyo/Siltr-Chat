@@ -31,19 +31,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = messageInput.value.trim();
     if (message) {
       const replyToId = messageInput.getAttribute("data-reply-to");
-      socket.emit("message", {
-        text: message,
-        channel_id: currentChannel,
-        parent_id: replyToId || null,
-      });
+      const recipientId = messageInput.getAttribute("data-recipient-id");
+      
+      // Check if it's a direct message
+      if (recipientId) {
+        socket.emit("direct_message", {
+          text: message,
+          recipient_id: parseInt(recipientId),
+        });
+        messageInput.removeAttribute("data-recipient-id");
+      } else {
+        socket.emit("message", {
+          text: message,
+          channel_id: currentChannel,
+          parent_id: replyToId || null,
+        });
+        messageInput.removeAttribute("data-reply-to");
+      }
       messageInput.value = "";
-      messageInput.removeAttribute("data-reply-to");
     }
   });
 
   // Message handling
   socket.on("message", (data) => {
     addMessage(data);
+    scrollToBottom();
+  });
+
+  socket.on("direct_message", (data) => {
+    addMessage({
+      ...data,
+      type: "private"
+    });
     scrollToBottom();
   });
 
@@ -244,6 +263,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function startDirectMessage(userId, username) {
+    const messageInput = document.getElementById("messageInput");
+    messageInput.setAttribute("data-recipient-id", userId);
+    messageInput.value = `@${username} `;
+    messageInput.focus();
+  }
+
   function updateUserList(users) {
     const userList = document.getElementById("userList");
     if (!userList || !Array.isArray(users)) {
@@ -280,12 +306,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${onlineUsers
                   .map(
                     (user) => `
-                    <div class="user-item" onclick="window.displayUserProfile(${user.id})">
-                        <div class="user-info">
+                    <div class="user-item">
+                        <div class="user-info" onclick="window.displayUserProfile(${user.id})">
                             <span class="username online">
                                 ${user.display_name || user.username}
                             </span>
                             ${user.status ? `<div class="user-status">${user.status}</div>` : ""}
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-sm btn-terminal" onclick="startDirectMessage(${user.id}, '${user.username}')">
+                                Message
+                            </button>
                         </div>
                     </div>
                 `,
@@ -297,12 +328,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${offlineUsers
                   .map(
                     (user) => `
-                    <div class="user-item" onclick="window.displayUserProfile(${user.id})">
-                        <div class="user-info">
+                    <div class="user-item">
+                        <div class="user-info" onclick="window.displayUserProfile(${user.id})">
                             <span class="username offline">
                                 ${user.display_name || user.username}
                             </span>
                             ${user.status ? `<div class="user-status">${user.status}</div>` : ""}
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-sm btn-terminal" onclick="startDirectMessage(${user.id}, '${user.username}')">
+                                Message
+                            </button>
                         </div>
                     </div>
                 `,
