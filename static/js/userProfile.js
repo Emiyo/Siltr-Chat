@@ -50,10 +50,10 @@ function isCurrentUserProfile(userId, userData) {
   // Case 1: Explicitly viewing current user's profile
   if (userId === 'current') return true;
   
-  // Case 2: Check if the profile ID matches the current user's ID
-  if (!userData || !userData.id || !currentUserId) return false;
+  // Case 2: Compare usernames
+  if (!userData || !userData.username || !currentUsername) return false;
   
-  return userData.id === currentUserId;
+  return userData.username === currentUsername;
 }
 
 const modalElement = document.getElementById("userProfileModal");
@@ -64,13 +64,13 @@ let profileModal = modalElement ? new bootstrap.Modal(modalElement, {
 }) : null;
 
 // Global variables
-let currentUserId = null;
+let currentUsername = null;
 let colorPicker = null;
 
-// When socket connects and sends user data, store the current user's ID
+// When socket connects and sends user data, store the current user's username
 socket.on('user_connected', (userData) => {
-    currentUserId = userData.id;
-    console.log("Current user connected with ID:", userData.id);
+    currentUsername = userData.username;
+    console.log("Current user connected with username:", userData.username);
 });
 
 // Set up modal event handlers
