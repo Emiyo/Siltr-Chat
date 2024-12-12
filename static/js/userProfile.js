@@ -118,6 +118,7 @@ window.displayUserProfile = async function (userId) {
                 <p id="modalLocation" class="text-muted">${userData.location || "Location not set"}</p>
             </div>
 
+            ${userId === 'current' ? `
             <div class="profile-section">
                 <h3>theme</h3>
                 <div class="theme-section">
@@ -153,6 +154,7 @@ window.displayUserProfile = async function (userId) {
                     </div>
                 </div>
             </div>
+            ` : ''}
 
             <div class="member-since">
                 whois user
