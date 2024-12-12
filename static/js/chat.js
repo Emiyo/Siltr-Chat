@@ -86,12 +86,38 @@ function updateActiveConversations(message) {
           formData.append('file', file);
           
           // Send file via HTTP request
+          // Validate file size (max 10MB)
+          const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+          if (file.size > MAX_FILE_SIZE) {
+            alert(`File size exceeds maximum limit of 10MB. Please choose a smaller file.`);
+            return;
+          }
+
+          // Create and show progress indicator
+          const progressDiv = document.createElement('div');
+          progressDiv.className = 'upload-progress';
+          progressDiv.innerHTML = `
+            <div class="progress-text">Uploading file: ${file.name}</div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          `;
+          messageContainer.appendChild(progressDiv);
+
           fetch('/api/upload_dm_file', {
             method: 'POST',
             body: formData
           })
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Upload failed with status ${response.status}`);
+            }
+            return response.json();
+          })
           .then(data => {
+            // Remove progress indicator
+            progressDiv.remove();
+            
             // After file upload, send message with file info
             dmData.file_url = data.file_url;
             dmData.file_type = data.file_type;
@@ -107,7 +133,8 @@ function updateActiveConversations(message) {
           })
           .catch(error => {
             console.error('Error uploading file:', error);
-            alert('Failed to upload file. Please try again.');
+            progressDiv.innerHTML = `<div class="error-message">Failed to upload file: ${error.message}</div>`;
+            setTimeout(() => progressDiv.remove(), 5000);
           });
         } else {
           // If no file, send message directly
@@ -155,13 +182,74 @@ function updateActiveConversations(message) {
           recipient: recipient || { id: parsedRecipientId }
         });
       } else {
-        socket.emit("message", {
-          text: message,
-          channel_id: currentChannel,
-          parent_id: replyToId || null,
-        });
-        messageInput.removeAttribute("data-reply-to");
-        messageInput.value = "";
+        // Handle channel messages
+        if (file) {
+          const formData = new FormData();
+          formData.append('text', message);
+          formData.append('channel_id', currentChannel);
+          formData.append('file', file);
+          if (replyToId) {
+            formData.append('parent_id', replyToId);
+          }
+          
+          // Create and show progress indicator
+          const progressDiv = document.createElement('div');
+          progressDiv.className = 'upload-progress';
+          progressDiv.innerHTML = `
+            <div class="progress-text">Uploading file: ${file.name}</div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          `;
+          messageContainer.appendChild(progressDiv);
+          
+          // Send file via HTTP request
+          fetch('/api/upload_channel_file', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Upload failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Remove progress indicator
+            progressDiv.remove();
+            
+            // Emit message with file info
+            socket.emit("message", {
+              text: message,
+              channel_id: currentChannel,
+              parent_id: replyToId || null,
+              file_url: data.file_url,
+              file_type: data.file_type,
+              file_name: data.file_name
+            });
+            
+            // Clear input after successful send
+            messageInput.removeAttribute("data-reply-to");
+            messageInput.value = "";
+            if (fileInput) {
+              fileInput.value = "";
+            }
+          })
+          .catch(error => {
+            console.error('Error uploading file:', error);
+            progressDiv.innerHTML = `<div class="error-message">Failed to upload file: ${error.message}</div>`;
+            setTimeout(() => progressDiv.remove(), 5000);
+          });
+        } else {
+          // Send regular message without file
+          socket.emit("message", {
+            text: message,
+            channel_id: currentChannel,
+            parent_id: replyToId || null,
+          });
+          messageInput.removeAttribute("data-reply-to");
+          messageInput.value = "";
+        }
       }
     }
   });
