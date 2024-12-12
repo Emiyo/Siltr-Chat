@@ -588,6 +588,117 @@ def handle_system_message(data):
 
 
 
+@socketio.on('direct_message')
+def handle_direct_message(data):
+    """Handle direct messages between users"""
+    if not current_user.is_authenticated:
+        logger.warning("Unauthenticated user tried to send direct message")
+        return False
+
+    try:
+        content = data.get('text', '').strip()
+        recipient_id = data.get('recipient_id')
+        
+        if not content or not recipient_id:
+            logger.warning("Missing content or recipient_id in direct message")
+            return False
+            
+        # Check if recipient exists
+        recipient = User.query.get(recipient_id)
+        if not recipient:
+            logger.error(f"Recipient {recipient_id} not found")
+            return False
+            
+        # Create and save the direct message
+        message = DirectMessage(
+            content=content,
+            sender_id=current_user.id,
+            recipient_id=recipient_id
+        )
+        
+        db.session.add(message)
+        db.session.commit()
+        
+        # Prepare message data
+        message_data = message.to_dict()
+        
+        # Emit to both sender and recipient
+        emit('direct_message', message_data, room=f'user_{current_user.id}')
+        emit('direct_message', message_data, room=f'user_{recipient_id}')
+        
+        # Send notification to recipient
+        notification_data = {
+            'type': 'new_dm',
+            'sender': current_user.username,
+            'message': content[:50] + '...' if len(content) > 50 else content
+        }
+        emit('notification', notification_data, room=f'user_{recipient_id}')
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error in handle_direct_message: {str(e)}", exc_info=True)
+        db.session.rollback()
+        emit('error', {'message': 'Failed to send direct message'})
+        return False
+
+@socketio.on('get_dm_history')
+def handle_get_dm_history(data):
+    """Handle request for DM history with a specific user"""
+    if not current_user.is_authenticated:
+        return
+        
+    try:
+        other_user_id = data.get('user_id')
+        if not other_user_id:
+            return
+            
+        # Get messages between the two users
+        messages = DirectMessage.query.filter(
+            db.or_(
+                db.and_(DirectMessage.sender_id == current_user.id, 
+                       DirectMessage.recipient_id == other_user_id),
+                db.and_(DirectMessage.sender_id == other_user_id, 
+                       DirectMessage.recipient_id == current_user.id)
+            )
+        ).order_by(DirectMessage.timestamp.desc()).limit(50).all()
+        
+        # Mark received messages as read
+        unread_messages = [msg for msg in messages 
+                          if msg.recipient_id == current_user.id and not msg.is_read]
+        for msg in unread_messages:
+            msg.is_read = True
+        
+        if unread_messages:
+            db.session.commit()
+        
+        # Send history to user
+        emit('dm_history', {
+            'user_id': other_user_id,
+            'messages': [msg.to_dict() for msg in reversed(messages)]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching DM history: {str(e)}")
+        emit('error', {'message': 'Failed to fetch message history'})
+
+@socketio.on('mark_dm_read')
+def handle_mark_dm_read(data):
+    """Mark direct messages as read"""
+    if not current_user.is_authenticated:
+        return
+        
+    try:
+        message_id = data.get('message_id')
+        if message_id:
+            message = DirectMessage.query.get(message_id)
+            if message and message.recipient_id == current_user.id:
+                message.is_read = True
+                db.session.commit()
+                
+    except Exception as e:
+        logger.error(f"Error marking message as read: {str(e)}")
+
 @socketio.on('join_channel')
 def handle_join_channel(data):
     """Handle joining a channel"""

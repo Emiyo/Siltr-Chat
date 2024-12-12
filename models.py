@@ -168,3 +168,27 @@ class Message(db.Model):
             }
             
         return data
+
+class DirectMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    
+    # Relationships
+    sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('sent_messages', lazy=True))
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref=db.backref('received_messages', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'content': self.content,
+            'timestamp': self.timestamp.isoformat(),
+            'sender_id': self.sender_id,
+            'recipient_id': self.recipient_id,
+            'is_read': self.is_read,
+            'sender': self.sender.to_dict(),
+            'recipient': self.recipient.to_dict()
+        }

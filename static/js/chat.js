@@ -289,7 +289,68 @@ document.addEventListener("DOMContentLoaded", () => {
     messageInput.setAttribute("data-recipient-id", userId);
     messageInput.value = `@${username} `;
     messageInput.focus();
+    
+    // Load DM history when starting a conversation
+    socket.emit('get_dm_history', { user_id: userId });
+    
+    // Clear current channel to show we're in DM mode
+    currentChannel = null;
+    document.querySelectorAll('.channel-item').forEach(ch => ch.classList.remove('active'));
+    
+    // Add DM indicator in message container
+    const dmIndicator = document.createElement('div');
+    dmIndicator.className = 'dm-indicator';
+    dmIndicator.innerHTML = `Direct Message with ${username}`;
+    messageContainer.innerHTML = '';
+    messageContainer.appendChild(dmIndicator);
   };
+
+  // Handle DM history
+  socket.on('dm_history', (data) => {
+    // Clear message container except for DM indicator
+    const dmIndicator = messageContainer.querySelector('.dm-indicator');
+    messageContainer.innerHTML = '';
+    if (dmIndicator) messageContainer.appendChild(dmIndicator);
+    
+    // Add messages
+    data.messages.forEach(message => {
+      addMessage({
+        ...message,
+        type: 'private'
+      });
+    });
+    scrollToBottom();
+  });
+
+  // Handle notifications
+  socket.on('notification', (data) => {
+    if (data.type === 'new_dm') {
+      // Create notification
+      const notification = document.createElement('div');
+      notification.className = 'notification notification-dm';
+      notification.innerHTML = `
+        <div class="notification-content">
+          <strong>${data.sender}</strong>: ${data.message}
+        </div>
+      `;
+      
+      // Add to DOM
+      const notificationContainer = document.getElementById('notificationContainer') || 
+        document.createElement('div');
+      if (!document.getElementById('notificationContainer')) {
+        notificationContainer.id = 'notificationContainer';
+        document.body.appendChild(notificationContainer);
+      }
+      
+      notificationContainer.appendChild(notification);
+      
+      // Remove after 5 seconds
+      setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
+    }
+  });
 
   function updateUserList(users) {
     const userList = document.getElementById("userList");
