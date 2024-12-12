@@ -32,6 +32,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# Session configuration
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
+app.config['REMEMBER_COOKIE_SECURE'] = True
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+
 # Initialize extensions
 init_extensions(app)
 
@@ -159,6 +168,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
+        # Check if user is already authenticated
         if current_user.is_authenticated:
             logger.info("Already authenticated user accessing login page")
             return redirect(url_for('index'))
@@ -166,6 +176,7 @@ def login():
         if request.method == 'POST':
             email = request.form.get('email')
             password = request.form.get('password')
+            remember = request.form.get('remember', False)
             
             logger.info(f"Login attempt for email: {email}")
             
@@ -178,11 +189,18 @@ def login():
             
             if user and user.check_password(password):
                 logger.info(f"User {user.username} authenticated successfully")
-                login_user(user, remember=True)
                 
-                # Handle the next page redirect
+                # Set session parameters
+                session.permanent = True
+                
+                # Login the user
+                login_user(user, remember=remember)
+                
+                # Get the next page from args
                 next_page = request.args.get('next')
-                if not next_page or url_parse(next_page).netloc != '':
+                
+                # Validate the next URL
+                if not next_page or not next_page.startswith('/') or url_parse(next_page).netloc:
                     next_page = url_for('index')
                 
                 logger.info(f"Redirecting authenticated user to: {next_page}")
@@ -190,13 +208,13 @@ def login():
             
             logger.warning(f"Failed login attempt for email: {email}")
             flash('Invalid email or password', 'error')
-            return render_template('login.html'), 401
+            return render_template('login.html')
             
     except Exception as e:
         logger.error(f"Login error: {str(e)}", exc_info=True)
         flash('An error occurred during login. Please try again.', 'error')
         db.session.rollback()
-        return render_template('login.html'), 500
+        return render_template('login.html')
 
     return render_template('login.html')
 
