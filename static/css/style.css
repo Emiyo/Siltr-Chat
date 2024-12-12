@@ -366,8 +366,8 @@ body {
 }
 
 .terminal-button {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
