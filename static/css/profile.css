@@ -62,7 +62,7 @@
 
 .discord-profile-modal {
     max-width: 800px;
-    margin: 2rem auto;
+    margin: 5px auto;
     background-color: var(--terminal-bg);
     border-radius: 8px;
     overflow: hidden;
@@ -107,11 +107,11 @@
 }
 
 .profile-content {
-    padding: 30px;
+    padding: 5px 30px 30px;
     color: var(--text-color);
     background-color: var(--background-primary);
     min-height: 300px;
-    margin-top: 50px;
+    margin-top: 45px;
 }
 
 .profile-avatar-container {
