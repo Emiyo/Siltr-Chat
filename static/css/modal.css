@@ -11,10 +11,10 @@
 
 .modal-content {
     position: relative;
-    background-color: #1a1a1a;
+    background: transparent;
     margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #333;
+    padding: 0;
+    border: none;
     border-radius: 8px;
     width: 90%;
     max-width: 800px;
