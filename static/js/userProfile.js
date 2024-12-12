@@ -1,5 +1,10 @@
 // Initialize profile display functionality
-document.addEventListener('DOMContentLoaded', function() {
+function initializeProfileHandlers() {
+    if (!window.store || !window.profileActions) {
+        console.error('Redux store or actions not initialized');
+        return;
+    }
+    
     const { openModal, closeModal, setUserData, clearProfile } = window.profileActions;
     const store = window.store;
     
@@ -86,10 +91,25 @@ document.addEventListener('DOMContentLoaded', function() {
             store.dispatch(window.displayUserProfile(userId));
         };
     });
-});
+}
 
-// Initialize event handlers when DOM is ready
+// Initialize when DOM and Redux are ready
 document.addEventListener('DOMContentLoaded', function() {
+    // Wait for Redux store to be initialized
+    const checkStoreInterval = setInterval(() => {
+        if (window.store && window.profileActions) {
+            clearInterval(checkStoreInterval);
+            initializeProfileHandlers();
+        }
+    }, 100);
+
+    // Safety timeout after 5 seconds
+    setTimeout(() => {
+        clearInterval(checkStoreInterval);
+        if (!window.store || !window.profileActions) {
+            console.error('Redux store initialization timed out');
+        }
+    }, 5000);
     const modal = document.getElementById('userProfileModal');
     const closeBtn = modal.querySelector('.close');
 

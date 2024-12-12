@@ -42,9 +42,8 @@ const profileSlice = window.RTK.createSlice({
 window.profileActions = profileSlice.actions;
 window.profileReducer = profileSlice.reducer;
 
-// Async action creator for displaying user profile
-window.displayUserProfile = function(userId) {
-  return async function(dispatch) {
+// Create async thunk for displaying user profile
+window.displayUserProfile = (userId) => (dispatch, getState) => {
     dispatch(profileActions.setLoading(true));
     try {
       dispatch(profileActions.setCurrentUserId(userId));
