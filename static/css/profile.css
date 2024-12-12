@@ -40,7 +40,7 @@
     position: relative;
     height: 120px;
     background-color: var(--terminal-bg);
-    margin-bottom: 60px;
+    margin-bottom: 40px;
     border-bottom: 1px solid rgba(74, 158, 255, 0.3);
     padding-top: 25px;
 }
@@ -142,7 +142,7 @@
 
 .profile-header {
     position: absolute;
-    bottom: -50px;
+    bottom: -30px;
     left: 30px;
     display: flex;
     align-items: center;
