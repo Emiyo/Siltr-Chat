@@ -149,44 +149,46 @@ class TerminalWindow {
         
         const panelRect = panel.getBoundingClientRect();
         
-        // Horizontal snapping with magnetic pull
-        const rightDiff = x - panelRect.right;
+        const PANEL_PADDING = 10; // Padding between snapped panels
+
+        // Horizontal snapping with magnetic pull and padding
+        const rightDiff = x - (panelRect.right + PANEL_PADDING);
         if (Math.abs(rightDiff) < SNAP_THRESHOLD) {
           const pull = 1 - (Math.abs(rightDiff) / SNAP_THRESHOLD);
-          x = panelRect.right - (rightDiff * pull * pull);
+          x = (panelRect.right + PANEL_PADDING) - (rightDiff * pull * pull);
           if (Math.abs(rightDiff) < SNAP_EDGE_THRESHOLD) {
-            x = panelRect.right;
+            x = panelRect.right + PANEL_PADDING;
             snapped = true;
           }
         }
 
-        const leftDiff = (x + rect.width) - panelRect.left;
+        const leftDiff = (x + rect.width) - (panelRect.left - PANEL_PADDING);
         if (Math.abs(leftDiff) < SNAP_THRESHOLD) {
           const pull = 1 - (Math.abs(leftDiff) / SNAP_THRESHOLD);
-          x = panelRect.left - rect.width + (leftDiff * pull * pull);
+          x = (panelRect.left - PANEL_PADDING) - rect.width + (leftDiff * pull * pull);
           if (Math.abs(leftDiff) < SNAP_EDGE_THRESHOLD) {
-            x = panelRect.left - rect.width;
+            x = panelRect.left - PANEL_PADDING - rect.width;
             snapped = true;
           }
         }
         
-        // Vertical snapping with magnetic pull
-        const bottomDiff = y - panelRect.bottom;
+        // Vertical snapping with magnetic pull and padding
+        const bottomDiff = y - (panelRect.bottom + PANEL_PADDING);
         if (Math.abs(bottomDiff) < SNAP_THRESHOLD) {
           const pull = 1 - (Math.abs(bottomDiff) / SNAP_THRESHOLD);
-          y = panelRect.bottom - (bottomDiff * pull * pull);
+          y = (panelRect.bottom + PANEL_PADDING) - (bottomDiff * pull * pull);
           if (Math.abs(bottomDiff) < SNAP_EDGE_THRESHOLD) {
-            y = panelRect.bottom;
+            y = panelRect.bottom + PANEL_PADDING;
             snapped = true;
           }
         }
 
-        const topDiff = (y + rect.height) - panelRect.top;
+        const topDiff = (y + rect.height) - (panelRect.top - PANEL_PADDING);
         if (Math.abs(topDiff) < SNAP_THRESHOLD) {
           const pull = 1 - (Math.abs(topDiff) / SNAP_THRESHOLD);
-          y = panelRect.top - rect.height + (topDiff * pull * pull);
+          y = (panelRect.top - PANEL_PADDING) - rect.height + (topDiff * pull * pull);
           if (Math.abs(topDiff) < SNAP_EDGE_THRESHOLD) {
-            y = panelRect.top - rect.height;
+            y = panelRect.top - PANEL_PADDING - rect.height;
             snapped = true;
           }
         }
