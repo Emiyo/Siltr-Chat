@@ -11,6 +11,22 @@ document.addEventListener("DOMContentLoaded", () => {
   messageContainer = document.getElementById("messageContainer");
   const messageForm = document.getElementById("messageForm");
   const messageInput = document.getElementById("messageInput");
+  const fileInput = document.getElementById("fileInput");
+
+  // Add file input change listener
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Show selected file name
+        const fileName = document.createElement('div');
+        fileName.className = 'selected-file';
+        fileName.textContent = `Selected file: ${file.name}`;
+        messageContainer.appendChild(fileName);
+        setTimeout(() => fileName.remove(), 3000);
+      }
+    });
+  }
 
   // Track active conversations
 let activeConversations = [];
