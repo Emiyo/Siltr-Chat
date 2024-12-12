@@ -41,40 +41,51 @@
     <!-- User Profile Modal -->
     <div class="modal" id="userProfileModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">User Profile</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="discord-profile-modal">
+                <div class="profile-banner" id="profileBanner">
+                    <div class="profile-header">
+                        <div class="profile-avatar-container">
+                            <img id="profileAvatar" src="" alt="Profile Avatar" class="profile-avatar">
+                        </div>
+                        <div class="profile-username-container">
+                            <h2 id="profileUsername" class="profile-username"></h2>
+                            <div id="profileStatus" class="profile-status"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div class="profile-container">
-                        <div class="profile-header d-flex align-items-center mb-4">
-                            <div class="profile-avatar-wrapper me-3">
-                                <img id="profileAvatar" src="" alt="Profile Avatar" class="rounded-circle" style="width: 64px; height: 64px;">
-                            </div>
-                            <div class="profile-info">
-                                <h4 id="profileUsername" class="mb-1"></h4>
-                                <p id="profileStatus" class="text-muted mb-0"></p>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <h3>About Me</h3>
+                        <p id="profileBio" class="text-muted"></p>
+                        <p id="profileLocation" class="text-muted"></p>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h3>Theme</h3>
+                        <div class="theme-customization">
+                            <h4>Accent Color</h4>
+                            <input type="color" id="accentColorPicker" class="color-picker" value="#5865F2">
+                        </div>
+                        <div class="theme-preview">
+                            <h5>Preview</h5>
+                            <div class="preview-container">
+                                <div class="preview-message preview-own">
+                                    Preview of your messages
+                                </div>
+                                <div class="preview-message preview-other">
+                                    Preview of other's messages
+                                </div>
+                                <div class="preview-input">
+                                    <input type="text" class="preview-message-input" placeholder="Message preview...">
+                                </div>
                             </div>
                         </div>
-                        <div class="profile-details">
-                            <div class="mb-3">
-                                <h6>About</h6>
-                                <p id="profileBio" class="text-muted"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6>Location</h6>
-                                <p id="profileLocation" class="text-muted"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6>Member Since</h6>
-                                <p id="profileJoinDate" class="text-muted"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6>Last Seen</h6>
-                                <p id="profileLastSeen" class="text-muted"></p>
-                            </div>
-                        </div>
+                    </div>
+
+                    <div class="member-since">
+                        Member since <span id="profileJoinDate"></span>
+                        <br>
+                        Last seen <span id="profileLastSeen"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
