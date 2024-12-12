@@ -341,12 +341,11 @@ body {
   position: absolute;
   left: 1rem;
   top: 50%;
-  transform: translateY(-50%);
   display: flex;
   gap: 0.5rem;
-  width: 70px;
   justify-content: center;
-  align-items: center;
+  heigth: 100%;
+  width: 50%;
 }
 
 .terminal-header span {
