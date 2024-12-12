@@ -1,3 +1,75 @@
+// Define displayUserProfile as a global function
+window.displayUserProfile = async function(userId) {
+    try {
+        if (!userId) {
+            console.error('No user ID provided');
+            return;
+        }
+        
+        currentUserId = userId;
+        console.log('Loading profile for user:', userId);
+        
+        // Store original content and show loading state
+        const content = document.querySelector('.profile-content');
+        const originalContent = content ? content.innerHTML : '';
+        if (content) {
+            content.innerHTML = '<div class="loading-spinner"></div><div class="text-center mt-3">Loading profile...</div>';
+        }
+        
+        try {
+            // Fetch user data
+            const response = await fetch(`/api/user/by_id/${userId}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+            
+            const userData = await response.json();
+            console.log('Profile data received:', userData);
+
+            // Only proceed if we have user data
+            if (!userData || typeof userData !== 'object') {
+                throw new Error('Invalid user data received');
+            }
+        
+            // Update modal content
+            safeSetSrc('profileAvatar', userData.avatar);
+            safeSetTextContent('profileUsername', userData.display_name || userData.username);
+            safeSetTextContent('profileStatus', userData.status || 'No status set');
+            safeSetTextContent('profileBio', userData.bio || 'No bio provided');
+            safeSetTextContent('profileLocation', userData.location || 'Location not set');
+            safeSetTextContent('profileJoinDate', formatDate(userData.created_at));
+            safeSetTextContent('profileLastSeen', formatDate(userData.last_seen));
+            
+            // Update theme color
+            if (userData.accent_color) {
+                if (colorPicker) colorPicker.value = userData.accent_color;
+                updateThemePreview(userData.accent_color);
+                updateProfileBanner(userData.accent_color);
+            }
+            
+            // Show the modal
+            profileModal.show();
+            if (content) {
+                content.innerHTML = '';  // Clear loading state
+            }
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+            if (content) {
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error loading profile:</strong><br>
+                        ${error.message || 'Failed to load user profile. Please try again.'}
+                    </div>
+                `;
+            }
+            return;  // Exit early on error
+        }
+    } catch (error) {
+        console.error('Error in displayUserProfile:', error);
+    }
+};
+
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Bootstrap modal
@@ -57,75 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateProfileBanner(color);
         });
     }
-    
-    // Function to display user profile - making it globally accessible
-    window.displayUserProfile = async function displayUserProfile(userId) {
-        try {
-            if (!userId) {
-                console.error('No user ID provided');
-                return;
-            }
-            
-            currentUserId = userId;
-            console.log('Loading profile for user:', userId);
-            
-            // Store original content and show loading state
-            const content = document.querySelector('.profile-content');
-            const originalContent = content ? content.innerHTML : '';
-            if (content) {
-                content.innerHTML = '<div class="loading-spinner"></div><div class="text-center mt-3">Loading profile...</div>';
-            }
-            
-            try {
-                // Fetch user data
-                const response = await fetch(`/api/user/by_id/${userId}`);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                
-                const userData = await response.json();
-                console.log('Profile data received:', userData);
-
-                // Only proceed if we have user data
-                if (!userData || typeof userData !== 'object') {
-                    throw new Error('Invalid user data received');
-                }
-            
-            // Update modal content
-            safeSetSrc('profileAvatar', userData.avatar);
-            safeSetTextContent('profileUsername', userData.display_name || userData.username);
-            safeSetTextContent('profileStatus', userData.status || 'No status set');
-            safeSetTextContent('profileBio', userData.bio || 'No bio provided');
-            safeSetTextContent('profileLocation', userData.location || 'Location not set');
-            safeSetTextContent('profileJoinDate', formatDate(userData.created_at));
-            safeSetTextContent('profileLastSeen', formatDate(userData.last_seen));
-            
-            // Update theme color
-            if (userData.accent_color) {
-                if (colorPicker) colorPicker.value = userData.accent_color;
-                updateThemePreview(userData.accent_color);
-                updateProfileBanner(userData.accent_color);
-            }
-            
-            // Show the modal
-            profileModal.show();
-        if (content) {
-                    content.innerHTML = '';  // Clear loading state
-                }
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                if (content) {
-                    content.innerHTML = `
-                        <div class="alert alert-danger">
-                            <strong>Error loading profile:</strong><br>
-                            ${error.message || 'Failed to load user profile. Please try again.'}
-                        </div>
-                    `;
-                }
-                return;  // Exit early on error
-            }
-    };
     
     // Event delegation for user profile clicks
     document.body.addEventListener('click', function(event) {
