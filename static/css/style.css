@@ -372,6 +372,41 @@ body {
 
 /* Message Styling */
 /* Message Actions and Threading */
+.thread-container {
+  margin-left: 2rem;
+  border-left: 2px solid var(--primary-color);
+  padding-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+.thread-header {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.thread-header::before {
+  content: "└";
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.thread-count {
+  background: rgba(74, 158, 255, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--primary-color);
+}
+
+.thread-preview {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
 
 /* Message Styles */
 .message {
