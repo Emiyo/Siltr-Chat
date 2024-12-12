@@ -1,8 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
-import profileReducer from './profileSlice';
-
-export const store = configureStore({
+// Initialize Redux store
+window.store = window.RTK.configureStore({
   reducer: {
-    profile: profileReducer,
-  },
+    profile: window.profileReducer
+  }
 });

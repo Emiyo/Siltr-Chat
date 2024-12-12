@@ -1,11 +1,5 @@
-import { store } from './store';
-import { 
-    setCurrentModal, 
-    setCurrentUserId, 
-    setUserData, 
-    setLoading, 
-    setError 
-} from './store/profileSlice';
+// Get actions from the global scope
+const { setCurrentModal, setCurrentUserId, setUserData, setLoading, setError } = window.profileActions;
 
 // Global profile display functionality
 window.displayUserProfile = async function(userId) {

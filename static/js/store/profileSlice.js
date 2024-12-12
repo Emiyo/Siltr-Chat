@@ -1,5 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
-
+// Create the profile slice using Redux Toolkit
 const initialState = {
   currentModal: null,
   currentUserId: null,
@@ -8,7 +7,7 @@ const initialState = {
   error: null
 };
 
-export const profileSlice = createSlice({
+const profileSlice = window.RTK.createSlice({
   name: 'profile',
   initialState,
   reducers: {
@@ -36,13 +35,6 @@ export const profileSlice = createSlice({
   }
 });
 
-export const { 
-  setCurrentModal, 
-  setCurrentUserId, 
-  setUserData, 
-  setLoading, 
-  setError, 
-  clearProfile 
-} = profileSlice.actions;
-
-export default profileSlice.reducer;
+// Export actions and reducer to window object
+window.profileActions = profileSlice.actions;
+window.profileReducer = profileSlice.reducer;
