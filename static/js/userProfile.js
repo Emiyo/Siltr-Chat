@@ -8,17 +8,24 @@ function initializeProfileHandlers() {
     const { openModal, closeModal, setUserData, clearProfile } = window.profileActions;
     const store = window.store;
     
+    // Initialize Bootstrap modal once
+    const modalElement = document.getElementById('userProfileModal');
+    const profileModal = new bootstrap.Modal(modalElement, {
+        keyboard: true,
+        backdrop: true,
+        focus: true
+    });
+    
     // Subscribe to store changes
     store.subscribe(() => {
         const state = store.getState().profile;
-        const modal = new bootstrap.Modal(document.getElementById('userProfileModal'));
         
         if (state.isModalOpen && state.userData) {
             // Update UI with user data
             updateProfileUI(state.userData);
-            modal.show();
+            profileModal.show();
         } else {
-            modal.hide();
+            profileModal.hide();
         }
     });
 
@@ -65,22 +72,25 @@ function initializeProfileHandlers() {
         }
     }
 
-    // Setup modal close handlers
-    const modalElement = document.getElementById('userProfileModal');
+    // Setup close button handler
     const closeBtn = modalElement.querySelector('.close');
-    const bootstrapModal = new bootstrap.Modal(modalElement);
-
-    // Handle close button click
     if (closeBtn) {
         closeBtn.onclick = () => {
             store.dispatch(clearProfile());
-            bootstrapModal.hide();
         };
     }
 
-    // Handle modal hidden event (includes clicking outside and ESC key)
+    // Handle Bootstrap modal events
     modalElement.addEventListener('hidden.bs.modal', () => {
         store.dispatch(clearProfile());
+    });
+
+    modalElement.addEventListener('show.bs.modal', () => {
+        console.log('Modal is about to show');
+    });
+
+    modalElement.addEventListener('shown.bs.modal', () => {
+        console.log('Modal is now visible');
     });
 
     // Use event delegation for profile clicks
