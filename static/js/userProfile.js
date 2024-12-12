@@ -1,11 +1,11 @@
 // Get actions from the global scope
-const { setCurrentModal, setCurrentUserId, setUserData, setLoading, setError } = window.profileActions;
+const { setCurrentModal, setCurrentUserId, setUserData, setLoading, setError, clearProfile } = window.profileActions;
 
 // Global profile display functionality
 window.displayUserProfile = async function(userId) {
     store.dispatch(setLoading(true));
     try {
-        currentUserId = userId;
+        store.dispatch(setCurrentUserId(userId));
         const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
         const response = await fetch(endpoint);
         if (!response.ok) throw new Error('Failed to fetch user profile');
@@ -17,7 +17,7 @@ window.displayUserProfile = async function(userId) {
             console.error('Modal element not found');
             return;
         }
-        currentModal = modal;
+        store.dispatch(setCurrentModal(modal));
         
         // Update avatar and presence
         const avatarSrc = userData.avatar || '/static/images/default-avatar.png';
@@ -53,8 +53,12 @@ window.displayUserProfile = async function(userId) {
 
         // Show modal
         modal.style.display = "block";
+        store.dispatch(setUserData(userData));
     } catch (error) {
         console.error('Error fetching user profile:', error);
+        store.dispatch(setError(error.message));
+    } finally {
+        store.dispatch(setLoading(false));
     }
 };
 
@@ -71,8 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         socket.on('user_list', function(data) {
-            if (currentUserId && modal.style.display === "block") {
-                const currentUser = data.users.find(u => u.id === currentUserId);
+            const state = store.getState().profile;
+            if (state.currentUserId && state.currentModal && state.currentModal.style.display === "block") {
+                const currentUser = data.users.find(u => u.id === state.currentUserId);
                 if (currentUser) {
                     updateUserPresence(currentUser.presence_state || 'online');
                 }
@@ -80,51 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUserList(data.users);
         });
     }
-        try {
-            currentUserId = userId;
-            const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
-            const response = await fetch(endpoint);
-            if (!response.ok) throw new Error('Failed to fetch user profile');
-            const userData = await response.json();
-            
-            // Update avatar and presence
-            const avatarSrc = userData.avatar || '/static/images/default-avatar.png';
-            document.getElementById('modalUserAvatar').src = avatarSrc;
-            updateUserPresence(userData.presence_state || 'online');
-
-            // Update username and status
-            document.getElementById('modalUsername').textContent = userData.display_name || userData.username;
-            document.getElementById('modalStatus').textContent = userData.status || 'No status set';
-
-            // Update bio and location
-            document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
-            document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
-
-            // Update member info
-            document.getElementById('modalJoinDate').textContent = `Joined: ${new Date(userData.created_at).toLocaleDateString()}`;
-            document.getElementById('modalLastSeen').textContent = userData.last_seen ? 
-                `Last seen: ${new Date(userData.last_seen).toLocaleString()}` : 'Last seen: Never';
-
-            // Update roles
-            const rolesDiv = document.getElementById('modalRoles');
-            rolesDiv.innerHTML = userData.roles ? 
-                userData.roles.map(role => `<span class="role-badge">${role}</span>`).join('') : '';
-
-            // Configure direct message button
-            const messageBtn = document.getElementById('startDirectMessageBtn');
-            if (userId === 'current') {
-                messageBtn.style.display = 'none';
-            } else {
-                messageBtn.style.display = 'block';
-                messageBtn.onclick = () => startDirectMessage(userId);
-            }
-
-            // Show modal
-            modal.style.display = "block";
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-        }
-    };
 
     // Update user presence indicator
     function updateUserPresence(presenceState) {
@@ -143,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         users.forEach(user => {
             const userItem = document.createElement('div');
             userItem.className = 'user-item';
-            userItem.onclick = () => displayUserProfile(user.id);
+            userItem.onclick = () => window.displayUserProfile(user.id);
             userItem.innerHTML = `
                 <div class="user-item-content">
                     <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
@@ -167,13 +127,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal close functionality
     if (closeBtn) {
-        closeBtn.onclick = () => modal.style.display = "none";
+        closeBtn.onclick = () => {
+            modal.style.display = "none";
+            store.dispatch(clearProfile());
+        };
     }
 
     // Close modal when clicking outside
-    window.onclick = event => {
+    window.onclick = function(event) {
         if (event.target === modal) {
             modal.style.display = "none";
+            store.dispatch(clearProfile());
         }
     };
 });
