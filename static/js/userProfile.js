@@ -5,7 +5,7 @@ function initializeProfileHandlers() {
         return;
     }
     
-    const { openModal, closeModal, setUserData, clearProfile } = window.profileActions;
+    const { clearProfile } = window.profileActions;
     const store = window.store;
     
     // Initialize Bootstrap modal once
@@ -93,50 +93,93 @@ function initializeProfileHandlers() {
         console.log('Modal is now visible');
     });
 
-    // Use event delegation for profile clicks
+    // Use event delegation for all profile-related clicks
     document.addEventListener('click', function(e) {
-        const profileBtn = e.target.closest('.profile-btn');
-        if (profileBtn) {
+        // Handle both profile buttons and user items
+        const profileElement = e.target.closest('.profile-btn, .user-item');
+        if (profileElement) {
             e.preventDefault();
-            const userId = profileBtn.getAttribute('data-user-id');
-            if (window.store && window.displayUserProfile) {
+            e.stopPropagation();
+            
+            // Get userId from either data attribute or user-item
+            let userId;
+            if (profileElement.classList.contains('profile-btn')) {
+                userId = profileElement.getAttribute('data-user-id');
+            } else {
+                userId = profileElement.getAttribute('data-user-id');
+            }
+
+            console.log('Profile click detected:', { userId, element: profileElement });
+
+            if (userId && window.store && window.displayUserProfile) {
                 window.store.dispatch(window.displayUserProfile(userId));
             } else {
-                console.error('Redux store or displayUserProfile not initialized');
+                console.error('Missing required data:', {
+                    userId,
+                    store: !!window.store,
+                    displayUserProfile: !!window.displayUserProfile
+                });
             }
         }
     });
 
-    // Set up profile buttons
-    const profileButtons = document.querySelectorAll('.profile-btn');
-    profileButtons.forEach(btn => {
-        if (!btn.hasAttribute('data-user-id')) {
-            const userId = btn.getAttribute('onclick')?.match(/'([^']+)'/))?.[1];
-            if (userId) {
-                btn.setAttribute('data-user-id', userId);
-                btn.removeAttribute('onclick');
+    // Update any existing profile buttons
+    const updateProfileButtons = () => {
+        const profileButtons = document.querySelectorAll('.profile-btn, .user-item');
+        profileButtons.forEach(btn => {
+            if (!btn.hasAttribute('data-user-id')) {
+                const userId = btn.getAttribute('onclick')?.match(/['"]([^'"]+)['"]/))?.[1];
+                if (userId) {
+                    btn.setAttribute('data-user-id', userId);
+                    btn.removeAttribute('onclick');
+                }
             }
-        }
-    });
+        });
+    };
+
+    // Initial update
+    updateProfileButtons();
+
+    // Update buttons when user list changes
+    const userList = document.getElementById('userList');
+    if (userList) {
+        const observer = new MutationObserver(updateProfileButtons);
+        observer.observe(userList, { childList: true, subtree: true });
+    }
 }
 
 // Initialize when DOM and Redux are ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for Redux store to be initialized
-    const checkStoreInterval = setInterval(() => {
-        if (window.store && window.profileActions) {
-            clearInterval(checkStoreInterval);
+    let storeInitAttempts = 0;
+    const maxAttempts = 50; // 5 seconds total
+    
+    const checkStoreAndInitialize = () => {
+        if (window.store && window.profileActions && typeof bootstrap !== 'undefined') {
+            console.log('Store, actions, and Bootstrap initialized');
             initializeProfileHandlers();
+            return true;
         }
-    }, 100);
+        return false;
+    };
 
-    // Safety timeout after 5 seconds
-    setTimeout(() => {
-        clearInterval(checkStoreInterval);
-        if (!window.store || !window.profileActions) {
-            console.error('Redux store initialization timed out');
-        }
-    }, 5000);
+    // Try immediate initialization
+    if (!checkStoreAndInitialize()) {
+        // Set up polling if immediate init fails
+        const checkStoreInterval = setInterval(() => {
+            storeInitAttempts++;
+            
+            if (checkStoreAndInitialize()) {
+                clearInterval(checkStoreInterval);
+            } else if (storeInitAttempts >= maxAttempts) {
+                clearInterval(checkStoreInterval);
+                console.error('Store initialization timed out. Missing:', {
+                    store: !window.store,
+                    actions: !window.profileActions,
+                    bootstrap: typeof bootstrap === 'undefined'
+                });
+            }
+        }, 100);
+    }
     const modal = document.getElementById('userProfileModal');
     const closeBtn = modal.querySelector('.close');
 
