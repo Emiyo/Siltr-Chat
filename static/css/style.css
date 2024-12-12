@@ -344,7 +344,7 @@ body {
   top: 0;
   bottom: 0;
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   align-items: center;
   width: fit-content;
   z-index: 2;
@@ -366,8 +366,8 @@ body {
 }
 
 .terminal-button {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
