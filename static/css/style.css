@@ -295,6 +295,8 @@ body {
   position: relative;
   backdrop-filter: blur(5px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  contain: layout style size;
 }
 
 .terminal.minimized {

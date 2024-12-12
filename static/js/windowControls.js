@@ -91,21 +91,51 @@ class TerminalWindow {
       this.container.style.zIndex = '1000';
     });
 
+    const SNAP_THRESHOLD = 20; // px distance to trigger snapping
+    const SNAP_EDGE_THRESHOLD = 10; // px distance to trigger edge snapping
+
     document.addEventListener('mousemove', (e) => {
       if (!this.isDragging) return;
 
       e.preventDefault();
       
-      const x = e.clientX - this.dragOffset.x;
-      const y = e.clientY - this.dragOffset.y;
+      let x = e.clientX - this.dragOffset.x;
+      let y = e.clientY - this.dragOffset.y;
 
-      // Ensure the window stays within viewport bounds
       const rect = this.container.getBoundingClientRect();
       const maxX = window.innerWidth - rect.width;
       const maxY = window.innerHeight - rect.height;
 
+      // Snap to screen edges
+      if (x < SNAP_EDGE_THRESHOLD) x = 0;
+      if (y < SNAP_EDGE_THRESHOLD) y = 0;
+      if (x > maxX - SNAP_EDGE_THRESHOLD) x = maxX;
+      if (y > maxY - SNAP_EDGE_THRESHOLD) y = maxY;
+
+      // Snap to other panels
+      document.querySelectorAll('.terminal').forEach(panel => {
+        if (panel === this.container) return;
+        
+        const panelRect = panel.getBoundingClientRect();
+        
+        // Snap horizontally
+        if (Math.abs(x - panelRect.right) < SNAP_THRESHOLD) x = panelRect.right;
+        if (Math.abs(x + rect.width - panelRect.left) < SNAP_THRESHOLD) x = panelRect.left - rect.width;
+        
+        // Snap vertically
+        if (Math.abs(y - panelRect.bottom) < SNAP_THRESHOLD) y = panelRect.bottom;
+        if (Math.abs(y + rect.height - panelRect.top) < SNAP_THRESHOLD) y = panelRect.top - rect.height;
+      });
+
+      // Apply position with smooth transition
+      this.container.style.transition = 'all 0.1s ease-out';
       this.container.style.left = Math.min(Math.max(0, x), maxX) + 'px';
       this.container.style.top = Math.min(Math.max(0, y), maxY) + 'px';
+      
+      // Remove transition after snap
+      setTimeout(() => {
+        this.container.style.transition = '';
+      }, 100);
     });
 
     document.addEventListener('mouseup', () => {
