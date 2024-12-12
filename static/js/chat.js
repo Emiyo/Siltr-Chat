@@ -181,11 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (message.type === "system") {
       messageDiv.className = "message message-system";
-      messageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-timestamp">${timestamp}</div>
-                    <div class="system-message-text">${messageContent}</div>
-                </div>`;
+      messageDiv.innerHTML = `<span class="system-message-text"><span class="message-timestamp">${timestamp}</span> ${messageContent}</span>`;
     } else if (message.type === "private") {
       messageDiv.className = "message message-private";
       const isOwnMessage = message.user_id === user_id;
