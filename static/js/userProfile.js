@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleString();
     }
     
-    // Function to handle profile data loading and display
-    async function loadUserProfile(userId) {
+    // Function to display user profile - making it globally accessible
+    window.displayUserProfile = async function(userId) {
         try {
             console.log('Loading profile for user:', userId);
             
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading user profile:', error);
             alert('Failed to load user profile. Please try again.');
         }
-    }
+    };
     
     // Event delegation for user profile clicks
     document.body.addEventListener('click', function(event) {
@@ -52,12 +52,12 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             const userId = userElement.dataset.userId;
             console.log('User element clicked, ID:', userId);
-            loadUserProfile(userId);
+            window.displayUserProfile(userId);
         }
     });
     
     // Initialize message button handler
-    document.getElementById('messageUserBtn').addEventListener('click', function() {
+    document.getElementById('messageUserBtn')?.addEventListener('click', function() {
         const userElement = document.querySelector('[data-user-id].selected');
         if (userElement && typeof socket !== 'undefined') {
             socket.emit('start_direct_message', { target_user_id: userElement.dataset.userId });
