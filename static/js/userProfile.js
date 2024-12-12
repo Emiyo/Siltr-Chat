@@ -9,14 +9,34 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleString();
     }
     
+    // Function to safely update element text content
+    function safeSetTextContent(elementId, text) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = text;
+        } else {
+            console.warn(`Element with id '${elementId}' not found`);
+        }
+    }
+
+    // Function to safely update element src attribute
+    function safeSetSrc(elementId, src) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.src = src;
+        } else {
+            console.warn(`Element with id '${elementId}' not found`);
+        }
+    }
+    
     // Function to display user profile - making it globally accessible
     window.displayUserProfile = async function(userId) {
         try {
             console.log('Loading profile for user:', userId);
             
             // Show loading state
-            document.getElementById('profileUsername').textContent = 'Loading...';
-            document.getElementById('profileStatus').textContent = 'Please wait...';
+            safeSetTextContent('profileUsername', 'Loading...');
+            safeSetTextContent('profileStatus', 'Please wait...');
             
             // Fetch user data
             const response = await fetch(`/api/user/by_id/${userId}`);
@@ -27,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const userData = await response.json();
             console.log('Profile data received:', userData);
             
-            // Update modal content
-            document.getElementById('profileAvatar').src = userData.avatar || '/static/images/default-avatar.png';
-            document.getElementById('profileUsername').textContent = userData.display_name || userData.username;
-            document.getElementById('profileStatus').textContent = userData.status || 'No status set';
-            document.getElementById('profileBio').textContent = userData.bio || 'No bio provided';
-            document.getElementById('profileLocation').textContent = userData.location || 'Location not set';
-            document.getElementById('profileJoinDate').textContent = formatDate(userData.created_at);
-            document.getElementById('profileLastSeen').textContent = formatDate(userData.last_seen);
+            // Update modal content using safe update functions
+            safeSetSrc('profileAvatar', userData.avatar || '/static/images/default-avatar.png');
+            safeSetTextContent('profileUsername', userData.display_name || userData.username);
+            safeSetTextContent('profileStatus', userData.status || 'No status set');
+            safeSetTextContent('profileBio', userData.bio || 'No bio provided');
+            safeSetTextContent('profileLocation', userData.location || 'Location not set');
+            safeSetTextContent('profileJoinDate', formatDate(userData.created_at));
+            safeSetTextContent('profileLastSeen', formatDate(userData.last_seen));
             
             // Show the modal
             profileModal.show();
@@ -57,11 +77,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Initialize message button handler
-    document.getElementById('messageUserBtn')?.addEventListener('click', function() {
-        const userElement = document.querySelector('[data-user-id].selected');
-        if (userElement && typeof socket !== 'undefined') {
-            socket.emit('start_direct_message', { target_user_id: userElement.dataset.userId });
-            profileModal.hide();
-        }
-    });
+    const messageUserBtn = document.getElementById('messageUserBtn');
+    if (messageUserBtn) {
+        messageUserBtn.addEventListener('click', function() {
+            const userElement = document.querySelector('[data-user-id].selected');
+            if (userElement && typeof socket !== 'undefined') {
+                socket.emit('start_direct_message', { target_user_id: userElement.dataset.userId });
+                profileModal.hide();
+            }
+        });
+    }
 });
