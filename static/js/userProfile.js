@@ -47,13 +47,26 @@ function updateProfileBanner(color) {
 // Initialize Bootstrap modal
 // Helper function to check if the profile being viewed belongs to the current user
 function isCurrentUserProfile(userId, userData) {
+  console.log('Checking profile ownership:', {
+    userId,
+    userData,
+    currentUsername,
+    isCurrentUser: userId === 'current',
+    usernameMatch: userData?.username === currentUsername
+  });
+  
   // Case 1: Explicitly viewing current user's profile
   if (userId === 'current') return true;
   
   // Case 2: Compare usernames
-  if (!userData || !userData.username || !currentUsername) return false;
+  if (!userData || !userData.username || !currentUsername) {
+    console.log('Missing required data for username comparison');
+    return false;
+  }
   
-  return userData.username === currentUsername;
+  const isOwner = userData.username === currentUsername;
+  console.log('Username comparison result:', isOwner);
+  return isOwner;
 }
 
 const modalElement = document.getElementById("userProfileModal");
@@ -69,8 +82,12 @@ let colorPicker = null;
 
 // When socket connects and sends user data, store the current user's username
 socket.on('user_connected', (userData) => {
-    currentUsername = userData.username;
-    console.log("Current user connected with username:", userData.username);
+    if (userData && userData.username) {
+        currentUsername = userData.username;
+        console.log("Current user connected with username:", userData.username);
+    } else {
+        console.error("Invalid user data received:", userData);
+    }
 });
 
 // Set up modal event handlers
