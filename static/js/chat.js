@@ -11,13 +11,34 @@ document.addEventListener("DOMContentLoaded", () => {
 // Track active conversations
 let activeConversations = [];
 
-// Update active conversations when receiving a DM
+// Update active conversations when receiving or sending a DM
 function updateActiveConversations(message) {
   const otherUser = message.sender_id === user_id ? message.recipient : message.sender;
-  if (!activeConversations.find(u => u.id === otherUser.id)) {
-    activeConversations.push(otherUser);
-    updateCategoryList();
+  if (!otherUser) return; // Skip if no valid user object
+  
+  // Find existing conversation
+  const existingIndex = activeConversations.findIndex(u => u.id === otherUser.id);
+  
+  if (existingIndex === -1) {
+    // New conversation
+    activeConversations.push({
+      id: otherUser.id,
+      username: otherUser.username || message.recipient_username,
+      display_name: otherUser.display_name || otherUser.username || message.recipient_username,
+      last_seen: otherUser.last_seen,
+      unread_count: message.sender_id === user_id ? 0 : 1
+    });
+  } else {
+    // Update existing conversation
+    const existing = activeConversations[existingIndex];
+    if (message.sender_id !== user_id) {
+      existing.unread_count = (existing.unread_count || 0) + 1;
+    }
+    existing.last_seen = otherUser.last_seen;
   }
+  
+  // Always update the category list to refresh UI
+  updateCategoryList();
 }
   const messageForm = document.getElementById("messageForm");
   const messageInput = document.getElementById("messageInput");
