@@ -99,13 +99,15 @@
 }
 
 .modal-dialog.modal-lg {
-    max-width: 90%;
-    width: 1000px;
+    max-width: 95%;
+    width: 1200px;
+    margin: 1.75rem auto;
 }
 
 .profile-content {
     padding: 60px 30px 30px;
     color: var(--text-color);
+    background-color: var(--background-primary);
 }
 
 .profile-avatar-container {
