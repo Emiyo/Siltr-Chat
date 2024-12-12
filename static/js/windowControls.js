@@ -3,12 +3,19 @@ class TerminalWindow {
   constructor(container) {
     this.container = container;
     this.originalDimensions = {
-      width: container.style.width,
-      height: container.style.height
+      width: container.offsetWidth + 'px',
+      height: container.offsetHeight + 'px',
+      position: window.getComputedStyle(container).position,
+      top: window.getComputedStyle(container).top,
+      left: window.getComputedStyle(container).left,
+      right: window.getComputedStyle(container).right,
+      bottom: window.getComputedStyle(container).bottom,
+      zIndex: window.getComputedStyle(container).zIndex
     };
     this.isMinimized = false;
     this.isMaximized = false;
     this.setupControls();
+    this.saveInitialContent();
   }
 
   setupControls() {
@@ -18,51 +25,84 @@ class TerminalWindow {
     // Close button (red)
     const closeBtn = buttons.querySelector('.terminal-button-red');
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => this.close());
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.close();
+      });
     }
 
     // Minimize button (yellow)
     const minimizeBtn = buttons.querySelector('.terminal-button-yellow');
     if (minimizeBtn) {
-      minimizeBtn.addEventListener('click', () => this.minimize());
+      minimizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.minimize();
+      });
     }
 
     // Maximize button (green)
     const maximizeBtn = buttons.querySelector('.terminal-button-green');
     if (maximizeBtn) {
-      maximizeBtn.addEventListener('click', () => this.maximize());
+      maximizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.maximize();
+      });
     }
+
+    // Double click header to maximize
+    const header = this.container.querySelector('.terminal-header');
+    if (header) {
+      header.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        this.maximize();
+      });
+    }
+  }
+
+  saveInitialContent() {
+    this.contentElements = {
+      messages: this.container.querySelector('.chat-messages'),
+      modalBody: this.container.querySelector('.modal-body'),
+      messageForm: this.container.querySelector('#messageForm'),
+      navigation: this.container.querySelector('.navigation-bar'),
+      userList: this.container.querySelector('#userList'),
+      categoryList: this.container.querySelector('#categoryList')
+    };
   }
 
   minimize() {
     if (this.isMinimized) {
       // Restore from minimized state
-      this.container.style.height = this.originalDimensions.height || '100%';
-      this.container.querySelector('.chat-messages, .modal-body')?.style.display = 'block';
-      this.container.querySelector('#messageForm')?.style.display = 'block';
+      this.container.style.height = this.originalDimensions.height;
+      Object.values(this.contentElements).forEach(element => {
+        if (element) {
+          element.style.display = '';
+        }
+      });
       this.isMinimized = false;
+      this.container.classList.remove('minimized');
     } else {
       // Minimize
       this.saveCurrentDimensions();
       this.container.style.height = '40px';
-      this.container.querySelector('.chat-messages, .modal-body')?.style.display = 'none';
-      this.container.querySelector('#messageForm')?.style.display = 'none';
+      Object.values(this.contentElements).forEach(element => {
+        if (element) {
+          element.style.display = 'none';
+        }
+      });
       this.isMinimized = true;
+      this.container.classList.add('minimized');
     }
   }
 
   maximize() {
     if (this.isMaximized) {
       // Restore from maximized state
-      this.container.style.width = this.originalDimensions.width;
-      this.container.style.height = this.originalDimensions.height;
-      this.container.style.position = 'relative';
-      this.container.style.top = 'auto';
-      this.container.style.left = 'auto';
-      this.container.style.right = 'auto';
-      this.container.style.bottom = 'auto';
-      this.container.style.zIndex = 'auto';
+      Object.keys(this.originalDimensions).forEach(prop => {
+        this.container.style[prop] = this.originalDimensions[prop];
+      });
       this.isMaximized = false;
+      this.container.classList.remove('maximized');
     } else {
       // Maximize
       this.saveCurrentDimensions();
@@ -75,41 +115,64 @@ class TerminalWindow {
       this.container.style.bottom = '0';
       this.container.style.zIndex = '9999';
       this.isMaximized = true;
+      this.container.classList.add('maximized');
     }
   }
 
   close() {
-    if (this.container.classList.contains('modal')) {
+    if (this.container.classList.contains('modal') || this.container.closest('.modal')) {
       // For modals, use Bootstrap's hide method
-      const modal = bootstrap.Modal.getInstance(this.container);
+      const modalElement = this.container.classList.contains('modal') 
+        ? this.container 
+        : this.container.closest('.modal');
+      const modal = bootstrap.Modal.getInstance(modalElement);
       if (modal) {
         modal.hide();
       }
     } else {
-      // For regular panels, minimize them
-      this.minimize();
+      // For regular panels, add a minimized class and hide
+      this.container.style.display = 'none';
+      const event = new CustomEvent('terminal:closed', {
+        detail: { containerId: this.container.id }
+      });
+      document.dispatchEvent(event);
     }
   }
 
   saveCurrentDimensions() {
+    const style = window.getComputedStyle(this.container);
     this.originalDimensions = {
-      width: this.container.style.width || this.container.offsetWidth + 'px',
-      height: this.container.style.height || this.container.offsetHeight + 'px'
+      width: style.width,
+      height: style.height,
+      position: style.position,
+      top: style.top,
+      left: style.left,
+      right: style.right,
+      bottom: style.bottom,
+      zIndex: style.zIndex
     };
   }
 }
 
 // Initialize window controls for all terminal windows
 document.addEventListener('DOMContentLoaded', () => {
+  const initializeTerminal = (element) => {
+    if (!element.dataset.terminalInitialized) {
+      new TerminalWindow(element);
+      element.dataset.terminalInitialized = 'true';
+    }
+  };
+
   // Initialize for main terminal windows
-  document.querySelectorAll('.terminal').forEach(terminal => {
-    new TerminalWindow(terminal);
-  });
+  document.querySelectorAll('.terminal').forEach(initializeTerminal);
 
   // Initialize for modals when they are shown
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('shown.bs.modal', () => {
-      new TerminalWindow(modal.querySelector('.modal-content'));
+      const modalContent = modal.querySelector('.modal-content');
+      if (modalContent) {
+        initializeTerminal(modalContent);
+      }
     });
   });
 });
