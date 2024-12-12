@@ -99,7 +99,8 @@
 }
 
 .modal-dialog.modal-lg {
-    max-width: 800px;
+    max-width: 90%;
+    width: 1000px;
 }
 
 .profile-content {
