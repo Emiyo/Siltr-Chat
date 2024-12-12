@@ -1294,3 +1294,35 @@ body {
 .notification {
   animation: slideIn 0.3s ease;
 }
+
+/* Typing Indicator */
+.typing-indicator {
+  padding: 8px;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.typing-indicator::after {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  text-align: left;
+  animation: ellipsis 1.4s steps(4, jump-none) infinite;
+}
+
+@keyframes ellipsis {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

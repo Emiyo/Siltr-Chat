@@ -642,6 +642,31 @@ def handle_direct_message(data):
         emit('error', {'message': 'Failed to send direct message'})
         return False
 
+@socketio.on('typing_indicator')
+def handle_typing_indicator(data):
+    """Handle typing indicator updates"""
+    if not current_user.is_authenticated:
+        return False
+        
+    try:
+        recipient_id = data.get('recipient_id')
+        is_typing = data.get('is_typing', False)
+        
+        if not recipient_id:
+            return False
+            
+        # Emit typing status to recipient
+        indicator_data = {
+            'user_id': current_user.id,
+            'username': current_user.username,
+            'is_typing': is_typing
+        }
+        emit('user_typing', indicator_data, room=f'user_{recipient_id}')
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error in handle_typing_indicator: {str(e)}", exc_info=True)
+        return False
 @socketio.on('get_dm_history')
 def handle_get_dm_history(data):
     """Handle request for DM history with a specific user"""

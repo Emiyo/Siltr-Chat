@@ -59,6 +59,46 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   socket.on("direct_message", (data) => {
+  // Typing indicator handling
+  let typingTimer;
+  const TYPING_TIMER_LENGTH = 3000; // How long to wait after last keystroke before stopping typing indicator
+
+  function sendTypingIndicator(isTyping) {
+    const recipientId = messageInput.getAttribute('data-recipient-id');
+    if (recipientId) {
+      socket.emit('typing_indicator', {
+        recipient_id: recipientId,
+        is_typing: isTyping
+      });
+    }
+  }
+
+  socket.on("user_typing", (data) => {
+    const typingIndicator = document.getElementById(`typing-${data.user_id}`);
+    if (data.is_typing) {
+      if (!typingIndicator) {
+        const typingDiv = document.createElement('div');
+        typingDiv.id = `typing-${data.user_id}`;
+        typingDiv.className = 'typing-indicator';
+        typingDiv.innerHTML = `${data.username} is typing...`;
+        messageContainer.appendChild(typingDiv);
+        scrollToBottom();
+      }
+    } else if (typingIndicator) {
+      typingIndicator.remove();
+    }
+  });
+
+  // Add typing detection to message input
+  messageInput.addEventListener('input', () => {
+    if (!messageInput.getAttribute('data-recipient-id')) return;
+    
+    sendTypingIndicator(true);
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      sendTypingIndicator(false);
+    }, TYPING_TIMER_LENGTH);
+  });
     addMessage({
       ...data,
       type: "private"
