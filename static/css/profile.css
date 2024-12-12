@@ -39,6 +39,9 @@
 .profile-banner {
     position: relative;
     overflow: hidden;
+    height: 120px;
+    background-color: var(--primary-color);
+    margin-bottom: 60px;
 }
 
 .profile-banner::after {
@@ -79,6 +82,29 @@
     display: flex;
     align-items: flex-end;
     gap: 1rem;
+    z-index: 1;
+}
+
+.discord-profile-modal {
+    background-color: var(--background-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.modal-content {
+    background: transparent;
+    border: none;
+}
+
+.modal-dialog.modal-lg {
+    max-width: 800px;
+}
+
+.profile-content {
+    padding: 60px 30px 30px;
+    color: var(--text-color);
 }
 
 .profile-avatar-container {
