@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat Application</title>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
     <!-- Base styles -->
     <link
       rel="stylesheet"
@@ -25,13 +30,23 @@
         <div class="nav-brand">Chat App</div>
         {% if current_user.is_authenticated %}
         <div class="nav-links">
-          <a href="{{ url_for('index') }}" class="nav-link">Chat</a>
+          <a href="{{ url_for('index') }}" class="nav-link" data-bs-toggle="tooltip" title="Chat Room">
+            <i class="fas fa-comments"></i> Chat
+          </a>
           {% if current_user.has_role('admin') %}
-          <a href="{{ url_for('list_users') }}" class="nav-link">Users</a>
-          <a href="{{ url_for('list_roles') }}" class="nav-link">Roles</a>
+          <a href="{{ url_for('list_users') }}" class="nav-link" data-bs-toggle="tooltip" title="Manage Users">
+            <i class="fas fa-users"></i> Users
+          </a>
+          <a href="{{ url_for('list_roles') }}" class="nav-link" data-bs-toggle="tooltip" title="Manage Roles">
+            <i class="fas fa-user-shield"></i> Roles
+          </a>
           {% endif %}
-          <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
-          <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+          <a href="{{ url_for('profile') }}" class="nav-link" data-bs-toggle="tooltip" title="Your Profile">
+            <i class="fas fa-user-circle"></i> Profile
+          </a>
+          <a href="{{ url_for('logout') }}" class="nav-link" data-bs-toggle="tooltip" title="Sign Out">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
         </div>
         {% endif %}
       </div>
@@ -65,15 +80,15 @@
           </div>
           <div class="profile-content">
             <div class="profile-section">
-              <h3>About Me</h3>
-              <p id="profileBio" class="text-muted"></p>
-              <p id="profileLocation" class="text-muted"></p>
+              <h3><i class="fas fa-user-edit"></i> About Me</h3>
+              <p id="profileBio" class="text-muted"><i class="fas fa-quote-left text-muted"></i> <span></span></p>
+              <p id="profileLocation" class="text-muted"><i class="fas fa-map-marker-alt"></i> <span></span></p>
             </div>
 
             <div class="profile-section">
-              <h3>Theme</h3>
+              <h3><i class="fas fa-paint-brush"></i> Theme</h3>
               <div class="theme-customization">
-                <h4>Accent Color</h4>
+                <h4><i class="fas fa-palette"></i> Accent Color</h4>
                 <input
                   type="color"
                   id="accentColorPicker"
