@@ -32,7 +32,7 @@ function updateThemePreview(color) {
 }
 
 function updateProfileBanner(color) {
-    const banner = document.getElementById('profileBanner');
+    const banner = document.getElementById('modalBanner');
     if (banner) {
         banner.style.backgroundColor = color;
     }
@@ -78,13 +78,13 @@ window.displayUserProfile = async function(userId) {
             }
         
             // Update modal content
-            safeSetSrc('profileAvatar', userData.avatar);
-            safeSetTextContent('profileUsername', userData.display_name || userData.username);
-            safeSetTextContent('profileStatus', userData.status || 'No status set');
-            safeSetTextContent('profileBio', userData.bio || 'No bio provided');
-            safeSetTextContent('profileLocation', userData.location || 'Location not set');
-            safeSetTextContent('profileJoinDate', formatDate(userData.created_at));
-            safeSetTextContent('profileLastSeen', formatDate(userData.last_seen));
+            safeSetSrc('modalUserAvatar', userData.avatar);
+            safeSetTextContent('modalUsername', userData.display_name || userData.username);
+            safeSetTextContent('modalStatus', userData.status || 'No status set');
+            safeSetTextContent('modalBio', userData.bio || 'No bio provided');
+            safeSetTextContent('modalLocation', userData.location || 'Location not set');
+            safeSetTextContent('modalJoinDate', formatDate(userData.created_at));
+            safeSetTextContent('modalLastSeen', formatDate(userData.last_seen));
             
             // Update theme color if colorPicker exists
             if (userData.accent_color && colorPicker) {
