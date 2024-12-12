@@ -8,6 +8,17 @@ let username;
 
 document.addEventListener("DOMContentLoaded", () => {
   messageContainer = document.getElementById("messageContainer");
+// Track active conversations
+let activeConversations = [];
+
+// Update active conversations when receiving a DM
+function updateActiveConversations(message) {
+  const otherUser = message.sender_id === user_id ? message.recipient : message.sender;
+  if (!activeConversations.find(u => u.id === otherUser.id)) {
+    activeConversations.push(otherUser);
+    updateCategoryList();
+  }
+}
   const messageForm = document.getElementById("messageForm");
   const messageInput = document.getElementById("messageInput");
 
@@ -58,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
   });
 
-  socket.on("direct_message", (data) => {
   // Typing indicator handling
   let typingTimer;
   const TYPING_TIMER_LENGTH = 3000; // How long to wait after last keystroke before stopping typing indicator
@@ -99,11 +109,16 @@ document.addEventListener("DOMContentLoaded", () => {
       sendTypingIndicator(false);
     }, TYPING_TIMER_LENGTH);
   });
+
+  socket.on("direct_message", (data) => {
     addMessage({
       ...data,
       type: "private"
     });
     scrollToBottom();
+    
+    // Update active conversations list
+    updateActiveConversations(data);
     
     // Mark message as read if we're the recipient and in the DM view
     if (data.recipient_id === user_id && messageInput.getAttribute('data-recipient-id') === String(data.sender_id)) {
@@ -170,33 +185,56 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    categoryList.innerHTML = categories
+    // First add Direct Messages section
+    const dmSection = `
+      <div class="category-item">
+        <div class="category-header">
+          <span class="category-toggle">▼</span>
+          Direct Messages
+        </div>
+        <div class="channel-list" style="display: block;" id="dm-list">
+          ${activeConversations.map(user => `
+            <div class="channel-item ${user.id === parseInt(messageInput.getAttribute('data-recipient-id')) ? "active" : ""}"
+                 onclick="startDirectMessage(${user.id}, '${user.username}')">
+              <span class="user-status-indicator ${user.last_seen && new Date(user.last_seen) > new Date(Date.now() - 5 * 60 * 1000) ? 'online' : 'offline'}"></span>
+              ${user.display_name || user.username}
+              ${user.unread_count ? `<span class="unread-count">${user.unread_count}</span>` : ''}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    // Then add regular categories
+    const categoriesHTML = categories
       .map((category) => {
         const channels = Array.isArray(category.channels)
           ? category.channels
           : [];
         return `
-                <div class="category-item">
-                    <div class="category-header">
-                        <span class="category-toggle">▼</span>
-                        ${category.name || "Unnamed Category"}
-                    </div>
-                    <div class="channel-list" style="display: block;">
-                        ${channels
-                          .map(
-                            (channel) => `
-                            <div class="channel-item ${channel.id === currentChannel ? "active" : ""}" 
-                                 data-channel-id="${channel.id}">
-                                ${channel.is_private ? "🔒" : "#"} ${channel.name || "Unnamed Channel"}
-                            </div>
-                        `,
-                          )
-                          .join("")}
-                    </div>
-                </div>
-            `;
+          <div class="category-item">
+            <div class="category-header">
+              <span class="category-toggle">▼</span>
+              ${category.name || "Unnamed Category"}
+            </div>
+            <div class="channel-list" style="display: block;">
+              ${channels
+                .map(
+                  (channel) => `
+                  <div class="channel-item ${channel.id === currentChannel ? "active" : ""}" 
+                       data-channel-id="${channel.id}">
+                    ${channel.is_private ? "🔒" : "#"} ${channel.name || "Unnamed Channel"}
+                  </div>
+                `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
       })
       .join("");
+
+    categoryList.innerHTML = dmSection + categoriesHTML;
 
     // Add event listeners
     document.querySelectorAll(".category-header").forEach((header) => {
@@ -370,6 +408,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ...message,
         type: 'private'
       });
+      // Update active conversations for each message
+      updateActiveConversations(message);
     });
     scrollToBottom();
   });

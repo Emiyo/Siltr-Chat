@@ -1221,6 +1221,45 @@ body {
   margin-top: 4px;
   font-style: italic;
 }
+/* Direct Message List Styles */
+.user-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.user-status-indicator.online {
+  background-color: var(--success-color, #43b581);
+}
+
+.user-status-indicator.offline {
+  background-color: var(--text-muted, #72767d);
+}
+
+.unread-count {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.8em;
+  margin-left: 8px;
+}
+
+#dm-list .channel-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+}
+
+#dm-list .channel-item:hover {
+  background-color: var(--hover-bg);
+}
+
+#dm-list .channel-item.active {
+  background-color: var(--active-bg);
+}
 
 /* Direct Message Styles */
 .dm-indicator {
