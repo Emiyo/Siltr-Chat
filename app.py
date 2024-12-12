@@ -328,6 +328,51 @@ def get_current_user_profile():
         logger.error(f"Error fetching current user profile: {str(e)}")
         return jsonify({'error': 'Failed to fetch profile'}), 500
 
+@app.route('/api/user/update_profile', methods=['POST'])
+@login_required
+def update_user_profile():
+    """Update the current user's profile data"""
+    try:
+        data = request.get_json()
+        logger.info(f"Received profile update request for user {current_user.username}")
+        
+        # Update basic profile information
+        if 'display_name' in data:
+            current_user.display_name = data['display_name']
+        if 'bio' in data:
+            current_user.bio = data['bio']
+        if 'location' in data:
+            current_user.location = data['location']
+            
+        # Update theme preferences
+        if 'theme' in data:
+            current_user.theme = data['theme']
+        if 'accent_color' in data:
+            current_user.accent_color = data['accent_color']
+            
+        # Update notification preferences
+        if 'notify_messages' in data:
+            current_user.notify_messages = data['notify_messages']
+        if 'notify_mentions' in data:
+            current_user.notify_mentions = data['notify_mentions']
+            
+        db.session.commit()
+        logger.info(f"Profile updated successfully for user {current_user.username}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Profile updated successfully',
+            'user': current_user.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating user profile: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': 'Failed to update profile'
+        }), 500
+
 @app.route('/api/user/by_id/<int:user_id>')
 @login_required
 def get_user_profile(user_id):
