@@ -44,15 +44,38 @@ function updateProfileBanner(color) {
   }
 }
 
+// Initialize Bootstrap modal
+const modalElement = document.getElementById("userProfileModal");
+let profileModal = modalElement ? new bootstrap.Modal(modalElement, {
+  backdrop: true,
+  keyboard: true,
+  focus: true
+}) : null;
+
 // Global variables
-let profileModal = null;
 let currentUserId = null;
 let colorPicker = null;
 
 // When socket connects and sends user data, store the current user's ID
 socket.on('user_connected', (userData) => {
     currentUserId = userData.id;
+    console.log("Current user connected with ID:", userData.id);
 });
+
+// Set up modal event handlers
+if (modalElement) {
+  modalElement.addEventListener('shown.bs.modal', function () {
+    console.log('Modal shown - ensuring focus and interaction');
+    document.body.style.overflow = 'hidden';
+  });
+
+  modalElement.addEventListener('hidden.bs.modal', function () {
+    console.log('Modal hidden - resetting state');
+    document.body.style.overflow = '';
+  });
+} else {
+  console.error("Profile modal element not found in the DOM");
+}
 
 /**
  * Display user profile in modal
@@ -66,15 +89,26 @@ async function displayUserProfile(userId) {
     return;
   }
 
+  // Initialize modal if not already done
+  if (!profileModal) {
+    const modalElement = document.getElementById("userProfileModal");
+    if (modalElement) {
+      profileModal = new bootstrap.Modal(modalElement, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+      });
+      console.log("Profile modal initialized");
+    } else {
+      console.error("Profile modal element not found in DOM");
+      return;
+    }
+  }
+
   currentUserId = userId;
 
-  // Show modal first with loading state
-  if (profileModal) {
-    profileModal.show();
-  } else {
-    console.error("Profile modal not initialized");
-    return;
-  }
+  // Show modal with loading state
+  profileModal.show();
 
   const content = document.querySelector(".profile-content");
   if (!content) {
