@@ -45,6 +45,12 @@ function updateProfileBanner(color) {
 }
 
 // Global variables
+let currentUserId = null;
+
+// When socket connects and sends user data, store the current user's ID
+socket.on('user_connected', (userData) => {
+    currentUserId = userData.id;
+});
 let profileModal = null;
 let currentUserId = null;
 let colorPicker = null;
@@ -118,7 +124,7 @@ window.displayUserProfile = async function (userId) {
                 <p id="modalLocation" class="text-muted">${userData.location || "Location not set"}</p>
             </div>
 
-            ${userId === 'current' ? `
+            ${(userId === 'current' || (currentUserId && userData && currentUserId === userData.id)) ? `
             <div class="profile-section">
                 <h3>theme</h3>
                 <div class="theme-section">
