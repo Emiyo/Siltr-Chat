@@ -1,119 +1,152 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat Application</title>
     <!-- Base styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
     <!-- Additional styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/profile.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/admin.css') }}"
+    />
+  </head>
+  <body>
     <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">Chat App</div>
-            {% if current_user.is_authenticated %}
-            <div class="nav-links">
-                <a href="{{ url_for('index') }}" class="nav-link">Chat</a>
-                {% if current_user.has_role('admin') %}
-                <a href="{{ url_for('list_users') }}" class="nav-link">Users</a>
-                <a href="{{ url_for('list_roles') }}" class="nav-link">Roles</a>
-                {% endif %}
-                <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
-                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
-            </div>
-            {% endif %}
+      <div class="container">
+        <div class="nav-brand">Chat App</div>
+        {% if current_user.is_authenticated %}
+        <div class="nav-links">
+          <a href="{{ url_for('index') }}" class="nav-link">Chat</a>
+          {% if current_user.has_role('admin') %}
+          <a href="{{ url_for('list_users') }}" class="nav-link">Users</a>
+          <a href="{{ url_for('list_roles') }}" class="nav-link">Roles</a>
+          {% endif %}
+          <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+          <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
         </div>
+        {% endif %}
+      </div>
     </nav>
     <div class="content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
     </div>
 
     <!-- User Profile Modal -->
     <div class="modal" id="userProfileModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="discord-profile-modal">
-                <div class="profile-banner" id="profileBanner">
-                    <div class="profile-header">
-                        <div class="profile-avatar-container">
-                            <img id="profileAvatar" src="" alt="Profile Avatar" class="profile-avatar">
-                        </div>
-                        <div class="profile-username-container">
-                            <h2 id="profileUsername" class="profile-username"></h2>
-                            <div id="profileStatus" class="profile-status"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="profile-content">
-                    <div class="profile-section">
-                        <h3>About Me</h3>
-                        <p id="profileBio" class="text-muted"></p>
-                        <p id="profileLocation" class="text-muted"></p>
-                    </div>
-                    
-                    <div class="profile-section">
-                        <h3>Theme</h3>
-                        <div class="theme-customization">
-                            <h4>Accent Color</h4>
-                            <input type="color" id="accentColorPicker" class="color-picker" value="#5865F2">
-                        </div>
-                        <div class="theme-preview">
-                            <h5>Preview</h5>
-                            <div class="preview-container">
-                                <div class="preview-message preview-own">
-                                    Preview of your messages
-                                </div>
-                                <div class="preview-message preview-other">
-                                    Preview of other's messages
-                                </div>
-                                <div class="preview-input">
-                                    <input type="text" class="preview-message-input" placeholder="Message preview...">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="member-since">
-                        Member since <span id="profileJoinDate"></span>
-                        <br>
-                        Last seen <span id="profileLastSeen"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="messageUserBtn">Send Message</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="discord-profile-modal">
+          <div class="profile-banner" id="profileBanner">
+            <div class="profile-header">
+              <div class="profile-avatar-container">
+                <img
+                  id="profileAvatar"
+                  src=""
+                  alt="Profile Avatar"
+                  class="profile-avatar"
+                />
+              </div>
+              <div class="profile-username-container">
+                <h2 id="profileUsername" class="profile-username"></h2>
+                <div id="profileStatus" class="profile-status"></div>
+              </div>
             </div>
+          </div>
+          <div class="profile-content">
+            <div class="profile-section">
+              <h3>About Me</h3>
+              <p id="profileBio" class="text-muted"></p>
+              <p id="profileLocation" class="text-muted"></p>
+            </div>
+
+            <div class="profile-section">
+              <h3>Theme</h3>
+              <div class="theme-customization">
+                <h4>Accent Color</h4>
+                <input
+                  type="color"
+                  id="accentColorPicker"
+                  class="color-picker"
+                  value="#5865F2"
+                />
+              </div>
+              <div class="theme-preview">
+                <h5>Preview</h5>
+                <div class="preview-container">
+                  <div class="preview-message preview-own">
+                    Preview of your messages
+                  </div>
+                  <div class="preview-message preview-other">
+                    Preview of other's messages
+                  </div>
+                  <div class="preview-input">
+                    <input
+                      type="text"
+                      class="preview-message-input"
+                      placeholder="Message preview..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="member-since">
+              Member since <span id="profileJoinDate"></span>
+              <br />
+              Last seen <span id="profileLastSeen"></span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="messageUserBtn">
+              Send Message
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Load Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+
     <!-- Load Socket.IO -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    
+
     <!-- Load application scripts -->
     <script src="{{ url_for('static', filename='js/userProfile.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 
     <script>
-        // Initialize all Bootstrap tooltips
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+      // Initialize all Bootstrap tooltips
+      document.addEventListener("DOMContentLoaded", function () {
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+      });
     </script>
-</body>
+  </body>
 </html>

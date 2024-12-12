@@ -1,107 +1,270 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="discord-profile-modal" id="userProfileModal">
-    <div class="profile-banner" style="background-color: {{ current_user.banner_color or '#5865F2' }}">
-        <div class="profile-header">
-            <div class="profile-avatar-container">
-                <img src="{{ current_user.avatar or '/static/images/default-avatar.png' }}" alt="Profile Avatar" class="profile-avatar">
-                <div class="presence-indicator {{ current_user.presence_state }}"></div>
-            </div>
-            <div class="profile-username-container">
-                <h2 class="profile-username">{{ current_user.username }}</h2>
-                {% if current_user.status %}
-                <div class="profile-status">
-                    {{ current_user.status }}
-                </div>
-                {% endif %}
-            </div>
-        </div>
+  <div
+    class="profile-banner"
+    style="background-color: {{ current_user.banner_color or '#5865F2' }}"
+  >
+    <div class="profile-header">
+      <div class="profile-avatar-container">
+        <img
+          src="{{ current_user.avatar or '/static/images/default-avatar.png' }}"
+          alt="Profile Avatar"
+          class="profile-avatar"
+        />
+        <div class="presence-indicator {{ current_user.presence_state }}"></div>
+      </div>
+      <div class="profile-username-container">
+        <h2 class="profile-username">{{ current_user.username }}</h2>
+        {% if current_user.status %}
+        <div class="profile-status">{{ current_user.status }}</div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 
-    <div class="profile-content">
-        <div class="profile-section">
-            <h3>User Info</h3>
-            <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
-                <div class="form-group">
-                    <label for="presence_state">Online Status</label>
-                    <select id="presence_state" name="presence_state" class="form-control">
-                        <option value="online" {% if current_user.presence_state == 'online' %}selected{% endif %}>Online</option>
-                        <option value="idle" {% if current_user.presence_state == 'idle' %}selected{% endif %}>Idle</option>
-                        <option value="dnd" {% if current_user.presence_state == 'dnd' %}selected{% endif %}>Do Not Disturb</option>
-                        <option value="offline" {% if current_user.presence_state == 'offline' %}selected{% endif %}>Invisible</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="status">Custom Status</label>
-                    <input type="text" id="status" name="status" value="{{ current_user.status or '' }}" 
-                           maxlength="128" placeholder="What's on your mind?" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="display_name">Display Name</label>
-                    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name or '' }}" 
-                           maxlength="100" placeholder="Enter display name" class="form-control">
-                </div>
-
-                <div class="theme-customization">
-                    <h4>Theme Customization</h4>
-                    <div class="form-group">
-                        <label for="theme">Theme</label>
-                        <select id="theme" name="theme" class="form-control">
-                            <option value="dark" {% if current_user.theme == 'dark' %}selected{% endif %}>Default Dark</option>
-                            <option value="light" {% if current_user.theme == 'light' %}selected{% endif %}>Light</option>
-                            <option value="midnight" {% if current_user.theme == 'midnight' %}selected{% endif %}>Midnight</option>
-                            <option value="sunset" {% if current_user.theme == 'sunset' %}selected{% endif %}>Sunset</option>
-                            <option value="custom" {% if current_user.theme == 'custom' %}selected{% endif %}>Custom</option>
-                        </select>
-                    </div>
-
-                    <div class="custom-theme-options" {% if current_user.theme != 'custom' %}style="display: none;"{% endif %}>
-                        <div class="form-group">
-                            <label for="banner_color">Profile Banner Color</label>
-                            <input type="color" id="banner_color" name="banner_color" 
-                                   value="{{ current_user.banner_color or '#5865F2' }}" class="form-control color-picker">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="accent_color">Accent Color</label>
-                            <input type="color" id="accent_color" name="accent_color" 
-                                   value="{{ current_user.accent_color or '#4a9eff' }}" class="form-control color-picker">
-                        </div>
-                    </div>
-
-                    <div class="theme-preview">
-                        <h5>Preview</h5>
-                        <div class="preview-container">
-                            <div class="preview-message preview-own">Your message</div>
-                            <div class="preview-message preview-other">Other's message</div>
-                            <div class="preview-input">
-                                <input type="text" readonly placeholder="Message #general" class="preview-message-input">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="profile-info">
-                    <p class="member-since">Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-
-            <form method="POST" action="{{ url_for('update_avatar') }}" enctype="multipart/form-data" class="profile-form mt-4">
-                <div class="form-group">
-                    <label for="avatar">Change Avatar</label>
-                    <input type="file" id="avatar" name="avatar" accept="image/*" class="form-control">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Update Avatar</button>
-                </div>
-            </form>
+  <div class="profile-content">
+    <div class="profile-section">
+      <h3>User Info</h3>
+      <form
+        method="POST"
+        action="{{ url_for('profile') }}"
+        class="profile-form"
+      >
+        <div class="form-group">
+          <label for="presence_state">Online Status</label>
+          <select
+            id="presence_state"
+            name="presence_state"
+            class="form-control"
+          >
+            <option
+              value="online"
+              {%
+              if
+              current_user.presence_state=""
+              ="online"
+              %}selected{%
+              endif
+              %}
+            >
+              Online
+            </option>
+            <option
+              value="idle"
+              {%
+              if
+              current_user.presence_state=""
+              ="idle"
+              %}selected{%
+              endif
+              %}
+            >
+              Idle
+            </option>
+            <option
+              value="dnd"
+              {%
+              if
+              current_user.presence_state=""
+              ="dnd"
+              %}selected{%
+              endif
+              %}
+            >
+              Do Not Disturb
+            </option>
+            <option
+              value="offline"
+              {%
+              if
+              current_user.presence_state=""
+              ="offline"
+              %}selected{%
+              endif
+              %}
+            >
+              Invisible
+            </option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label for="status">Custom Status</label>
+          <input
+            type="text"
+            id="status"
+            name="status"
+            value="{{ current_user.status or '' }}"
+            maxlength="128"
+            placeholder="What's on your mind?"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="display_name">Display Name</label>
+          <input
+            type="text"
+            id="display_name"
+            name="display_name"
+            value="{{ current_user.display_name or '' }}"
+            maxlength="100"
+            placeholder="Enter display name"
+            class="form-control"
+          />
+        </div>
+
+        <div class="theme-customization">
+          <h4>Theme Customization</h4>
+          <div class="form-group">
+            <label for="theme">Theme</label>
+            <select id="theme" name="theme" class="form-control">
+              <option
+                value="dark"
+                {%
+                if
+                current_user.theme=""
+                ="dark"
+                %}selected{%
+                endif
+                %}
+              >
+                Default Dark
+              </option>
+              <option
+                value="light"
+                {%
+                if
+                current_user.theme=""
+                ="light"
+                %}selected{%
+                endif
+                %}
+              >
+                Light
+              </option>
+              <option
+                value="midnight"
+                {%
+                if
+                current_user.theme=""
+                ="midnight"
+                %}selected{%
+                endif
+                %}
+              >
+                Midnight
+              </option>
+              <option
+                value="sunset"
+                {%
+                if
+                current_user.theme=""
+                ="sunset"
+                %}selected{%
+                endif
+                %}
+              >
+                Sunset
+              </option>
+              <option
+                value="custom"
+                {%
+                if
+                current_user.theme=""
+                ="custom"
+                %}selected{%
+                endif
+                %}
+              >
+                Custom
+              </option>
+            </select>
+          </div>
+
+          <div
+            class="custom-theme-options"
+            {%
+            if
+            current_user.theme
+            !="custom"
+            %}style="display: none;"
+            {%
+            endif
+            %}
+          >
+            <div class="form-group">
+              <label for="banner_color">Profile Banner Color</label>
+              <input
+                type="color"
+                id="banner_color"
+                name="banner_color"
+                value="{{ current_user.banner_color or '#5865F2' }}"
+                class="form-control color-picker"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="accent_color">Accent Color</label>
+              <input
+                type="color"
+                id="accent_color"
+                name="accent_color"
+                value="{{ current_user.accent_color or '#4a9eff' }}"
+                class="form-control color-picker"
+              />
+            </div>
+          </div>
+
+          <div class="theme-preview">
+            <h5>Preview</h5>
+            <div class="preview-container">
+              <div class="preview-message preview-own">Your message</div>
+              <div class="preview-message preview-other">Other's message</div>
+              <div class="preview-input">
+                <input
+                  type="text"
+                  readonly
+                  placeholder="Message #general"
+                  class="preview-message-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-info">
+          <p class="member-since">
+            Member since {{ current_user.created_at.strftime('%B %d, %Y') }}
+          </p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+
+      <form
+        method="POST"
+        action="{{ url_for('update_avatar') }}"
+        enctype="multipart/form-data"
+        class="profile-form mt-4"
+      >
+        <div class="form-group">
+          <label for="avatar">Change Avatar</label>
+          <input
+            type="file"
+            id="avatar"
+            name="avatar"
+            accept="image/*"
+            class="form-control"
+          />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Update Avatar</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

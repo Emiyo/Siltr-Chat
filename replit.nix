@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.nodePackages.prettier
     pkgs.libev
     pkgs.iana-etc
     pkgs.ffmpeg

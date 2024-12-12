@@ -1,222 +1,342 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Siltr</title>
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/profile.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/modal.css') }}"
+    />
+  </head>
+  <body>
     <div class="container py-4">
-        <!-- Username Modal -->
-        <div class="modal fade" id="usernameModal" data-bs-backdrop="static" tabindex="-1">
-            <div class="modal-dialog modal-sm modal-dialog-centered">
-                <div class="modal-content terminal">
-                    <div class="terminal-header">
-                        <div class="terminal-buttons">
-                            <span class="terminal-button terminal-button-red"></span>
-                            <span class="terminal-button terminal-button-yellow"></span>
-                            <span class="terminal-button terminal-button-green"></span>
-                        </div>
-                        <small>login</small>
-                    </div>
-                    <div class="modal-body">
-                        <form id="usernameForm" class="h-100">
-                            <div class="d-flex align-items-center h-100 px-2">
-                                <span class="prompt me-1">$</span>
-                                <input type="text" class="terminal-input" id="usernameInput" 
-                                    placeholder="enter username" required minlength="2" maxlength="20">
-                            </div>
-                        </form>
-                    </div>
-                </div>
+      <!-- Username Modal -->
+      <div
+        class="modal fade"
+        id="usernameModal"
+        data-bs-backdrop="static"
+        tabindex="-1"
+      >
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+          <div class="modal-content terminal">
+            <div class="terminal-header">
+              <div class="terminal-buttons">
+                <span class="terminal-button terminal-button-red"></span>
+                <span class="terminal-button terminal-button-yellow"></span>
+                <span class="terminal-button terminal-button-green"></span>
+              </div>
+              <small>login</small>
             </div>
+            <div class="modal-body">
+              <form id="usernameForm" class="h-100">
+                <div class="d-flex align-items-center h-100 px-2">
+                  <span class="prompt me-1">$</span>
+                  <input
+                    type="text"
+                    class="terminal-input"
+                    id="usernameInput"
+                    placeholder="enter username"
+                    required
+                    minlength="2"
+                    maxlength="20"
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chat Interface -->
+      <div class="row h-100">
+        <!-- Categories and Channels Terminal -->
+        <div class="col-md-2">
+          <div class="terminal h-100">
+            <div class="terminal-header">
+              <div class="terminal-buttons">
+                <span class="terminal-button terminal-button-red"></span>
+                <span class="terminal-button terminal-button-yellow"></span>
+                <span class="terminal-button terminal-button-green"></span>
+              </div>
+              <span>categories</span>
+              <span></span>
+            </div>
+            <div class="p-2">
+              <div id="categoryList" class="mb-3">
+                <!-- Categories will be inserted here -->
+              </div>
+              <div id="moderatorControls" class="d-none">
+                <button
+                  class="btn btn-sm btn-terminal mb-2"
+                  id="createCategoryBtn"
+                >
+                  + New Category
+                </button>
+                <button class="btn btn-sm btn-terminal" id="createChannelBtn">
+                  + New Channel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Main Chat Interface -->
-        <div class="row h-100">
-            <!-- Categories and Channels Terminal -->
-            <div class="col-md-2">
-                <div class="terminal h-100">
-                    <div class="terminal-header">
-                        <div class="terminal-buttons">
-                            <span class="terminal-button terminal-button-red"></span>
-                            <span class="terminal-button terminal-button-yellow"></span>
-                            <span class="terminal-button terminal-button-green"></span>
-                        </div>
-                        <span>categories</span>
-                        <span></span>
-                    </div>
-                    <div class="p-2">
-                        <div id="categoryList" class="mb-3">
-                            <!-- Categories will be inserted here -->
-                        </div>
-                        <div id="moderatorControls" class="d-none">
-                            <button class="btn btn-sm btn-terminal mb-2" id="createCategoryBtn">+ New Category</button>
-                            <button class="btn btn-sm btn-terminal" id="createChannelBtn">+ New Channel</button>
-                        </div>
-                    </div>
-                </div>
+        <!-- Chat Terminal -->
+        <div class="col-md-8 d-flex flex-column">
+          <div class="terminal flex-grow-1">
+            <div class="terminal-header">
+              <div class="terminal-buttons">
+                <span class="terminal-button terminal-button-red"></span>
+                <span class="terminal-button terminal-button-yellow"></span>
+                <span class="terminal-button terminal-button-green"></span>
+              </div>
+              <span>chat.sh</span>
+              <span></span>
             </div>
-
-            <!-- Chat Terminal -->
-            <div class="col-md-8 d-flex flex-column">
-                <div class="terminal flex-grow-1">
-                    <div class="terminal-header">
-                        <div class="terminal-buttons">
-                            <span class="terminal-button terminal-button-red"></span>
-                            <span class="terminal-button terminal-button-yellow"></span>
-                            <span class="terminal-button terminal-button-green"></span>
-                        </div>
-                        <span>chat.sh</span>
-                        <span></span>
-                    </div>
-                    <div class="chat-messages" id="messageContainer">
-                        <!-- Messages will be inserted here -->
-                    </div>
-                    <div class="p-2">
-                        <form id="messageForm">
-                            <div class="d-flex align-items-center">
-                                <span class="prompt">$</span>
-                                <input type="text" class="terminal-input flex-grow-1" id="messageInput" 
-                                    placeholder="Type command or message... (@user for private message)">
-                                <button type="button" class="btn btn-link p-0 ms-2" id="attachButton">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
-                                        <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            <div class="chat-messages" id="messageContainer">
+              <!-- Messages will be inserted here -->
             </div>
-
-            <!-- Users and Navigation Terminal -->
-            <div class="col-md-2">
-                <div class="terminal h-100">
-                    <div class="terminal-header">
-                        <div class="terminal-buttons">
-                            <span class="terminal-button terminal-button-red"></span>
-                            <span class="terminal-button terminal-button-yellow"></span>
-                            <span class="terminal-button terminal-button-green"></span>
-                        </div>
-                        <span>users</span>
-                        <span></span>
-                    </div>
-                    <div class="p-2">
-                        <div id="userList">
-                            <!-- Users will be inserted here -->
-                        </div>
-                    </div>
-                    <div class="navigation-bar">
-                        <button class="nav-btn settings-btn" onclick="window.location.href='/settings'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
-                                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
-                            </svg>
-                        </button>
-                        <div class="profile-btn" data-user-id="current" title="View Profile">
-                            <img src="{{ current_user.avatar or '/static/images/default-avatar.png' }}" alt="Profile" class="nav-avatar">
-                        </div>
-                        <button class="nav-btn logout-btn" onclick="window.location.href='/logout'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                            </svg>
-                        </button>
-                    </div>
+            <div class="p-2">
+              <form id="messageForm">
+                <div class="d-flex align-items-center">
+                  <span class="prompt">$</span>
+                  <input
+                    type="text"
+                    class="terminal-input flex-grow-1"
+                    id="messageInput"
+                    placeholder="Type command or message... (@user for private message)"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 ms-2"
+                    id="attachButton"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      class="bi bi-paperclip"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"
+                      />
+                    </svg>
+                  </button>
                 </div>
+              </form>
             </div>
+          </div>
         </div>
+
+        <!-- Users and Navigation Terminal -->
+        <div class="col-md-2">
+          <div class="terminal h-100">
+            <div class="terminal-header">
+              <div class="terminal-buttons">
+                <span class="terminal-button terminal-button-red"></span>
+                <span class="terminal-button terminal-button-yellow"></span>
+                <span class="terminal-button terminal-button-green"></span>
+              </div>
+              <span>users</span>
+              <span></span>
+            </div>
+            <div class="p-2">
+              <div id="userList">
+                <!-- Users will be inserted here -->
+              </div>
+            </div>
+            <div class="navigation-bar">
+              <button
+                class="nav-btn settings-btn"
+                onclick="window.location.href='/settings'"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"
+                  />
+                  <path
+                    d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"
+                  />
+                </svg>
+              </button>
+              <div
+                class="profile-btn"
+                data-user-id="current"
+                title="View Profile"
+              >
+                <img
+                  src="{{ current_user.avatar or '/static/images/default-avatar.png' }}"
+                  alt="Profile"
+                  class="nav-avatar"
+                />
+              </div>
+              <button
+                class="nav-btn logout-btn"
+                onclick="window.location.href='/logout'"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
+                  />
+                  <path
+                    fill-rule="evenodd"
+                    d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- User Profile Modal -->
-    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content terminal">
-                <div class="terminal-header">
-                    <div class="terminal-buttons">
-                        <span class="terminal-button terminal-button-red"></span>
-                        <span class="terminal-button terminal-button-yellow"></span>
-                        <span class="terminal-button terminal-button-green"></span>
-                    </div>
-                    <span>user@terminal:~$</span>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="profile-content">
-                        <div class="profile-banner" id="modalBanner">
-                            <div class="profile-header">
-                                <div class="profile-avatar-container">
-                                    <img id="modalUserAvatar" src="" alt="Profile Avatar" class="profile-avatar">
-                                    <span id="modalPresenceIndicator" class="presence-indicator"></span>
-                                </div>
-                                <div class="profile-username-container">
-                                    <h2 id="modalUsername" class="profile-username"></h2>
-                                    <div id="modalStatus" class="profile-status"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="profile-section">
-                            <h3>$ about me</h3>
-                            <p id="modalBio" class="text-muted"></p>
-                            <p id="modalLocation" class="text-muted"></p>
-                        </div>
-
-                        <div class="profile-section">
-                            <h3>$ theme</h3>
-                            <div class="theme-section">
-                                <div class="theme-customization">
-                                    <h4>Accent Color</h4>
-                                    <input type="color" id="accentColorPicker" class="color-picker" value="#5865F2">
-                                </div>
-                                <div class="theme-preview">
-                                    <div class="terminal-decoration">
-                                        <div class="terminal-buttons">
-                                            <span class="terminal-button terminal-button-red"></span>
-                                            <span class="terminal-button terminal-button-yellow"></span>
-                                            <span class="terminal-button terminal-button-green"></span>
-                                        </div>
-                                        <span class="terminal-title">preview@terminal:~$</span>
-                                    </div>
-                                    <div class="preview-container">
-                                        <div class="preview-message preview-own">
-                                            <span class="preview-timestamp">12:00</span>
-                                            <span class="preview-username">You</span>
-                                            Preview of your messages
-                                        </div>
-                                        <div class="preview-message preview-other">
-                                            <span class="preview-timestamp">12:01</span>
-                                            <span class="preview-username">Other User</span>
-                                            Preview of other's messages
-                                        </div>
-                                        <div class="preview-input">
-                                            <span class="prompt">$</span>
-                                            <input type="text" class="preview-message-input" placeholder="Type a message...">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="member-since">
-                            $ whois user
-                            <br>
-                            Member since <span id="modalJoinDate"></span>
-                            <br>
-                            Last seen <span id="modalLastSeen"></span>
-                        </div>
-
-                        <div class="profile-actions">
-                            <button id="messageUserBtn" class="btn btn-primary">Send Message</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
+    <div
+      class="modal fade"
+      id="userProfileModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content terminal">
+          <div class="terminal-header">
+            <div class="terminal-buttons">
+              <span class="terminal-button terminal-button-red"></span>
+              <span class="terminal-button terminal-button-yellow"></span>
+              <span class="terminal-button terminal-button-green"></span>
             </div>
+            <span>user@terminal:~$</span>
+          </div>
+          <div class="modal-body p-0">
+            <div class="profile-content">
+              <div class="profile-banner" id="modalBanner">
+                <div class="profile-header">
+                  <div class="profile-avatar-container">
+                    <img
+                      id="modalUserAvatar"
+                      src=""
+                      alt="Profile Avatar"
+                      class="profile-avatar"
+                    />
+                    <span
+                      id="modalPresenceIndicator"
+                      class="presence-indicator"
+                    ></span>
+                  </div>
+                  <div class="profile-username-container">
+                    <h2 id="modalUsername" class="profile-username"></h2>
+                    <div id="modalStatus" class="profile-status"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile-section">
+                <h3>$ about me</h3>
+                <p id="modalBio" class="text-muted"></p>
+                <p id="modalLocation" class="text-muted"></p>
+              </div>
+
+              <div class="profile-section">
+                <h3>$ theme</h3>
+                <div class="theme-section">
+                  <div class="theme-customization">
+                    <h4>Accent Color</h4>
+                    <input
+                      type="color"
+                      id="accentColorPicker"
+                      class="color-picker"
+                      value="#5865F2"
+                    />
+                  </div>
+                  <div class="theme-preview">
+                    <div class="terminal-decoration">
+                      <div class="terminal-buttons">
+                        <span
+                          class="terminal-button terminal-button-red"
+                        ></span>
+                        <span
+                          class="terminal-button terminal-button-yellow"
+                        ></span>
+                        <span
+                          class="terminal-button terminal-button-green"
+                        ></span>
+                      </div>
+                      <span class="terminal-title">preview@terminal:~$</span>
+                    </div>
+                    <div class="preview-container">
+                      <div class="preview-message preview-own">
+                        <span class="preview-timestamp">12:00</span>
+                        <span class="preview-username">You</span>
+                        Preview of your messages
+                      </div>
+                      <div class="preview-message preview-other">
+                        <span class="preview-timestamp">12:01</span>
+                        <span class="preview-username">Other User</span>
+                        Preview of other's messages
+                      </div>
+                      <div class="preview-input">
+                        <span class="prompt">$</span>
+                        <input
+                          type="text"
+                          class="preview-message-input"
+                          placeholder="Type a message..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="member-since">
+                $ whois user
+                <br />
+                Member since <span id="modalJoinDate"></span>
+                <br />
+                Last seen <span id="modalLastSeen"></span>
+              </div>
+
+              <div class="profile-actions">
+                <button id="messageUserBtn" class="btn btn-primary">
+                  Send Message
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -228,6 +348,5 @@
     <script src="{{ url_for('static', filename='js/crypto.js') }}"></script>
     <script src="{{ url_for('static', filename='js/userProfile.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-
-</body>
+  </body>
 </html>

@@ -1,280 +1,290 @@
 /* Base styles */
 :root {
-    --primary-color: #2563eb;
-    --secondary-color: #1e293b;
-    --success-color: #059669;
-    --danger-color: #dc2626;
-    --warning-color: #d97706;
-    --light-gray: #f1f5f9;
-    --border-color: #cbd5e1;
-    --text-color: #111827;
-    --text-light: #374151;
-    --card-bg: #ffffff;
-    --header-text: #000000;
-    --badge-bg: #ef4444;
+  --primary-color: #2563eb;
+  --secondary-color: #1e293b;
+  --success-color: #059669;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
+  --light-gray: #f1f5f9;
+  --border-color: #cbd5e1;
+  --text-color: #111827;
+  --text-light: #374151;
+  --card-bg: #ffffff;
+  --header-text: #000000;
+  --badge-bg: #ef4444;
 }
 
 /* Navigation styles */
 .navbar {
-    background-color: var(--secondary-color);
-    padding: 1rem 0;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--secondary-color);
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .navbar .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .nav-brand {
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-decoration: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
 }
 
 .nav-links {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .nav-link {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Admin container */
 .admin-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .admin-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .admin-header h2 {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 2rem;
+  margin: 0;
+  color: var(--text-color);
+  font-size: 2rem;
 }
 
 /* Cards Grid */
-.roles-list, .users-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+.roles-list,
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 /* Card Styles */
-.role-card, .user-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: 1px solid var(--border-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    color: var(--text-color);
+.role-card,
+.user-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  color: var(--text-color);
 }
 
-.role-card:hover, .user-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-    border-color: var(--primary-color);
-    transition: all 0.3s ease;
+.role-card:hover,
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color);
+  transition: all 0.3s ease;
 }
 
-.role-card h3, .user-card h3 {
-    margin: 0 0 1rem 0;
-    color: var(--header-text);
-    font-size: 1.25rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.role-card h3,
+.user-card h3 {
+  margin: 0 0 1rem 0;
+  color: var(--header-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.role-card p, .user-card p {
-    color: var(--text-color);
-    margin: 0.5rem 0;
-    line-height: 1.5;
+.role-card p,
+.user-card p {
+  color: var(--text-color);
+  margin: 0.5rem 0;
+  line-height: 1.5;
 }
 
 /* User Card Specific */
 .user-card .badge {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    background-color: var(--badge-bg);
-    color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background-color: var(--badge-bg);
+  color: white;
 }
 
 .current-roles {
-    margin: 1.5rem 0;
+  margin: 1.5rem 0;
 }
 
-.current-roles h4, .add-role h4 {
-    color: var(--text-color);
-    margin: 0 0 0.75rem 0;
-    font-size: 1rem;
+.current-roles h4,
+.add-role h4 {
+  color: var(--text-color);
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
 }
 
 .current-roles ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .current-roles li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background: var(--light-gray);
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-    font-weight: 600;
-    border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--light-gray);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 600;
+  border: 1px solid var(--border-color);
 }
 
 .current-roles li span {
-    color: var(--text-color);
+  color: var(--text-color);
 }
 
 .current-roles li small {
-    color: var(--text-light);
-    margin-left: 0.5rem;
+  color: var(--text-light);
+  margin-left: 0.5rem;
 }
 
 .role-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0;
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
 }
 
 .role-card ul li {
-    color: var(--text-color);
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .role-card ul li:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 /* Forms */
 .add-role {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .add-role form {
-    display: flex;
-    gap: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
 }
 
 .add-role select {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: white;
-    font-size: 0.875rem;
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: white;
+  font-size: 0.875rem;
 }
 
 /* Buttons */
 .btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: background-color 0.2s;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
 }
 .btn-primary:hover {
-    background-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  background-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .btn-danger:hover {
-    background-color: var(--danger-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  background-color: var(--danger-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
 /* Loading States */
 .btn.loading {
-    position: relative;
-    color: transparent;
+  position: relative;
+  color: transparent;
 }
 
 .btn.loading::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 16px;
-    height: 16px;
-    margin-left: -8px;
-    margin-top: -8px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 0.8s linear infinite;
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Form Feedback */
 .form-group input:focus,
 .form-group select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-    outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  outline: none;
 }
 
 .form-group.success input {
-    border-color: var(--success-color);
+  border-color: var(--success-color);
 }
 
 .form-group.error input {
-    border-color: var(--danger-color);
+  border-color: var(--danger-color);
 }
 
 .inline-form {
-    display: inline-block;
-    margin: 0 4px;
+  display: inline-block;
+  margin: 0 4px;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-/* Role Badge Enhancements */
-.badge {
+  background-color: var(--primary-color);
+  /* Role Badge Enhancements */
+  .badge {
     display: inline-flex;
     align-items: center;
     padding: 0.35em 0.65em;
@@ -286,40 +296,40 @@
     vertical-align: baseline;
     border-radius: 0.375rem;
     transition: all 0.2s ease-in-out;
-}
+  }
 
-.badge-moderator {
+  .badge-moderator {
     background-color: var(--primary-color);
     color: white;
-}
+  }
 
-.badge-admin {
+  .badge-admin {
     background-color: var(--warning-color);
     color: white;
-}
+  }
 
-.badge:hover {
+  .badge:hover {
     transform: scale(1.05);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  }
 
-/* Role Actions */
-.role-actions {
+  /* Role Actions */
+  .role-actions {
     display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
-}
+  }
 
-.role-actions button {
+  .role-actions button {
     flex: 1;
-}
+  }
 
-/* Tooltips */
-[data-tooltip] {
+  /* Tooltips */
+  [data-tooltip] {
     position: relative;
-}
+  }
 
-[data-tooltip]:before {
+  [data-tooltip]:before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 100%;
@@ -334,65 +344,66 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s ease;
-}
+  }
 
-[data-tooltip]:hover:before {
+  [data-tooltip]:hover:before {
     opacity: 1;
     visibility: visible;
-}
-    color: white;
+  }
+  color: white;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
+  background-color: #2980b9;
 }
 
 .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
+  background-color: var(--danger-color);
+  color: white;
 }
 
 .btn-danger:hover {
-    background-color: #c0392b;
+  background-color: #c0392b;
 }
 
 /* Alerts */
 .alert {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 4px;
-    border: 1px solid transparent;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
 }
 
 .alert-success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
 }
 
 .alert-error {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .roles-list, .users-list {
-        grid-template-columns: 1fr;
-    }
-    
-    .add-role form {
-        flex-direction: column;
-    }
-    
-    .nav-links {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .navbar .container {
-        flex-direction: column;
-        gap: 1rem;
-    }
+  .roles-list,
+  .users-list {
+    grid-template-columns: 1fr;
+  }
+
+  .add-role form {
+    flex-direction: column;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .navbar .container {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }

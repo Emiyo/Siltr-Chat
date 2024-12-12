@@ -2740,16 +2740,11 @@
       "indexes": [
         {
           "name": "idx_guild_warnings_active",
-          "columns": [
-            "is_active"
-          ]
+          "columns": ["is_active"]
         },
         {
           "name": "idx_guild_warnings_user",
-          "columns": [
-            "guild_id",
-            "user_id"
-          ]
+          "columns": ["guild_id", "user_id"]
         }
       ]
     },
@@ -3291,15 +3286,11 @@
       "indexes": [
         {
           "name": "idx_behavior_user_id",
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         {
           "name": "idx_behavior_alt_prob",
-          "columns": [
-            "alt_probability"
-          ]
+          "columns": ["alt_probability"]
         }
       ]
     },
@@ -4206,27 +4197,19 @@
       "indexes": [
         {
           "name": "idx_tickets_channel",
-          "columns": [
-            "channel_id"
-          ]
+          "columns": ["channel_id"]
         },
         {
           "name": "idx_tickets_status",
-          "columns": [
-            "status"
-          ]
+          "columns": ["status"]
         },
         {
           "name": "idx_tickets_assigned",
-          "columns": [
-            "assigned_to"
-          ]
+          "columns": ["assigned_to"]
         },
         {
           "name": "idx_tickets_creator",
-          "columns": [
-            "creator_id"
-          ]
+          "columns": ["creator_id"]
         }
       ]
     },
@@ -4325,21 +4308,15 @@
       "indexes": [
         {
           "name": "idx_automation_rules_condition",
-          "columns": [
-            "condition_type"
-          ]
+          "columns": ["condition_type"]
         },
         {
           "name": "idx_automation_rules_action",
-          "columns": [
-            "action_type"
-          ]
+          "columns": ["action_type"]
         },
         {
           "name": "idx_automation_rules_active",
-          "columns": [
-            "is_active"
-          ]
+          "columns": ["is_active"]
         }
       ]
     },
@@ -4390,21 +4367,15 @@
       "indexes": [
         {
           "name": "idx_messages_author",
-          "columns": [
-            "author_id"
-          ]
+          "columns": ["author_id"]
         },
         {
           "name": "idx_messages_ticket",
-          "columns": [
-            "ticket_id"
-          ]
+          "columns": ["ticket_id"]
         },
         {
           "name": "idx_messages_system",
-          "columns": [
-            "is_system_message"
-          ]
+          "columns": ["is_system_message"]
         }
       ]
     }

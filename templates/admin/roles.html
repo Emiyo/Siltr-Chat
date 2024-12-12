@@ -1,42 +1,36 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="admin-container">
-    <div class="admin-header">
-        <h2>Role Management</h2>
-    </div>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
+  <div class="admin-header">
+    <h2>Role Management</h2>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %} {% for category, message in messages %}
+  <div class="alert alert-{{ category }}">{{ message }}</div>
+  {% endfor %} {% endif %} {% endwith %}
+
+  <div class="roles-list">
+    {% for role in roles %}
+    <div class="role-card">
+      <h3>{{ role.name|title }}</h3>
+      <p>{{ role.description or 'No description available' }}</p>
+      <h4>Permissions</h4>
+      <ul>
+        {% for permission in role.permissions %}
+        <li>
+          <span>{{ permission.name|replace('_', ' ')|title }}</span>
+          <small>{{ permission.description or '' }}</small>
+        </li>
+        {% endfor %} {% if not role.permissions %}
+        <li>No permissions assigned</li>
         {% endif %}
-    {% endwith %}
-    
-    <div class="roles-list">
-        {% for role in roles %}
-        <div class="role-card">
-            <h3>{{ role.name|title }}</h3>
-            <p>{{ role.description or 'No description available' }}</p>
-            <h4>Permissions</h4>
-            <ul>
-                {% for permission in role.permissions %}
-                <li>
-                    <span>{{ permission.name|replace('_', ' ')|title }}</span>
-                    <small>{{ permission.description or '' }}</small>
-                </li>
-                {% endfor %}
-                {% if not role.permissions %}
-                <li>No permissions assigned</li>
-                {% endif %}
-            </ul>
-        </div>
-        {% endfor %}
-        {% if not roles %}
-        <div class="role-card">
-            <p>No roles available</p>
-        </div>
-        {% endif %}
+      </ul>
     </div>
+    {% endfor %} {% if not roles %}
+    <div class="role-card">
+      <p>No roles available</p>
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
