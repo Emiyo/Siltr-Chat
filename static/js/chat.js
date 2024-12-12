@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="user-section">
                 <div class="user-section-header">Online — ${onlineUsers.length}</div>
                 ${onlineUsers.map(user => `
-                    <div class="user-item" onclick="window.fetchAndDisplayUserProfile(${user.id})">
+                    <div class="user-item" onclick="window.displayUserProfile(${user.id})">
                         <div class="user-info">
                             <span class="username online">
                                 ${user.display_name || user.username}
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="user-section">
                 <div class="user-section-header">Offline — ${offlineUsers.length}</div>
                 ${offlineUsers.map(user => `
-                    <div class="user-item" onclick="window.fetchAndDisplayUserProfile(${user.id})">
+                    <div class="user-item" onclick="window.displayUserProfile(${user.id})">
                         <div class="user-info">
                             <span class="username offline">
                                 ${user.display_name || user.username}
@@ -282,11 +282,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileBtn = document.querySelector('.profile-btn');
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
-            window.fetchAndDisplayUserProfile('current');
+            window.displayUserProfile('current');
         });
 
         profileBtn.addEventListener('mouseover', () => {
-            window.fetchAndDisplayUserProfile('current');
+            window.displayUserProfile('current');
         });
     }
 });

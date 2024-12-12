@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Fetch and display user profile in Discord style
-    window.fetchAndDisplayUserProfile = async function(userId) {
+    async function displayUserProfile(userId) {
         try {
             const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
             const response = await fetch(endpoint);
@@ -425,3 +425,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 });
+
+// Expose the profile display function globally
+window.displayUserProfile = displayUserProfile;
