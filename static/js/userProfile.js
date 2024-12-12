@@ -70,8 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Loading profile for user:', userId);
             
             // Show loading state
-            safeSetTextContent('profileUsername', 'Loading...');
-            safeSetTextContent('profileStatus', 'Please wait...');
+            const content = document.querySelector('.profile-content');
+            if (content) {
+                content.innerHTML = '<div class="loading-spinner"></div>';
+            }
             
             // Fetch user data
             const response = await fetch(`/api/user/by_id/${userId}`);
