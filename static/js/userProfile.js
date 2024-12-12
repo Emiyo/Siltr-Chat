@@ -8,13 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch and display user profile
     async function showUserProfile(userId) {
         try {
+            console.log('Fetching profile for user:', userId);
+            
             // Fetch user data
             const response = await fetch(`/api/user/by_id/${userId}`);
+            console.log('API response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error('Failed to fetch user profile');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const userData = await response.json();
+            console.log('Received user data:', userData);
             
             // Update modal content
             document.getElementById('profileAvatar').src = userData.avatar || '/static/images/default-avatar.png';
@@ -29,13 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Setup message button
             const messageBtn = document.getElementById('messageUserBtn');
             messageBtn.onclick = () => startDirectMessage(userData.id);
-
+            
             // Show the modal
             profileModal.show();
 
         } catch (error) {
             console.error('Error loading user profile:', error);
-            alert('Failed to load user profile');
+            alert('Failed to load user profile: ' + error.message);
         }
     }
 
@@ -54,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const userId = userElement.dataset.userId;
             if (userId) {
                 event.preventDefault();
+                console.log('User element clicked, userId:', userId);
                 showUserProfile(userId);
             }
         }
@@ -62,18 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Export showUserProfile for global access if needed
     window.showUserProfile = showUserProfile;
 });
-
-// Initialize Socket.IO event handlers for real-time updates
-if (typeof io !== 'undefined') {
-    const socket = io({
-        transports: ['websocket', 'polling'],
-        upgrade: true
-    });
-
-    socket.on('user_list', function(data) {
-        updateUserList(data.users);
-    });
-}
 
 // Update user presence indicator
 function updateUserPresence(presenceState) {
@@ -92,12 +86,16 @@ function updateUserList(users) {
     users.forEach(user => {
         const userItem = document.createElement('div');
         userItem.className = 'user-item';
-        userItem.dataset.userId = user.id; //added data-user-id
+        userItem.dataset.userId = user.id;
         userItem.innerHTML = `
             <div class="user-item-content">
-                <span class="presence-indicator ${user.presence_state || 'offline'}"></span>
-                <span class="username">${user.display_name || user.username}</span>
-                ${user.status ? `<span class="status">${user.status}</span>` : ''}
+                <img src="${user.avatar || '/static/images/default-avatar.png'}" 
+                     alt="${user.username}'s avatar" 
+                     class="user-avatar" />
+                <div class="user-info">
+                    <span class="username">${user.display_name || user.username}</span>
+                    ${user.status ? `<span class="status">${user.status}</span>` : ''}
+                </div>
             </div>
         `;
         userList.appendChild(userItem);
