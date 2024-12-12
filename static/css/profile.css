@@ -38,11 +38,12 @@
 
 .profile-banner {
     position: relative;
-    overflow: hidden;
-    height: 180px;
+    overflow: visible;
+    height: 140px;
     background-color: var(--terminal-bg);
-    margin-bottom: 0;
+    margin-bottom: 40px;
     border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+    padding-top: 25px;
 }
 
 .profile-banner::before {
@@ -142,12 +143,12 @@
 
 .profile-header {
     position: absolute;
-    bottom: -30px;
+    bottom: 20px;
     left: 30px;
     display: flex;
     align-items: flex-end;
     gap: 1rem;
-    z-index: 1;
+    z-index: 2;
 }
 
 .discord-profile-modal {
@@ -172,12 +173,14 @@
 }
 
 .profile-content {
-    padding: 5px 30px 30px;
+    padding: 30px;
     color: var(--text-color);
     background-color: var(--terminal-bg);
     min-height: 300px;
-    margin-top: 45px;
+    margin-top: 0;
     font-family: 'Consolas', 'Monaco', monospace;
+    position: relative;
+    z-index: 1;
 }
 
 .profile-section {
