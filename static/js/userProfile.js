@@ -188,8 +188,7 @@ async function displayUserProfile(userId) {
                 <p id="modalLocation" class="text-muted">${userData.location || "Location not set"}</p>
             </div>
 
-            ${isCurrentUserProfile(userId, userData) ? `
-            <div class="profile-section">
+            <div class="profile-section theme-editor" style="display: none;">
                 <h3>theme</h3>
                 <div class="theme-section">
                     <div class="theme-customization">
@@ -224,7 +223,6 @@ async function displayUserProfile(userId) {
                     </div>
                 </div>
             </div>
-            ` : ''}
 
             <div class="member-since">
                 whois user
@@ -277,6 +275,15 @@ async function displayUserProfile(userId) {
 
     // Add loading complete class
     content.classList.add("loaded");
+
+    // Show/hide theme editor based on profile ownership
+    const themeEditor = content.querySelector('.theme-editor');
+    const isOwner = isCurrentUserProfile(userId, userData);
+    console.log('Theme editor visibility:', { isOwner, currentUsername, userDataUsername: userData.username });
+    
+    if (themeEditor) {
+        themeEditor.style.display = isOwner ? 'block' : 'none';
+    }
 
     console.log("Profile modal content updated successfully");
   } catch (error) {
