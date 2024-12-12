@@ -135,29 +135,38 @@
     <!-- User Profile Modal -->
     <div class="modal fade" id="userProfileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content" style="background: transparent; border: none;">
-                <div class="discord-profile-modal">
-                    <div class="profile-banner" id="modalBanner">
-                        <div class="profile-header">
-                            <div class="profile-avatar-container">
-                                <img id="modalUserAvatar" src="" alt="Profile Avatar" class="profile-avatar">
-                                <span id="modalPresenceIndicator" class="presence-indicator"></span>
-                            </div>
-                            <div class="profile-username-container">
-                                <h2 id="modalUsername" class="profile-username"></h2>
-                                <div id="modalStatus" class="profile-status"></div>
+            <div class="modal-content terminal">
+                <div class="terminal-header">
+                    <div class="terminal-buttons">
+                        <span class="terminal-button terminal-button-red"></span>
+                        <span class="terminal-button terminal-button-yellow"></span>
+                        <span class="terminal-button terminal-button-green"></span>
+                    </div>
+                    <span>user@terminal:~$</span>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="profile-content">
+                        <div class="profile-banner" id="modalBanner">
+                            <div class="profile-header">
+                                <div class="profile-avatar-container">
+                                    <img id="modalUserAvatar" src="" alt="Profile Avatar" class="profile-avatar">
+                                    <span id="modalPresenceIndicator" class="presence-indicator"></span>
+                                </div>
+                                <div class="profile-username-container">
+                                    <h2 id="modalUsername" class="profile-username"></h2>
+                                    <div id="modalStatus" class="profile-status"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="profile-content">
+
                         <div class="profile-section">
-                            <h3>About Me</h3>
+                            <h3>$ about me</h3>
                             <p id="modalBio" class="text-muted"></p>
                             <p id="modalLocation" class="text-muted"></p>
                         </div>
-                        
+
                         <div class="profile-section">
-                            <h3>Theme</h3>
+                            <h3>$ theme</h3>
                             <div class="theme-section">
                                 <div class="theme-customization">
                                     <h4>Accent Color</h4>
@@ -193,6 +202,8 @@
                         </div>
 
                         <div class="member-since">
+                            $ whois user
+                            <br>
                             Member since <span id="modalJoinDate"></span>
                             <br>
                             Last seen <span id="modalLastSeen"></span>
