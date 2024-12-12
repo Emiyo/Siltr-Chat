@@ -3,27 +3,24 @@ import eventlet
 eventlet.monkey_patch(os=True, select=True, socket=True, thread=True, time=True)
 
 import os
+import re
 import logging
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session, abort, current_app
 from logging.handlers import RotatingFileHandler
+from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session, abort, current_app
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 from werkzeug.urls import url_parse as werkzeug_url_parse
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from itsdangerous import URLSafeTimedSerializer
 from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
-from sqlalchemy.exc import IntegrityError
 
 # Import extensions
-from extensions import db, login_manager, bcrypt, mail, Message
-import os
-import json
-from datetime import datetime
-import logging
+from extensions import db, login_manager, bcrypt, mail, init_extensions
+from flask_mail import Message
 
 # Configure logging with more detailed format
 logging.basicConfig(
@@ -36,30 +33,29 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
 logger.info("Flask app initialized")
-# GitHub OAuth Configuration
+
+# Configure database URL
+db_url = os.environ.get('DATABASE_URL')
+if not db_url:
+    logger.error("DATABASE_URL environment variable is not set")
+    raise ValueError("DATABASE_URL environment variable is required")
+
+# Convert postgres:// to postgresql:// if necessary
+if db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
+# Configure SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
+
+# GitHub OAuth Configuration (if needed)
 app.config['GITHUB_CLIENT_ID'] = os.environ.get('GITHUB_CLIENT_ID')
 app.config['GITHUB_CLIENT_SECRET'] = os.environ.get('GITHUB_CLIENT_SECRET')
 app.config['GITHUB_CALLBACK_URL'] = os.environ.get('GITHUB_CALLBACK_URL', 'http://localhost:5000/auth/github/callback')
-# Configure database URL
-try:
-    db_url = os.environ.get('DATABASE_URL')
-    if not db_url:
-        logger.error("DATABASE_URL environment variable is not set")
-        raise ValueError("DATABASE_URL environment variable is required")
-        
-    if db_url.startswith('postgres://'):
-        db_url = db_url.replace('postgres://', 'postgresql://', 1)
-    
-    logger.info(f"Configuring database connection...")
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-    }
-except Exception as e:
-    logger.error(f"Database configuration error: {str(e)}")
-    raise
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Configure logging
@@ -74,12 +70,8 @@ file_handler.setLevel(logging.INFO)
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
-# Initialize Flask-SQLAlchemy
-db.init_app(app)
-login_manager.init_app(app)
-bcrypt.init_app(app)
-mail.init_app(app)
-login_manager.login_view = 'login'
+# Initialize extensions with error handling
+init_extensions(app)
 
 # Initialize migrations
 migrate = Migrate(app, db, compare_type=True)
@@ -89,17 +81,33 @@ from models import User, Role, Category, Channel, Message
 
 with app.app_context():
     try:
-        # Create tables
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        
+        # Create tables if they don't exist
         db.create_all()
         logger.info("Database tables created successfully")
         
         # Verify tables exist
-        tables = db.engine.table_names()
+        tables = inspector.get_table_names()
         logger.info(f"Available tables: {tables}")
         
+        # Verify essential tables exist
+        required_tables = {'user', 'role', 'category', 'channel', 'message', 'user_roles'}
+        missing_tables = required_tables - set(tables)
+        
+        if missing_tables:
+            logger.warning(f"Missing required tables: {missing_tables}")
+            db.create_all()  # Create any missing tables
+            logger.info("Created missing tables")
+        else:
+            logger.info("All required tables exist")
+            
     except Exception as e:
         logger.error(f"Database initialization error: {str(e)}", exc_info=True)
-        raise
+        db.session.rollback()
+        # Continue execution even if there's an error
+        logger.warning("Continuing despite database initialization error")
 
 # Initialize SocketIO after Flask app and extensions
 socketio = SocketIO(
@@ -114,8 +122,16 @@ socketio = SocketIO(
     reconnection=True,
     reconnection_attempts=5,
     reconnection_delay=1000,
-    reconnection_delay_max=5000
+    reconnection_delay_max=5000,
+    path='/socket.io'
 )
+
+logger.info("SocketIO initialized with configuration: %s", {
+    'cors_allowed_origins': "*",
+    'async_mode': 'eventlet',
+    'ping_timeout': 5000,
+    'ping_interval': 25000
+})
 
 
 logger.info('Application startup')
@@ -131,48 +147,54 @@ def load_user(id):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    logger.info("Rendering index page for user: %s", current_user.username if current_user else 'Anonymous')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error("Error rendering index page: %s", str(e), exc_info=True)
+        return "Error loading chat", 500
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        logger.info("Already authenticated user accessing login page")
-        return redirect(url_for('index'))
+    try:
+        if current_user.is_authenticated:
+            logger.info("Already authenticated user accessing login page")
+            return redirect(url_for('index'))
 
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        logger.info(f"Login attempt for email: {email}")
-        
-        if not email or not password:
-            logger.warning("Login attempt with missing credentials")
-            flash('Please provide both email and password', 'error')
-            return redirect(url_for('login'))
+        if request.method == 'POST':
+            email = request.form.get('email')
+            password = request.form.get('password')
+            
+            logger.info(f"Login attempt for email: {email}")
+            
+            if not email or not password:
+                logger.warning("Login attempt with missing credentials")
+                flash('Please provide both email and password', 'error')
+                return render_template('login.html'), 400
 
-        try:
             user = User.query.filter_by(email=email).first()
-            if user:
-                logger.info(f"Found user {user.username}, verifying password")
-                if user.check_password(password):
-                    login_user(user, remember=True)
-                    logger.info(f"User {user.username} logged in successfully")
-                    next_page = request.args.get('next')
-                    if not next_page or werkzeug_url_parse(next_page).netloc != '':
-                        next_page = url_for('index')
-                    return redirect(next_page)
-                else:
-                    logger.warning(f"Invalid password for user {user.username}")
-            else:
-                logger.warning(f"No user found with email {email}")
             
+            if user and user.check_password(password):
+                logger.info(f"User {user.username} authenticated successfully")
+                login_user(user, remember=True)
+                
+                # Handle the next page redirect
+                next_page = request.args.get('next')
+                if not next_page or werkzeug_url_parse(next_page).netloc != '':
+                    next_page = url_for('index')
+                
+                logger.info(f"Redirecting authenticated user to: {next_page}")
+                return redirect(next_page)
+            
+            logger.warning(f"Failed login attempt for email: {email}")
             flash('Invalid email or password', 'error')
-            return redirect(url_for('login'))
+            return render_template('login.html'), 401
             
-        except Exception as e:
-            logger.error(f"Login error: {str(e)}", exc_info=True)
-            flash('An error occurred during login. Please try again.', 'error')
-            return redirect(url_for('login'))
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}", exc_info=True)
+        flash('An error occurred during login. Please try again.', 'error')
+        db.session.rollback()
+        return render_template('login.html'), 500
 
     return render_template('login.html')
 
@@ -326,9 +348,13 @@ def update_avatar():
 def handle_connect():
     """Handle client connection"""
     try:
+        logger.info("Socket connection attempt from %s", request.sid)
+        
         if not current_user.is_authenticated:
             logger.warning("Unauthenticated client attempting to connect")
             return False
+            
+        logger.info("Socket connection authenticated for user: %s", current_user.username)
         
         logger.info("Authenticated user connecting: %s", current_user.username)
         
@@ -444,8 +470,8 @@ def handle_message(data):
     """Handle message sent"""
     if not current_user.is_authenticated:
         logger.warning("Unauthenticated user tried to send message")
-        return
-    
+        return False
+
     try:
         logger.info(f"Received message data: {data}")
         content = data.get('text', '').strip()
@@ -455,20 +481,19 @@ def handle_message(data):
         
         if not content:
             logger.warning("Empty message content")
-            return
+            return False
             
         if not channel_id:
             logger.warning("No channel_id provided")
-            return
+            return False
             
         logger.info(f"Looking up channel {channel_id}...")
         channel = Channel.query.get(channel_id)
         if not channel:
             logger.error(f"Channel {channel_id} not found")
-            return
+            return False
         
         logger.info(f"Creating message for user {current_user.id} in channel {channel_id}")    
-        # Create and save message
         try:
             message = Message(
                 content=content,
@@ -483,37 +508,28 @@ def handle_message(data):
             logger.info("Committing message to database")
             db.session.commit()
             logger.info(f"Message saved to database with id {message.id}")
-try:
-    message_data = message.to_dict()
-    logger.info(f"Message serialized successfully: {message_data}")
-except Exception as e:
-    logger.error(f"Error serializing message: {str(e)}")
-    return False
             
-            message_data = message.to_dict()
-            logger.info(f"Emitting message: {message_data}")
-            emit('message', message_data, room=f'channel_{channel_id}', broadcast=True)
-            logger.info(f"Message broadcasted to channel {channel.name}")
-            return True
-            
+            try:
+                message_data = message.to_dict()
+                logger.info(f"Message serialized successfully: {message_data}")
+                emit('message', message_data, room=f'channel_{channel_id}', broadcast=True)
+                logger.info(f"Message broadcasted to channel {channel.name}")
+                return True
+            except Exception as e:
+                logger.error(f"Error serializing message: {str(e)}")
+                return False
+                
         except SQLAlchemyError as e:
             logger.error(f"Database error saving message: {str(e)}", exc_info=True)
             db.session.rollback()
             emit('error', {'message': 'Failed to save message'})
             return False
-        
-        # Get complete message data
-        message_data = message.to_dict()
-        logger.info(f"Message data prepared: {message_data}")
-        
-        # Broadcast to channel
-        emit('message', message_data, room=f'channel_{channel_id}', broadcast=True)
-        logger.info(f"Message broadcasted to channel {channel.name}")
-        
+            
     except Exception as e:
         logger.error(f"Error in handle_message: {str(e)}", exc_info=True)
         db.session.rollback()
         emit('error', {'message': 'Failed to send message'})
+        return False
 
 @socketio.on('system_message')
 def handle_system_message(data):
