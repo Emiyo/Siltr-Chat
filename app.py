@@ -77,7 +77,7 @@ init_extensions(app)
 migrate = Migrate(app, db, compare_type=True)
 
 # Import models
-from models import User, Role, Category, Channel, Message
+from models import User, Role, Category, Channel, Message, DirectMessage
 
 with app.app_context():
     try:
