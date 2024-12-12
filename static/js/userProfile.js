@@ -1,3 +1,43 @@
+// Helper functions defined first
+function formatDate(dateString) {
+    if (!dateString) return 'Not available';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function safeSetTextContent(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = text || '';
+    }
+}
+
+function safeSetSrc(elementId, src) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.src = src || '/static/images/default-avatar.png';
+    }
+}
+
+function updateThemePreview(color) {
+    document.documentElement.style.setProperty('--primary-color', color);
+    document.documentElement.style.setProperty('--primary-transparent', `${color}1A`);
+    document.documentElement.style.setProperty('--primary-transparent-hover', `${color}26`);
+}
+
+function updateProfileBanner(color) {
+    const banner = document.getElementById('profileBanner');
+    if (banner) {
+        banner.style.backgroundColor = color;
+    }
+}
+
 // Define displayUserProfile as a global function
 window.displayUserProfile = async function(userId) {
     try {
@@ -75,50 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Bootstrap modal
     const profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'));
     let currentUserId = null;
-    
-    // Function to format date strings
-    function formatDate(dateString) {
-        if (!dateString) return 'Not available';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    
-    // Function to safely update element text content
-    function safeSetTextContent(elementId, text) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = text || '';
-        }
-    }
-
-    // Function to safely update element src attribute
-    function safeSetSrc(elementId, src) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.src = src || '/static/images/default-avatar.png';
-        }
-    }
-
-    // Function to update theme preview
-    function updateThemePreview(color) {
-        document.documentElement.style.setProperty('--primary-color', color);
-        document.documentElement.style.setProperty('--primary-transparent', `${color}1A`);
-        document.documentElement.style.setProperty('--primary-transparent-hover', `${color}26`);
-    }
-
-    // Function to update profile banner
-    function updateProfileBanner(color) {
-        const banner = document.getElementById('profileBanner');
-        if (banner) {
-            banner.style.backgroundColor = color;
-        }
-    }
     
     // Initialize color picker
     const colorPicker = document.getElementById('accentColorPicker');
