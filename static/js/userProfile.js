@@ -1,9 +1,15 @@
-// Global variables
-let currentModal = null;
-let currentUserId = null;
+import { store } from './store';
+import { 
+    setCurrentModal, 
+    setCurrentUserId, 
+    setUserData, 
+    setLoading, 
+    setError 
+} from './store/profileSlice';
 
 // Global profile display functionality
 window.displayUserProfile = async function(userId) {
+    store.dispatch(setLoading(true));
     try {
         currentUserId = userId;
         const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;

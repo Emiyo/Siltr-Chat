@@ -90,9 +90,14 @@
     <!-- Load stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     
-    <!-- Load JavaScript in correct order -->
-    <script src="{{ url_for('static', filename='js/userProfile.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <!-- Load Redux and store -->
+    <script src="https://unpkg.com/@reduxjs/toolkit@1.9.7/dist/redux-toolkit.umd.js"></script>
+    <script src="{{ url_for('static', filename='js/store/index.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/store/profileSlice.js') }}" type="module"></script>
+    
+    <!-- Load application scripts -->
+    <script src="{{ url_for('static', filename='js/userProfile.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
 </body>
 </html>
