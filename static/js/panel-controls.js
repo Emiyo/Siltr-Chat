@@ -12,7 +12,9 @@ class PanelController {
       if (!header) return;
 
       // Store original dimensions
-      const panelId = panel.parentElement.classList[0];
+      const panelId = panel.id || `panel-${Math.random().toString(36).substr(2, 9)}`;
+      panel.id = panelId;
+      
       this.panels[panelId] = {
         element: panel,
         minimized: false,
@@ -31,13 +33,30 @@ class PanelController {
       const buttons = header.querySelectorAll('.terminal-button');
       buttons.forEach((button) => {
         if (button.classList.contains('terminal-button-red')) {
-          button.addEventListener('click', () => this.closePanel(panelId));
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closePanel(panelId);
+          });
         } else if (button.classList.contains('terminal-button-yellow')) {
-          button.addEventListener('click', () => this.minimizePanel(panelId));
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.minimizePanel(panelId);
+          });
         } else if (button.classList.contains('terminal-button-green')) {
-          button.addEventListener('click', () => this.maximizePanel(panelId));
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.maximizePanel(panelId);
+          });
         }
       });
+
+      // Store initial sizes
+      const rect = panel.getBoundingClientRect();
+      this.panels[panelId].originalDimensions = {
+        ...this.panels[panelId].originalDimensions,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`
+      };
     });
   }
 
@@ -45,20 +64,23 @@ class PanelController {
     const panel = this.panels[panelId];
     if (!panel) return;
 
+    const content = panel.element.querySelector('.chat-messages, .p-2, form');
+    if (!content) return;
+
     if (panel.minimized) {
       // Restore
+      content.style.display = 'block';
       panel.element.style.height = panel.originalDimensions.height;
-      panel.element.querySelector('.chat-messages, #userList, #categoryList').style.display = 'block';
-      panel.element.querySelector('form')?.style.display = 'block';
       panel.minimized = false;
     } else {
       // Minimize
-      panel.element.style.height = '40px';
-      panel.element.querySelector('.chat-messages, #userList, #categoryList').style.display = 'none';
-      panel.element.querySelector('form')?.style.display = 'none';
+      content.style.display = 'none';
+      panel.element.style.height = '32px';
       panel.minimized = true;
+
+      // If panel was maximized, restore it first
       if (panel.maximized) {
-        this.maximizePanel(panelId); // Reset maximized state
+        this.maximizePanel(panelId);
       }
     }
   }
@@ -69,7 +91,9 @@ class PanelController {
 
     if (panel.maximized) {
       // Restore
-      Object.assign(panel.element.style, panel.originalDimensions);
+      Object.entries(panel.originalDimensions).forEach(([prop, value]) => {
+        panel.element.style[prop] = value;
+      });
       panel.element.classList.remove('maximized-panel');
       panel.maximized = false;
     } else {
@@ -82,8 +106,10 @@ class PanelController {
       panel.element.style.zIndex = '9999';
       panel.element.classList.add('maximized-panel');
       panel.maximized = true;
+
+      // If panel was minimized, restore it first
       if (panel.minimized) {
-        this.minimizePanel(panelId); // Reset minimized state
+        this.minimizePanel(panelId);
       }
     }
   }

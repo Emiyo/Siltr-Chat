@@ -330,15 +330,18 @@ body {
 .terminal-header {
   background-color: #2d2d2d;
   padding: 0.5rem;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
   align-items: center;
   border-bottom: 1px solid #333;
+  min-height: 32px;
 }
 
 .terminal-buttons {
   display: flex;
   gap: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .terminal-button {
@@ -346,6 +349,7 @@ body {
   height: 12px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .terminal-button-red {
