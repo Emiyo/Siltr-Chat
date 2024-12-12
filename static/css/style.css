@@ -300,8 +300,11 @@ body {
 }
 
 .terminal.snapping {
-  transform: scale(1.002);
-  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+  transform: scale(1.005);
+  box-shadow: 
+    0 0 20px rgba(74, 158, 255, 0.4),
+    0 0 40px rgba(74, 158, 255, 0.2);
+  z-index: 1001 !important;
 }
 
 .terminal.minimized {

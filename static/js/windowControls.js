@@ -91,8 +91,8 @@ class TerminalWindow {
       this.container.style.zIndex = '1000';
     });
 
-    const SNAP_THRESHOLD = 30; // Increased snap distance threshold
-    const SNAP_EDGE_THRESHOLD = 20; // Increased edge snap threshold
+    const SNAP_THRESHOLD = 50; // Significantly increased snap distance threshold
+    const SNAP_EDGE_THRESHOLD = 40; // Significantly increased edge snap threshold
     
     document.addEventListener('mousemove', (e) => {
       if (!this.isDragging) return;
@@ -109,7 +109,7 @@ class TerminalWindow {
 
       let snapped = false;
 
-      // Snap to screen edges with improved precision
+      // Snap to screen edges with improved precision and stronger effect
       if (x < SNAP_EDGE_THRESHOLD) {
         x = 0;
         snapped = true;
@@ -127,30 +127,38 @@ class TerminalWindow {
         snapped = true;
       }
 
-      // Enhanced panel snapping
+      // Enhanced panel snapping with stronger magnetism
       document.querySelectorAll('.terminal').forEach(panel => {
         if (panel === this.container) return;
         
         const panelRect = panel.getBoundingClientRect();
         
-        // Horizontal snapping with improved detection
+        // Horizontal snapping with improved detection and stronger magnetism
         if (Math.abs(x - panelRect.right) < SNAP_THRESHOLD) {
           x = panelRect.right;
           snapped = true;
+          // Add slight magnetism effect
+          this.container.style.transform = `translateX(${(x - panelRect.right) * 0.1}px)`;
         }
         if (Math.abs(x + rect.width - panelRect.left) < SNAP_THRESHOLD) {
           x = panelRect.left - rect.width;
           snapped = true;
+          // Add slight magnetism effect
+          this.container.style.transform = `translateX(${(panelRect.left - (x + rect.width)) * 0.1}px)`;
         }
         
-        // Vertical snapping with improved detection
+        // Vertical snapping with improved detection and stronger magnetism
         if (Math.abs(y - panelRect.bottom) < SNAP_THRESHOLD) {
           y = panelRect.bottom;
           snapped = true;
+          // Add slight magnetism effect
+          this.container.style.transform = `translateY(${(y - panelRect.bottom) * 0.1}px)`;
         }
         if (Math.abs(y + rect.height - panelRect.top) < SNAP_THRESHOLD) {
           y = panelRect.top - rect.height;
           snapped = true;
+          // Add slight magnetism effect
+          this.container.style.transform = `translateY(${(panelRect.top - (y + rect.height)) * 0.1}px)`;
         }
       });
 
@@ -160,6 +168,7 @@ class TerminalWindow {
         this.container.classList.add('snapping');
       } else {
         this.container.style.transition = '';
+        this.container.style.transform = '';
         this.container.classList.remove('snapping');
       }
 
