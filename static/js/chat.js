@@ -225,10 +225,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>`;
       // Display message content as plain text
       
-      messageDiv.innerHTML = `
-          ${messageHeader}
-          <div class="message-content">${messageContent}</div>
-      `;
+      // Create text content and escape HTML
+      const contentDiv = document.createElement('div');
+      contentDiv.textContent = messageContent;
+      contentDiv.className = 'message-content';
+      messageDiv.innerHTML = messageHeader;
+      messageDiv.appendChild(contentDiv);
 
       // Only add reply button for regular messages
       if (!message.type) {
