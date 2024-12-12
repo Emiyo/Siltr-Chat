@@ -26,37 +26,18 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("join", { username });
   });
 
-  // Create message form container if it doesn't exist
-  const messageFormContainer = document.getElementById("messageFormContainer");
-  if (!messageFormContainer) {
-    const container = document.createElement('div');
-    container.id = 'messageFormContainer';
-    messageForm.appendChild(container);
+  // Create message input if it doesn't exist
+  const messageInput = document.getElementById("messageInput");
+  if (!messageInput) {
+    const input = document.createElement('textarea');
+    input.id = 'messageInput';
+    input.placeholder = 'Type a message...';
+    messageForm.appendChild(input);
   }
-
-  // Initialize TinyMCE
-  tinymce.init({
-    selector: '#messageInput',
-    height: 100,
-    menubar: false,
-    plugins: 'link lists emoticons',
-    toolbar: 'bold italic | bullist numlist | link emoticons',
-    placeholder: 'Type a message...',
-    skin: 'oxide-dark',
-    content_css: 'dark',
-    setup: function(editor) {
-      editor.on('init', function() {
-        editor.getContainer().style.border = '1px solid #30363d';
-      });
-    }
-  });
 
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const editor = tinymce.get('messageInput');
-    if (!editor) return;
-
-    const message = editor.getContent().trim();
+    const message = messageInput.value.trim();
     if (message) {
       const replyToId = messageInput.getAttribute("data-reply-to");
       const recipientId = messageInput.getAttribute("data-recipient-id");
@@ -65,20 +46,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (recipientId) {
         socket.emit("direct_message", {
           text: message,
-          recipient_id: parseInt(recipientId),
-          is_rich_text: true
+          recipient_id: parseInt(recipientId)
         });
         messageInput.removeAttribute("data-recipient-id");
       } else {
         socket.emit("message", {
           text: message,
           channel_id: currentChannel,
-          parent_id: replyToId || null,
-          is_rich_text: true
+          parent_id: replyToId || null
         });
         messageInput.removeAttribute("data-reply-to");
       }
-      editor.setContent('');
+      messageInput.value = '';
     }
   });
 
@@ -255,16 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>`;
       // Display message content as plain text
       
-      // Handle rich text content
-      const contentDiv = document.createElement('div');
-      if (message.is_rich_text) {
-        contentDiv.innerHTML = messageContent;
-      } else {
-        contentDiv.textContent = messageContent;
-      }
-      contentDiv.className = 'message-content';
-      messageDiv.innerHTML = messageHeader;
-      messageDiv.appendChild(contentDiv);
+      messageDiv.innerHTML = `${messageHeader}<div class="message-content">${messageContent}</div>`;
 
       // Only add reply button for regular messages
       if (!message.type) {
