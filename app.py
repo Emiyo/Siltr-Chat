@@ -289,12 +289,19 @@ def get_current_user_profile():
 def get_user_profile(user_id):
     """Get a specific user's profile data by ID"""
     try:
+        logger.info(f"Fetching profile for user ID: {user_id}")
         user = User.query.get(user_id)
         if not user:
+            logger.warning(f"User ID {user_id} not found")
             return jsonify({'error': 'User not found'}), 404
-        return jsonify(user.to_dict())
+            
+        user_data = user.to_dict()
+        logger.info(f"Successfully fetched profile for user {user.username}")
+        logger.debug(f"User data: {user_data}")
+        return jsonify(user_data)
+        
     except Exception as e:
-        logger.error(f"Error fetching user profile {user_id}: {str(e)}")
+        logger.error(f"Error fetching user profile {user_id}: {str(e)}", exc_info=True)
         return jsonify({'error': 'Failed to fetch profile'}), 500
 
 @app.route('/update_status', methods=['POST'])

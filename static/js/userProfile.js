@@ -69,20 +69,28 @@ document.addEventListener('DOMContentLoaded', function() {
             currentUserId = userId;
             console.log('Loading profile for user:', userId);
             
-            // Show loading state
+            // Store original content and show loading state
             const content = document.querySelector('.profile-content');
+            const originalContent = content ? content.innerHTML : '';
             if (content) {
-                content.innerHTML = '<div class="loading-spinner"></div>';
+                content.innerHTML = '<div class="loading-spinner"></div><div class="text-center mt-3">Loading profile...</div>';
             }
             
-            // Fetch user data
-            const response = await fetch(`/api/user/by_id/${userId}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const userData = await response.json();
-            console.log('Profile data received:', userData);
+            try {
+                // Fetch user data
+                const response = await fetch(`/api/user/by_id/${userId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const userData = await response.json();
+                console.log('Profile data received:', userData);
+
+                // Only proceed if we have user data
+                if (!userData || typeof userData !== 'object') {
+                    throw new Error('Invalid user data received');
+                }
             
             // Update modal content
             safeSetSrc('profileAvatar', userData.avatar);
@@ -102,10 +110,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show the modal
             profileModal.show();
-        } catch (error) {
-            console.error('Error loading user profile:', error);
-            alert('Failed to load user profile. Please try again.');
-        }
+        if (content) {
+                    content.innerHTML = '';  // Clear loading state
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                if (content) {
+                    content.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error loading profile:</strong><br>
+                            ${error.message || 'Failed to load user profile. Please try again.'}
+                        </div>
+                    `;
+                }
+                return;  // Exit early on error
+            }
     };
     
     // Event delegation for user profile clicks
