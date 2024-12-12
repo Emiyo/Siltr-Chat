@@ -11,15 +11,19 @@
 
 .modal-content {
     position: relative;
-    background: transparent;
+    background: var(--terminal-bg, #1a1a1a);
     margin: 5% auto;
     padding: 0;
-    border: none;
+    border: 1px solid rgba(74, 158, 255, 0.3);
     border-radius: 8px;
     width: 90%;
     max-width: 800px;
-    color: #ffffff;
+    color: var(--text-color, #ffffff);
     animation: modalFade 0.3s ease-in-out;
+}
+
+.modal-content.terminal {
+    background-color: var(--terminal-bg, #1a1a1a);
 }
 
 @keyframes modalFade {

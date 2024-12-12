@@ -54,31 +54,32 @@ window.displayUserProfile = async function(userId) {
         currentUserId = userId;
         console.log('Loading profile for user:', userId);
         
-        // Store original content and show loading state
         const content = document.querySelector('.profile-content');
-        const originalContent = content ? content.innerHTML : '';
         if (content) {
             content.innerHTML = '<div class="loading-spinner"></div><div class="text-center mt-3">Loading profile...</div>';
         }
         
         try {
-            // Fetch user data
             const response = await fetch(`/api/user/by_id/${userId}`);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const userData = await response.json();
             console.log('Profile data received:', userData);
 
-            // Only proceed if we have user data
             if (!userData || typeof userData !== 'object') {
                 throw new Error('Invalid user data received');
             }
         
-            // Update modal content
-            safeSetSrc('modalUserAvatar', userData.avatar);
+            // Update modal content with proper error handling
+            const defaultAvatar = '/static/images/default-avatar.png';
+            const avatar = document.getElementById('modalUserAvatar');
+            if (avatar) {
+                avatar.src = userData.avatar || defaultAvatar;
+                avatar.onerror = () => { avatar.src = defaultAvatar; };
+            }
+
             safeSetTextContent('modalUsername', userData.display_name || userData.username);
             safeSetTextContent('modalStatus', userData.status || 'No status set');
             safeSetTextContent('modalBio', userData.bio || 'No bio provided');
@@ -86,20 +87,22 @@ window.displayUserProfile = async function(userId) {
             safeSetTextContent('modalJoinDate', formatDate(userData.created_at));
             safeSetTextContent('modalLastSeen', formatDate(userData.last_seen));
             
-            // Update theme color if colorPicker exists
-            if (userData.accent_color && colorPicker) {
-                colorPicker.value = userData.accent_color;
+            // Update theme color and preview
+            const picker = document.getElementById('accentColorPicker');
+            if (picker && userData.accent_color) {
+                picker.value = userData.accent_color;
                 updateThemePreview(userData.accent_color);
                 updateProfileBanner(userData.accent_color);
             }
+
+            // Add loading complete class to enable animations
+            if (content) {
+                content.classList.add('loaded');
+            }
             
-            // Show the modal if it exists
+            // Show the modal
             if (profileModal) {
                 profileModal.show();
-            }
-
-            if (content) {
-                content.innerHTML = '';  // Clear loading state
             }
         } catch (error) {
             console.error('Error loading user profile:', error);
