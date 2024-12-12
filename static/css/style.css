@@ -514,11 +514,33 @@ body {
   background-color: var(--message-system-bg);
   color: #8a8d91;
   font-style: italic;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0.5rem auto;
   text-align: center;
-  max-width: 70%;
+  width: fit-content;
   font-size: 0.9rem;
+  padding: 0.25rem 1rem;
+  transform: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+
+.message-system:hover {
+  transform: none !important;
+  padding-right: 1rem !important;
+  width: fit-content !important;
+  box-shadow: none !important;
+}
+
+.message-system .system-message-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.message-system .message-timestamp {
+  color: #666;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  display: inline-block;
 }
 
 .message-private {
