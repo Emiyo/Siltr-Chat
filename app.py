@@ -1,143 +1,133 @@
-# Configure eventlet first
 import eventlet
-eventlet.monkey_patch(os=True, select=True, socket=True, thread=True, time=True)
+eventlet.monkey_patch()
 
 import os
-import re
 import logging
-import json
-from datetime import datetime
-from logging.handlers import RotatingFileHandler
-from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session, abort, current_app
-from flask_login import login_user, login_required, logout_user, current_user
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask_login import UserMixin, login_user, login_required, logout_user, current_user
+from extensions import db, bcrypt, mail, init_extensions, login_manager
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
-from werkzeug.urls import url_parse as werkzeug_url_parse
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from werkzeug.urls import url_parse
+from sqlalchemy.exc import SQLAlchemyError
 from itsdangerous import URLSafeTimedSerializer
-from flask_migrate import Migrate
 from email_validator import validate_email, EmailNotValidError
-
-# Import extensions
-from extensions import db, login_manager, bcrypt, mail, init_extensions
+import json
 from flask_mail import Message
+from extensions import db, bcrypt, mail, init_extensions
+from models import User, Role, Category, Channel, Message, DirectMessage
 
-# Configure logging with more detailed format
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# App configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
-logger.info("Flask app initialized")
-
-# Configure database URL
-db_url = os.environ.get('DATABASE_URL')
-if not db_url:
-    logger.error("DATABASE_URL environment variable is not set")
-    raise ValueError("DATABASE_URL environment variable is required")
-
-# Convert postgres:// to postgresql:// if necessary
-if db_url.startswith('postgres://'):
-    db_url = db_url.replace('postgres://', 'postgresql://', 1)
-
-# Configure SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///chat.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-}
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# GitHub OAuth Configuration (if needed)
-app.config['GITHUB_CLIENT_ID'] = os.environ.get('GITHUB_CLIENT_ID')
-app.config['GITHUB_CLIENT_SECRET'] = os.environ.get('GITHUB_CLIENT_SECRET')
-app.config['GITHUB_CALLBACK_URL'] = os.environ.get('GITHUB_CALLBACK_URL', 'http://localhost:5000/auth/github/callback')
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-
-# Configure logging
-if not os.path.exists('logs'):
-    os.makedirs('logs', exist_ok=True)
-
-file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-))
-file_handler.setLevel(logging.INFO)
-logger.addHandler(file_handler)
-logger.setLevel(logging.INFO)
-
-# Initialize extensions with error handling
+# Initialize extensions
 init_extensions(app)
 
-# Initialize migrations
-migrate = Migrate(app, db, compare_type=True)
+# Initialize SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-# Import models
-from models import User, Role, Category, Channel, Message, DirectMessage
+# File upload configuration
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
 
-with app.app_context():
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/api/upload_dm_file', methods=['POST'])
+@login_required
+def upload_dm_file():
     try:
-        from sqlalchemy import inspect
-        inspector = inspect(db.engine)
-        
-        # Create tables if they don't exist
-        db.create_all()
-        logger.info("Database tables created successfully")
-        
-        # Verify tables exist
-        tables = inspector.get_table_names()
-        logger.info(f"Available tables: {tables}")
-        
-        # Verify essential tables exist
-        required_tables = {'user', 'role', 'category', 'channel', 'message', 'user_roles'}
-        missing_tables = required_tables - set(tables)
-        
-        if missing_tables:
-            logger.warning(f"Missing required tables: {missing_tables}")
-            db.create_all()  # Create any missing tables
-            logger.info("Created missing tables")
-        else:
-            logger.info("All required tables exist")
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
             
+        file = request.files['file']
+        if not file or not file.filename:
+            return jsonify({'error': 'Invalid file'}), 400
+            
+        if not allowed_file(file.filename):
+            return jsonify({'error': 'File type not allowed'}), 400
+            
+        # Secure filename and generate unique name
+        filename = secure_filename(f"{int(datetime.utcnow().timestamp())}_{file.filename}")
+        file_type = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        
+        # Ensure upload directory exists
+        upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'dm_files')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save file
+        filepath = os.path.join(upload_dir, filename)
+        file.save(filepath)
+        
+        # Return file information
+        file_url = f"/static/uploads/dm_files/{filename}"
+        return jsonify({
+            'file_url': file_url,
+            'file_type': file_type,
+            'file_name': file.filename
+        })
+        
     except Exception as e:
-        logger.error(f"Database initialization error: {str(e)}", exc_info=True)
-        db.session.rollback()
-        # Continue execution even if there's an error
-        logger.warning("Continuing despite database initialization error")
+        logger.error(f"File upload error: {str(e)}")
+        return jsonify({'error': 'Failed to upload file'}), 500
 
-# Initialize SocketIO after Flask app and extensions
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    logger=True,
-    engineio_logger=True,
-    manage_session=False,
-    async_mode='eventlet',
-    ping_timeout=5000,
-    ping_interval=25000,
-    reconnection=True,
-    reconnection_attempts=5,
-    reconnection_delay=1000,
-    reconnection_delay_max=5000,
-    path='/socket.io'
-)
-
-logger.info("SocketIO initialized with configuration: %s", {
-    'cors_allowed_origins': "*",
-    'async_mode': 'eventlet',
-    'ping_timeout': 5000,
-    'ping_interval': 25000
-})
-
-
-logger.info('Application startup')
-
-
-from models import User, Role, Category, Channel, Message
+@socketio.on('connect')
+def handle_connect():
+    """Handle client connection"""
+    try:
+        logger.info("Socket connection attempt from %s", request.sid)
+        
+        if not current_user.is_authenticated:
+            logger.warning("Unauthenticated client attempting to connect")
+            return False
+            
+        logger.info("Socket connection authenticated for user: %s", current_user.username)
+        
+        logger.info("Authenticated user connecting: %s", current_user.username)
+        
+        # Update last seen
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
+        
+        # Send initial data
+        user_data = current_user.to_dict()
+        users = User.query.all()
+        users_data = [user.to_dict() for user in users]
+        
+        # Get categories with their channels
+        categories = Category.query.all()
+        categories_data = []
+        for category in categories:
+            category_dict = category.to_dict()
+            channels = Channel.query.filter_by(category_id=category.id).all()
+            category_dict['channels'] = [channel.to_dict() for channel in channels]
+            categories_data.append(category_dict)
+        
+        # Emit initial data
+        emit('user_connected', user_data)
+        emit('user_list', {'users': users_data})
+        emit('categories_list', {'categories': categories_data})
+        
+        # Join user's room
+        join_room(f'user_{current_user.id}')
+        logger.info("Client connected successfully: %s", current_user.username)
+        return True
+        
+    except Exception as e:
+        logger.error("Error in handle_connect: %s", str(e), exc_info=True)
+        emit('error', {'message': 'Failed to initialize connection'})
+        return False
 
 @login_manager.user_loader
 def load_user(id):
@@ -180,7 +170,7 @@ def login():
                 
                 # Handle the next page redirect
                 next_page = request.args.get('next')
-                if not next_page or werkzeug_url_parse(next_page).netloc != '':
+                if not next_page or url_parse(next_page).netloc != '':
                     next_page = url_for('index')
                 
                 logger.info(f"Redirecting authenticated user to: {next_page}")
