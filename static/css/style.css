@@ -28,6 +28,37 @@
   --elevation-stroke: 0 0 0 1px rgba(4, 4, 5, 0.15);
   --elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05),
     0 2px 0 rgba(4, 4, 5, 0.05);
+  /* Panel control transitions */
+  .terminal {
+    transition: all 0.3s ease;
+    transform-origin: center top;
+  }
+
+  .maximized-panel {
+    border-radius: 0 !important;
+  }
+
+  .terminal-button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .terminal-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+
+  .terminal-button-red:hover {
+    box-shadow: 0 0 8px rgba(255, 95, 86, 0.8);
+  }
+
+  .terminal-button-yellow:hover {
+    box-shadow: 0 0 8px rgba(255, 189, 46, 0.8);
+  }
+
+  .terminal-button-green:hover {
+    box-shadow: 0 0 8px rgba(39, 201, 63, 0.8);
+  }
 }
 
 /* Theme Transitions */
