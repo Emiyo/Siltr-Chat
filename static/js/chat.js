@@ -46,19 +46,41 @@ function updateActiveConversations(message) {
       
       // Check if it's a direct message
       if (recipientId) {
+        const parsedRecipientId = parseInt(recipientId);
         const dmData = {
           text: message,
-          recipient_id: parseInt(recipientId),
+          recipient_id: parsedRecipientId,
         };
-        socket.emit("direct_message", dmData);
-        // Update active conversations immediately after sending
+        
+        // Update active conversations before sending
+        const recipient = activeConversations.find(u => u.id === parsedRecipientId);
+        if (!recipient) {
+          // If recipient not in active conversations, fetch user from user list
+          const allUsers = document.querySelectorAll('.user-item');
+          for (const userEl of allUsers) {
+            if (userEl.querySelector('.user-actions button').onclick.toString().includes(parsedRecipientId)) {
+              const username = userEl.querySelector('.username').textContent.trim();
+              activeConversations.push({
+                id: parsedRecipientId,
+                username: username,
+                display_name: username
+              });
+              break;
+            }
+          }
+        }
+        
+        // Update conversations list
         updateActiveConversations({
           content: message,
           sender_id: user_id,
-          recipient_id: parseInt(recipientId),
-          recipient: activeConversations.find(u => u.id === parseInt(recipientId))
+          recipient_id: parsedRecipientId,
+          recipient: recipient || activeConversations.find(u => u.id === parsedRecipientId)
         });
+        
+        socket.emit("direct_message", dmData);
         messageInput.removeAttribute("data-recipient-id");
+        messageInput.value = "";
       } else {
         socket.emit("message", {
           text: message,
@@ -66,8 +88,8 @@ function updateActiveConversations(message) {
           parent_id: replyToId || null,
         });
         messageInput.removeAttribute("data-reply-to");
+        messageInput.value = "";
       }
-      messageInput.value = "";
     }
   });
 
