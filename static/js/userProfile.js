@@ -82,14 +82,30 @@ function initializeProfileHandlers() {
         }
     };
 
-    // Override the click handlers to use Redux
-    const userElements = document.querySelectorAll('[onclick*="displayUserProfile"]');
-    userElements.forEach(element => {
-        const userId = element.getAttribute('onclick').match(/'([^']+)'/)[1];
-        element.onclick = (e) => {
+    // Use event delegation for profile clicks
+    document.addEventListener('click', function(e) {
+        const profileBtn = e.target.closest('.profile-btn');
+        if (profileBtn) {
             e.preventDefault();
-            store.dispatch(window.displayUserProfile(userId));
-        };
+            const userId = profileBtn.getAttribute('data-user-id');
+            if (window.store && window.displayUserProfile) {
+                window.store.dispatch(window.displayUserProfile(userId));
+            } else {
+                console.error('Redux store or displayUserProfile not initialized');
+            }
+        }
+    });
+
+    // Set up profile buttons
+    const profileButtons = document.querySelectorAll('.profile-btn');
+    profileButtons.forEach(btn => {
+        if (!btn.hasAttribute('data-user-id')) {
+            const userId = btn.getAttribute('onclick')?.match(/'([^']+)'/))?.[1];
+            if (userId) {
+                btn.setAttribute('data-user-id', userId);
+                btn.removeAttribute('onclick');
+            }
+        }
     });
 }
 
