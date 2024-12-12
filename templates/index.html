@@ -134,57 +134,60 @@
     </div>
     <!-- User Profile Modal -->
     <div class="modal fade" id="userProfileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="discord-profile-modal">
-                <div class="profile-banner" id="modalBanner">
-                    <div class="profile-header">
-                        <div class="profile-avatar-container">
-                            <img id="modalUserAvatar" src="" alt="Profile Avatar" class="profile-avatar">
-                            <span id="modalPresenceIndicator" class="presence-indicator"></span>
-                        </div>
-                        <div class="profile-username-container">
-                            <h2 id="modalUsername" class="profile-username"></h2>
-                            <div id="modalStatus" class="profile-status"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="profile-content">
-                    <div class="profile-section">
-                        <h3>About Me</h3>
-                        <p id="modalBio" class="text-muted"></p>
-                        <p id="modalLocation" class="text-muted"></p>
-                    </div>
-                    
-                    <div class="profile-section">
-                        <h3>Theme</h3>
-                        <div class="theme-customization">
-                            <h4>Accent Color</h4>
-                            <input type="color" id="accentColorPicker" class="color-picker" value="#5865F2">
-                        </div>
-                        <div class="theme-preview">
-                            <h5>Preview</h5>
-                            <div class="preview-container">
-                                <div class="preview-message preview-own">
-                                    Preview of your messages
-                                </div>
-                                <div class="preview-message preview-other">
-                                    Preview of other's messages
-                                </div>
-                                <div class="preview-input">
-                                    <input type="text" class="preview-message-input" placeholder="Message preview...">
-                                </div>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="discord-profile-modal">
+                    <div class="profile-banner" id="modalBanner">
+                        <div class="profile-header">
+                            <div class="profile-avatar-container">
+                                <img id="modalUserAvatar" src="" alt="Profile Avatar" class="profile-avatar">
+                                <span id="modalPresenceIndicator" class="presence-indicator"></span>
+                            </div>
+                            <div class="profile-username-container">
+                                <h2 id="modalUsername" class="profile-username"></h2>
+                                <div id="modalStatus" class="profile-status"></div>
                             </div>
                         </div>
                     </div>
+                    <div class="profile-content">
+                        <div class="profile-section">
+                            <h3>About Me</h3>
+                            <p id="modalBio" class="text-muted"></p>
+                            <p id="modalLocation" class="text-muted"></p>
+                        </div>
+                        
+                        <div class="profile-section">
+                            <h3>Theme</h3>
+                            <div class="theme-customization">
+                                <h4>Accent Color</h4>
+                                <input type="color" id="accentColorPicker" class="color-picker" value="#5865F2">
+                            </div>
+                            <div class="theme-preview">
+                                <h5>Preview</h5>
+                                <div class="preview-container">
+                                    <div class="preview-message preview-own">
+                                        Preview of your messages
+                                    </div>
+                                    <div class="preview-message preview-other">
+                                        Preview of other's messages
+                                    </div>
+                                    <div class="preview-input">
+                                        <input type="text" class="preview-message-input" placeholder="Message preview...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="member-since">
-                        Member since <span id="modalJoinDate"></span>
-                        <br>
-                        Last seen <span id="modalLastSeen"></span>
-                    </div>
+                        <div class="member-since">
+                            Member since <span id="modalJoinDate"></span>
+                            <br>
+                            Last seen <span id="modalLastSeen"></span>
+                        </div>
 
-                    <div class="profile-actions">
-                        <button id="startDirectMessageBtn" class="btn btn-primary">Send Message</button>
+                        <div class="profile-actions">
+                            <button id="messageUserBtn" class="btn btn-primary">Send Message</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
