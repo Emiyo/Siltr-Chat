@@ -182,8 +182,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (message.type === "system") {
       messageDiv.className = "message message-system";
       messageDiv.innerHTML = `
-                <div class="message-timestamp">${timestamp}</div>
-                ${messageContent}`;
+                <div class="message-content">
+                    <div class="message-timestamp">${timestamp}</div>
+                    <div class="system-message-text">${messageContent}</div>
+                </div>`;
     } else if (message.type === "private") {
       messageDiv.className = "message message-private";
       const isOwnMessage = message.user_id === user_id;
@@ -206,7 +208,15 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<div class="message-timestamp">
                     <span class="message-username">${message.user ? message.user.username : "Unknown"}</span> • ${timestamp}
                 </div>`;
-      messageDiv.innerHTML = `${messageHeader}${messageContent}`;
+      // Parse markdown if it's not a system message
+      if (!message.type) {
+          messageContent = marked.parse(messageContent);
+      }
+      
+      messageDiv.innerHTML = `
+          ${messageHeader}
+          <div class="message-content">${messageContent}</div>
+      `;
 
       // Only add reply button for regular messages
       if (!message.type) {
