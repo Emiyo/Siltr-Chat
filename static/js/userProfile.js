@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to display user profile - making it globally accessible
-    window.displayUserProfile = async function(userId) {
+    window.displayUserProfile = async function displayUserProfile(userId) {
         try {
             if (!userId) {
                 console.error('No user ID provided');
