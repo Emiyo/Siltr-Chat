@@ -225,7 +225,23 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize Bootstrap modal
   const modalElement = document.getElementById("userProfileModal");
   if (modalElement) {
-    profileModal = new bootstrap.Modal(modalElement);
+    profileModal = new bootstrap.Modal(modalElement, {
+      backdrop: true,
+      keyboard: true,
+      focus: true
+    });
+    
+    // Ensure modal is properly initialized with event handlers
+    modalElement.addEventListener('shown.bs.modal', function () {
+      console.log('Modal shown - ensuring focus and interaction');
+      document.body.style.overflow = 'hidden';
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', function () {
+      console.log('Modal hidden - resetting state');
+      document.body.style.overflow = '';
+    });
+
     console.log("Profile modal initialized");
   } else {
     console.error("Failed to find profile modal element");
