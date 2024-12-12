@@ -161,11 +161,6 @@ window.displayUserProfile = async function (userId) {
                 <br>
                 Last seen <span id="modalLastSeen">${formatDate(userData.last_seen)}</span>
             </div>
-
-            <div class="profile-actions">
-                <button id="messageUserBtn" class="btn btn-terminal">Send Message</button>
-                <button type="button" class="btn btn-terminal" data-bs-dismiss="modal">Close</button>
-            </div>
         `;
 
     // Update modal content
@@ -274,39 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Initialize message button handler
-  const messageUserBtn = document.getElementById("messageUserBtn");
-  if (messageUserBtn) {
-    messageUserBtn.addEventListener("click", async function () {
-      if (currentUserId && typeof socket !== "undefined") {
-        console.log("Starting DM with user:", currentUserId);
-        
-        // Emit socket event to start a direct message
-        socket.emit("start_direct_message", { target_user_id: currentUserId });
-        
-        // Get the username for the target user
-        try {
-          const response = await fetch(`/api/user/by_id/${currentUserId}`);
-          const userData = await response.json();
-          
-          // Add @ prefix to username in message input
-          const messageInput = document.getElementById("messageInput");
-          if (messageInput) {
-            messageInput.value = `@${userData.username} `;
-            messageInput.focus();
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-        
-        // Close the modal
-        profileModal.hide();
-      } else {
-        console.warn("Cannot start DM - missing userId or socket");
-      }
-    });
-    console.log("Message button handler initialized");
-  }
+  
 
   // Modal cleanup handler
   if (modalElement) {
