@@ -82,11 +82,29 @@ function updateActiveConversations(message) {
   }
 
   // Initialize Socket.IO connection
-  socket = io();
+  socket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
 
   socket.on("connect", () => {
     console.log("Connected to server");
     socket.emit("join", { username });
+    
+    // Request initial data after connection
+    socket.emit("get_categories");
+    socket.emit("get_users");
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error);
+    addMessage({
+      type: "system",
+      text: "Connection error. Attempting to reconnect...",
+      timestamp: new Date().toISOString()
+    });
   });
 
   messageForm.addEventListener("submit", async (e) => {
