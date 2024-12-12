@@ -41,23 +41,3 @@ const profileSlice = window.RTK.createSlice({
 // Export actions and reducer
 window.profileActions = profileSlice.actions;
 window.profileReducer = profileSlice.reducer;
-
-// Create async thunk for displaying user profile
-window.displayUserProfile = (userId) => (dispatch, getState) => {
-    dispatch(profileActions.setLoading(true));
-    try {
-      dispatch(profileActions.setCurrentUserId(userId));
-      const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
-      const response = await fetch(endpoint);
-      if (!response.ok) throw new Error('Failed to fetch user profile');
-      const userData = await response.json();
-      dispatch(profileActions.setUserData(userData));
-      dispatch(profileActions.openModal());
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      dispatch(profileActions.setError(error.message));
-    } finally {
-      dispatch(profileActions.setLoading(false));
-    }
-  };
-};
