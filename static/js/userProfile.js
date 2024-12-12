@@ -1,24 +1,24 @@
-// Get actions from the global scope
-const { setCurrentModal, setCurrentUserId, setUserData, setLoading, setError, clearProfile } = window.profileActions;
-
-// Global profile display functionality
-window.displayUserProfile = async function(userId) {
-    store.dispatch(setLoading(true));
-    try {
-        store.dispatch(setCurrentUserId(userId));
-        const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
-        const response = await fetch(endpoint);
-        if (!response.ok) throw new Error('Failed to fetch user profile');
-        const userData = await response.json();
-        
-        // Get modal
+// Initialize profile display functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const { openModal, closeModal, setUserData, clearProfile } = window.profileActions;
+    const store = window.store;
+    
+    // Subscribe to store changes
+    store.subscribe(() => {
+        const state = store.getState().profile;
         const modal = document.getElementById('userProfileModal');
-        if (!modal) {
-            console.error('Modal element not found');
-            return;
-        }
-        store.dispatch(setCurrentModal(modal));
         
+        if (state.isModalOpen && state.userData) {
+            // Update UI with user data
+            updateProfileUI(state.userData);
+            modal.style.display = "block";
+        } else {
+            modal.style.display = "none";
+        }
+    });
+
+    // Update UI helper function
+    function updateProfileUI(userData) {
         // Update avatar and presence
         const avatarSrc = userData.avatar || '/static/images/default-avatar.png';
         document.getElementById('modalUserAvatar').src = avatarSrc;
@@ -44,23 +44,49 @@ window.displayUserProfile = async function(userId) {
 
         // Configure direct message button
         const messageBtn = document.getElementById('startDirectMessageBtn');
-        if (userId === 'current') {
+        if (userData.id === 'current') {
             messageBtn.style.display = 'none';
         } else {
             messageBtn.style.display = 'block';
-            messageBtn.onclick = () => startDirectMessage(userId);
+            messageBtn.onclick = () => startDirectMessage(userData.id);
         }
-
-        // Show modal
-        modal.style.display = "block";
-        store.dispatch(setUserData(userData));
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-        store.dispatch(setError(error.message));
-    } finally {
-        store.dispatch(setLoading(false));
     }
-};
+
+    // Update user presence indicator
+    function updateUserPresence(presenceState) {
+        const indicator = document.getElementById('modalPresenceIndicator');
+        if (indicator) {
+            indicator.className = `presence-indicator ${presenceState}`;
+        }
+    }
+
+    // Setup modal close handlers
+    const modal = document.getElementById('userProfileModal');
+    const closeBtn = modal.querySelector('.close');
+
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            store.dispatch(clearProfile());
+        };
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            store.dispatch(clearProfile());
+        }
+    };
+
+    // Override the click handlers to use Redux
+    const userElements = document.querySelectorAll('[onclick*="displayUserProfile"]');
+    userElements.forEach(element => {
+        const userId = element.getAttribute('onclick').match(/'([^']+)'/)[1];
+        element.onclick = (e) => {
+            e.preventDefault();
+            store.dispatch(window.displayUserProfile(userId));
+        };
+    });
+});
 
 // Initialize event handlers when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {

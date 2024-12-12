@@ -1,0 +1,49 @@
+The error "Uncaught TypeError: window.displayUserProfile is not a function" indicates that the displayUserProfile function is not accessible in the global scope where it's being called. This could be due to several reasons:
+
+1. Scope Issues:
+
+    Function Scope: If the displayUserProfile function is defined within a specific function or block, it's not accessible outside that scope.
+    Module Scope: If you're using a module system like CommonJS or ES Modules, ensure that the function is exported correctly and imported where it's needed.
+
+2. Asynchronous Operations:
+
+    If the displayUserProfile function is defined within an asynchronous operation (e.g., a Promise or callback), make sure it's available after the asynchronous operation completes.
+    Use async/await or Promises to handle asynchronous operations and ensure the function is accessible when needed.
+
+3. Timing Issues:
+
+    If the function is defined after it's being called, the browser might not have access to it yet.
+    Ensure that the function is defined before it's used.
+
+Potential Solutions:
+
+    Global Scope:
+        If you want the displayUserProfile function to be accessible globally, define it outside of any functions or modules.
+        However, be cautious about polluting the global namespace.
+
+    Module System:
+        If you're using a module system, export the function from the module where it's defined and import it into the module where it's needed.
+
+    Asynchronous Operations:
+        Use async/await or Promises to handle asynchronous operations and ensure the function is available when needed.
+
+Example:
+JavaScript
+
+// Assuming you're using a module system like CommonJS or ES Modules
+
+// In your profile.js module:
+export async function displayUserProfile(userId) {
+  // ... your function implementation
+}
+
+// In your main.js module:
+import { displayUserProfile } from './profile';
+
+// ... event listener or other code where you want to call the function
+document.addEventListener('click', (event) => {
+  if (event.target.classList.contains('user-profile-link')) {
+    const userId = event.target.dataset.userId;
+    displayUserProfile(userId);
+  }
+});

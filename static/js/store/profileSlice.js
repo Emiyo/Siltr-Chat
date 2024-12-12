@@ -1,6 +1,6 @@
 // Create the profile slice using Redux Toolkit
 const initialState = {
-  currentModal: null,
+  isModalOpen: false,
   currentUserId: null,
   userData: null,
   loading: false,
@@ -11,8 +11,11 @@ const profileSlice = window.RTK.createSlice({
   name: 'profile',
   initialState,
   reducers: {
-    setCurrentModal: (state, action) => {
-      state.currentModal = action.payload;
+    openModal: (state) => {
+      state.isModalOpen = true;
+    },
+    closeModal: (state) => {
+      state.isModalOpen = false;
     },
     setCurrentUserId: (state, action) => {
       state.currentUserId = action.payload;
@@ -27,7 +30,7 @@ const profileSlice = window.RTK.createSlice({
       state.error = action.payload;
     },
     clearProfile: (state) => {
-      state.currentModal = null;
+      state.isModalOpen = false;
       state.currentUserId = null;
       state.userData = null;
       state.error = null;
@@ -35,6 +38,27 @@ const profileSlice = window.RTK.createSlice({
   }
 });
 
-// Export actions and reducer to window object
+// Export actions and reducer
 window.profileActions = profileSlice.actions;
 window.profileReducer = profileSlice.reducer;
+
+// Async action creator for displaying user profile
+window.displayUserProfile = function(userId) {
+  return async function(dispatch) {
+    dispatch(profileActions.setLoading(true));
+    try {
+      dispatch(profileActions.setCurrentUserId(userId));
+      const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Failed to fetch user profile');
+      const userData = await response.json();
+      dispatch(profileActions.setUserData(userData));
+      dispatch(profileActions.openModal());
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      dispatch(profileActions.setError(error.message));
+    } finally {
+      dispatch(profileActions.setLoading(false));
+    }
+  };
+};
