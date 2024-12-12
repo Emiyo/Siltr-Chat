@@ -64,6 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "private"
     });
     scrollToBottom();
+    
+    // Mark message as read if we're the recipient and in the DM view
+    if (data.recipient_id === user_id && messageInput.getAttribute('data-recipient-id') === String(data.sender_id)) {
+      socket.emit('mark_dm_read', { message_id: data.id });
+    }
   });
 
   socket.on("user_list", (data) => {
@@ -293,6 +298,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Load DM history when starting a conversation
     socket.emit('get_dm_history', { user_id: userId });
+    
+    // Show loading indicator
+    const loadingMessage = document.createElement('div');
+    loadingMessage.className = 'message message-system';
+    loadingMessage.innerHTML = '<span class="system-message-text">Loading message history...</span>';
+    messageContainer.appendChild(loadingMessage);
     
     // Clear current channel to show we're in DM mode
     currentChannel = null;
