@@ -203,10 +203,11 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.innerHTML = `<span class="system-message-text"><span class="message-timestamp">${timestamp}</span> ${messageContent}</span>`;
     } else if (message.type === "private") {
       messageDiv.className = "message message-private";
-      const isOwnMessage = message.user_id === user_id;
-      const otherUser = isOwnMessage
-        ? message.receiver_username
-        : message.user.username;
+      const isOwnMessage = message.sender_id === user_id;
+      const otherUser = isOwnMessage ? 
+        (message.recipient ? message.recipient.username : 'Unknown') : 
+        (message.sender ? message.sender.username : 'Unknown');
+      
       messageHeader = `
                 <div class="message-timestamp">
                     <span class="message-username">${isOwnMessage ? username : otherUser}</span> • ${timestamp}
