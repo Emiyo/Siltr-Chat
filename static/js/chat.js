@@ -46,9 +46,17 @@ function updateActiveConversations(message) {
       
       // Check if it's a direct message
       if (recipientId) {
-        socket.emit("direct_message", {
+        const dmData = {
           text: message,
           recipient_id: parseInt(recipientId),
+        };
+        socket.emit("direct_message", dmData);
+        // Update active conversations immediately after sending
+        updateActiveConversations({
+          content: message,
+          sender_id: user_id,
+          recipient_id: parseInt(recipientId),
+          recipient: activeConversations.find(u => u.id === parseInt(recipientId))
         });
         messageInput.removeAttribute("data-recipient-id");
       } else {
