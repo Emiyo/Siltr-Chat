@@ -74,6 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply theme
         document.documentElement.setAttribute('data-theme', theme);
 
+        // Show loading state
+        const saveButton = document.getElementById('saveSettings');
+        const originalText = saveButton.textContent;
+        saveButton.textContent = 'Saving...';
+        saveButton.disabled = true;
+
         // Save profile updates
         fetch('/api/user/update_profile', {
             method: 'POST',
@@ -90,15 +96,74 @@ document.addEventListener('DOMContentLoaded', function() {
                 notify_mentions: notifyMentions
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update profile');
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Profile updated successfully:', data);
-            // Update navigation avatar if display name changed
+            
+            // Update UI elements with new data
             if (data.display_name) {
                 document.querySelector('.profile-username').textContent = data.display_name;
             }
+            if (data.avatar) {
+                document.querySelector('.nav-avatar').src = data.avatar;
+            }
+            
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '9999';
+            alert.textContent = 'Settings saved successfully!';
+            document.body.appendChild(alert);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+
+            // Close modal
+            settingsModal.hide();
+
+            // Notify other components of the update
+            socket.emit('user_settings_updated', {
+                theme,
+                notifyMessages,
+                notifyMentions,
+                displayName,
+                bio,
+                location,
+                accentColor
+            });
         })
-        .catch(error => console.error('Error updating profile:', error));
+        .catch(error => {
+            console.error('Error updating profile:', error);
+            // Show error message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger';
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '9999';
+            alert.textContent = 'Failed to save settings. Please try again.';
+            document.body.appendChild(alert);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        })
+        .finally(() => {
+            // Reset button state
+            saveButton.textContent = originalText;
+            saveButton.disabled = false;
+        });
 
         // Close modal
         settingsModal.hide();
