@@ -366,11 +366,14 @@ body {
 }
 
 .terminal-button {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
 }
 
 .terminal-button-red {
