@@ -45,18 +45,20 @@ function updateProfileBanner(color) {
 }
 
 // Global variables
+let profileModal = null;
 let currentUserId = null;
+let colorPicker = null;
 
 // When socket connects and sends user data, store the current user's ID
 socket.on('user_connected', (userData) => {
     currentUserId = userData.id;
 });
-let profileModal = null;
-let currentUserId = null;
-let colorPicker = null;
 
-// Define displayUserProfile as a global function
-window.displayUserProfile = async function (userId) {
+/**
+ * Display user profile in modal
+ * @param {string|number} userId - The ID of the user whose profile to display
+ */
+async function displayUserProfile(userId) {
   console.log("displayUserProfile called for userId:", userId);
 
   if (!userId) {
@@ -313,3 +315,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("Profile modal setup complete");
 });
+
+// Expose displayUserProfile function globally
+window.displayUserProfile = displayUserProfile;
