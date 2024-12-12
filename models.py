@@ -176,6 +176,9 @@ class DirectMessage(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     is_read = db.Column(db.Boolean, default=False)
+    file_url = db.Column(db.String(255), nullable=True)
+    file_type = db.Column(db.String(50), nullable=True)
+    file_name = db.Column(db.String(255), nullable=True)
     
     # Relationships
     sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('sent_messages', lazy=True))
@@ -189,6 +192,9 @@ class DirectMessage(db.Model):
             'sender_id': self.sender_id,
             'recipient_id': self.recipient_id,
             'is_read': self.is_read,
+            'file_url': self.file_url,
+            'file_type': self.file_type,
+            'file_name': self.file_name,
             'sender': self.sender.to_dict(),
             'recipient': self.recipient.to_dict()
         }

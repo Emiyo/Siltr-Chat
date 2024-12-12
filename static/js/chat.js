@@ -61,17 +61,23 @@ function updateActiveConversations(message) {
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
-    if (message) {
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput ? fileInput.files[0] : null;
+    
+    if (message || file) {
       const replyToId = messageInput.getAttribute("data-reply-to");
       const recipientId = messageInput.getAttribute("data-recipient-id");
       
       // Check if it's a direct message
       if (recipientId) {
         const parsedRecipientId = parseInt(recipientId);
-        const dmData = {
-          text: message,
-          recipient_id: parsedRecipientId,
-        };
+        const dmData = new FormData();
+        dmData.append('text', message);
+        dmData.append('recipient_id', parsedRecipientId);
+        
+        if (file) {
+          dmData.append('file', file);
+        }
         
         // Update active conversations before sending
         const recipient = activeConversations.find(u => u.id === parsedRecipientId);
@@ -342,6 +348,24 @@ function updateActiveConversations(message) {
     const timestamp = new Date(message.timestamp).toLocaleTimeString();
     let messageContent = message.content || message.text;
     let messageHeader = "";
+    
+    // Add file attachment if present
+    if (message.file_url) {
+      const fileExtension = message.file_type ? message.file_type.toLowerCase() : '';
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+      
+      if (isImage) {
+        messageContent += `<div class="message-attachment">
+          <img src="${message.file_url}" alt="Attached image" class="attached-image">
+        </div>`;
+      } else {
+        messageContent += `<div class="message-attachment">
+          <a href="${message.file_url}" target="_blank" class="attachment-link">
+            📎 ${message.file_name || 'Attachment'}
+          </a>
+        </div>`;
+      }
+    }
 
     if (message.type === "system") {
       messageDiv.className = "message message-system";

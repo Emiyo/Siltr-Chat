@@ -118,10 +118,12 @@
                     id="messageInput"
                     placeholder="Type message... (@user for private message)"
                   />
+                  <input type="file" id="fileInput" style="display: none;" />
                   <button
                     type="button"
                     class="btn btn-link p-0 ms-2"
                     id="attachButton"
+                    onclick="document.getElementById('fileInput').click()"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
