@@ -39,52 +39,47 @@
     </div>
 
     <!-- User Profile Modal -->
-    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+    <div class="modal" id="userProfileModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-light">
-                <div class="modal-header border-0">
-                    <div class="terminal-header w-100">
-                        <div class="terminal-buttons">
-                            <span class="terminal-button terminal-button-red" data-bs-dismiss="modal"></span>
-                            <span class="terminal-button terminal-button-yellow"></span>
-                            <span class="terminal-button terminal-button-green"></span>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">User Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-container">
+                        <div class="profile-header d-flex align-items-center mb-4">
+                            <div class="profile-avatar-wrapper me-3">
+                                <img id="profileAvatar" src="" alt="Profile Avatar" class="rounded-circle" style="width: 64px; height: 64px;">
+                            </div>
+                            <div class="profile-info">
+                                <h4 id="profileUsername" class="mb-1"></h4>
+                                <p id="profileStatus" class="text-muted mb-0"></p>
+                            </div>
                         </div>
-                        <span class="ms-3">profile.sh</span>
+                        <div class="profile-details">
+                            <div class="mb-3">
+                                <h6>About</h6>
+                                <p id="profileBio" class="text-muted"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6>Location</h6>
+                                <p id="profileLocation" class="text-muted"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6>Member Since</h6>
+                                <p id="profileJoinDate" class="text-muted"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6>Last Seen</h6>
+                                <p id="profileLastSeen" class="text-muted"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-body p-0">
-                    <div class="profile-preview">
-                        <div class="profile-header">
-                            <div class="profile-avatar-container">
-                                <img id="modalUserAvatar" src="" alt="User avatar" class="profile-avatar">
-                                <div class="presence-indicator" id="modalPresenceIndicator"></div>
-                            </div>
-                            <div class="profile-username-container">
-                                <h2 id="modalUsername"></h2>
-                                <p id="modalStatus" class="user-status"></p>
-                            </div>
-                        </div>
-                        <div class="profile-info">
-                            <div class="info-section">
-                                <h3>About</h3>
-                                <p id="modalBio"></p>
-                                <p id="modalLocation"></p>
-                            </div>
-                            <div class="info-section">
-                                <h3>Contact</h3>
-                                <div id="modalContact"></div>
-                            </div>
-                            <div class="info-section">
-                                <h3>Member Info</h3>
-                                <p id="modalJoinDate"></p>
-                                <p id="modalLastSeen"></p>
-                                <div id="modalRoles"></div>
-                            </div>
-                            <div class="user-actions">
-                                <button class="btn btn-terminal" id="startDirectMessageBtn">Message</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="messageUserBtn">Send Message</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
