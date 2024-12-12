@@ -644,24 +644,28 @@ def handle_direct_message(data):
 
 @socketio.on('typing_indicator')
 def handle_typing_indicator(data):
-    """Handle typing indicator updates"""
+    """Handle typing indicator updates for both DMs and channels"""
     if not current_user.is_authenticated:
         return False
         
     try:
         recipient_id = data.get('recipient_id')
+        channel_id = data.get('channel_id')
         is_typing = data.get('is_typing', False)
         
-        if not recipient_id:
-            return False
-            
-        # Emit typing status to recipient
         indicator_data = {
             'user_id': current_user.id,
             'username': current_user.username,
             'is_typing': is_typing
         }
-        emit('user_typing', indicator_data, room=f'user_{recipient_id}')
+        
+        if recipient_id:
+            # Emit typing status to DM recipient
+            emit('user_typing', indicator_data, room=f'user_{recipient_id}')
+        elif channel_id:
+            # Emit typing status to channel
+            emit('user_typing', indicator_data, room=f'channel_{channel_id}')
+            
         return True
         
     except Exception as e:

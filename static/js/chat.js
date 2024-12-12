@@ -65,9 +65,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function sendTypingIndicator(isTyping) {
     const recipientId = messageInput.getAttribute('data-recipient-id');
+    
+    // If we're in a DM
     if (recipientId) {
       socket.emit('typing_indicator', {
         recipient_id: recipientId,
+        is_typing: isTyping
+      });
+    }
+    // If we're in a channel
+    else if (currentChannel) {
+      socket.emit('typing_indicator', {
+        channel_id: currentChannel,
         is_typing: isTyping
       });
     }
@@ -80,7 +89,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const typingDiv = document.createElement('div');
         typingDiv.id = `typing-${data.user_id}`;
         typingDiv.className = 'typing-indicator';
-        typingDiv.innerHTML = `${data.username} is typing...`;
+        
+        // Use different messages for DM vs channel context
+        if (messageInput.getAttribute('data-recipient-id')) {
+          typingDiv.innerHTML = `${data.username} is typing a message...`;
+        } else if (currentChannel) {
+          typingDiv.innerHTML = `${data.username} is typing in channel...`;
+        }
+        
         messageContainer.appendChild(typingDiv);
         scrollToBottom();
       }
