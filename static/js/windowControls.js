@@ -110,59 +110,89 @@ class TerminalWindow {
       let snapped = false;
 
       // Snap to screen edges with improved precision and stronger effect
-      if (x < SNAP_EDGE_THRESHOLD) {
-        x = 0;
-        snapped = true;
+      if (x < SNAP_THRESHOLD) {
+        const pull = x / SNAP_THRESHOLD;
+        x = x * pull;
+        if (x < SNAP_EDGE_THRESHOLD) {
+          x = 0;
+          snapped = true;
+        }
       }
-      if (y < SNAP_EDGE_THRESHOLD) {
-        y = 0;
-        snapped = true;
+      if (y < SNAP_THRESHOLD) {
+        const pull = y / SNAP_THRESHOLD;
+        y = y * pull;
+        if (y < SNAP_EDGE_THRESHOLD) {
+          y = 0;
+          snapped = true;
+        }
       }
-      if (x > maxX - SNAP_EDGE_THRESHOLD) {
-        x = maxX;
-        snapped = true;
+      if (x > maxX - SNAP_THRESHOLD) {
+        const pull = (maxX - x) / SNAP_THRESHOLD;
+        x = maxX - ((maxX - x) * pull);
+        if (x > maxX - SNAP_EDGE_THRESHOLD) {
+          x = maxX;
+          snapped = true;
+        }
       }
-      if (y > maxY - SNAP_EDGE_THRESHOLD) {
-        y = maxY;
-        snapped = true;
+      if (y > maxY - SNAP_THRESHOLD) {
+        const pull = (maxY - y) / SNAP_THRESHOLD;
+        y = maxY - ((maxY - y) * pull);
+        if (y > maxY - SNAP_EDGE_THRESHOLD) {
+          y = maxY;
+          snapped = true;
+        }
       }
 
-      // Enhanced panel snapping with stronger magnetism
+      // Enhanced panel snapping with magnetic pull effect
       document.querySelectorAll('.terminal').forEach(panel => {
         if (panel === this.container) return;
         
         const panelRect = panel.getBoundingClientRect();
         
-        // Horizontal snapping with improved detection and stronger magnetism
-        if (Math.abs(x - panelRect.right) < SNAP_THRESHOLD) {
-          x = panelRect.right;
-          snapped = true;
-          // Add slight magnetism effect
-          this.container.style.transform = `translateX(${(x - panelRect.right) * 0.1}px)`;
+        // Horizontal snapping with magnetic pull
+        const rightDiff = x - panelRect.right;
+        if (Math.abs(rightDiff) < SNAP_THRESHOLD) {
+          const pull = 1 - (Math.abs(rightDiff) / SNAP_THRESHOLD);
+          x = panelRect.right - (rightDiff * pull * pull);
+          if (Math.abs(rightDiff) < SNAP_EDGE_THRESHOLD) {
+            x = panelRect.right;
+            snapped = true;
+          }
         }
-        if (Math.abs(x + rect.width - panelRect.left) < SNAP_THRESHOLD) {
-          x = panelRect.left - rect.width;
-          snapped = true;
-          // Add slight magnetism effect
-          this.container.style.transform = `translateX(${(panelRect.left - (x + rect.width)) * 0.1}px)`;
+
+        const leftDiff = (x + rect.width) - panelRect.left;
+        if (Math.abs(leftDiff) < SNAP_THRESHOLD) {
+          const pull = 1 - (Math.abs(leftDiff) / SNAP_THRESHOLD);
+          x = panelRect.left - rect.width + (leftDiff * pull * pull);
+          if (Math.abs(leftDiff) < SNAP_EDGE_THRESHOLD) {
+            x = panelRect.left - rect.width;
+            snapped = true;
+          }
         }
         
-        // Vertical snapping with improved detection and stronger magnetism
-        if (Math.abs(y - panelRect.bottom) < SNAP_THRESHOLD) {
-          y = panelRect.bottom;
-          snapped = true;
-          // Add slight magnetism effect
-          this.container.style.transform = `translateY(${(y - panelRect.bottom) * 0.1}px)`;
+        // Vertical snapping with magnetic pull
+        const bottomDiff = y - panelRect.bottom;
+        if (Math.abs(bottomDiff) < SNAP_THRESHOLD) {
+          const pull = 1 - (Math.abs(bottomDiff) / SNAP_THRESHOLD);
+          y = panelRect.bottom - (bottomDiff * pull * pull);
+          if (Math.abs(bottomDiff) < SNAP_EDGE_THRESHOLD) {
+            y = panelRect.bottom;
+            snapped = true;
+          }
         }
-        if (Math.abs(y + rect.height - panelRect.top) < SNAP_THRESHOLD) {
-          y = panelRect.top - rect.height;
-          snapped = true;
-          // Add slight magnetism effect
-          this.container.style.transform = `translateY(${(panelRect.top - (y + rect.height)) * 0.1}px)`;
+
+        const topDiff = (y + rect.height) - panelRect.top;
+        if (Math.abs(topDiff) < SNAP_THRESHOLD) {
+          const pull = 1 - (Math.abs(topDiff) / SNAP_THRESHOLD);
+          y = panelRect.top - rect.height + (topDiff * pull * pull);
+          if (Math.abs(topDiff) < SNAP_EDGE_THRESHOLD) {
+            y = panelRect.top - rect.height;
+            snapped = true;
+          }
         }
       });
 
-      // Apply position with enhanced snap animation
+      // Apply position with enhanced snap animation and magnetic feedback
       if (snapped) {
         this.container.style.transition = 'all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)';
         this.container.classList.add('snapping');
@@ -172,8 +202,12 @@ class TerminalWindow {
         this.container.classList.remove('snapping');
       }
 
-      this.container.style.left = Math.min(Math.max(0, x), maxX) + 'px';
-      this.container.style.top = Math.min(Math.max(0, y), maxY) + 'px';
+      // Ensure the window stays within viewport bounds
+      x = Math.min(Math.max(0, x), maxX);
+      y = Math.min(Math.max(0, y), maxY);
+
+      this.container.style.left = x + 'px';
+      this.container.style.top = y + 'px';
     });
 
     document.addEventListener('mouseup', () => {
