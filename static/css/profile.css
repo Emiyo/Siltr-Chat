@@ -89,31 +89,34 @@
     background-color: var(--background-primary);
     border-radius: 8px;
     overflow: hidden;
-    max-width: 800px;
-    margin: 2rem auto;
+    width: 100%;
+    margin: 0;
 }
 
 .modal-content {
     background: transparent;
     border: none;
+    width: 100%;
 }
 
 .modal-dialog.modal-lg {
-    max-width: 95%;
-    width: 1200px;
-    margin: 1.75rem auto;
+    max-width: 90%;
+    min-width: 800px;
+    width: 90vw;
+    margin: 2rem auto;
 }
 
 .profile-content {
-    padding: 60px 30px 30px;
+    padding: 80px 40px 40px;
     color: var(--text-color);
     background-color: var(--background-primary);
+    min-height: 400px;
 }
 
 .profile-avatar-container {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
 }
 
 .profile-avatar {
