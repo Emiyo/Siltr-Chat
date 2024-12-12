@@ -225,7 +225,7 @@ async function displayUserProfile(userId) {
             </div>
 
             <div class="member-since">
-                whois user
+                $ whois user
                 <br>
                 Member since <span id="modalJoinDate">${formatDate(userData.created_at)}</span>
                 <br>
