@@ -170,7 +170,7 @@ async function displayUserProfile(userId) {
             <div class="profile-banner" id="modalBanner">
                 <div class="profile-header">
                     <div class="profile-avatar-container">
-                        <img id="modalUserAvatar" src="${userData.avatar || "/static/images/default-avatar.png"}" 
+                        <img id="modalUserAvatar" src="${userData.avatar || "/static/images/default-avatar.svg"}" 
                              alt="Profile Avatar" class="profile-avatar"
                              onerror="this.src='/static/images/default-avatar.png'">
                         <span id="modalPresenceIndicator" class="presence-indicator"></span>
