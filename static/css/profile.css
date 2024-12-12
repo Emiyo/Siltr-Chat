@@ -40,25 +40,54 @@
     position: relative;
     overflow: hidden;
     height: 180px;
-    background-color: var(--primary-color);
+    background-color: var(--terminal-bg);
     margin-bottom: 0;
+    border-bottom: 1px solid rgba(74, 158, 255, 0.3);
 }
 
-.profile-banner::after {
+.profile-banner::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
+    height: 25px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(74, 158, 255, 0.2);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
 }
 
-.profile-banner:hover::after {
-    transform: translateX(100%);
+.profile-banner::after {
+    content: 'user@terminal:~$';
+    position: absolute;
+    top: 5px;
+    left: 80px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-family: 'Consolas', 'Monaco', monospace;
 }
+
+.terminal-buttons {
+    position: absolute;
+    top: 7px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    z-index: 1;
+}
+
+.terminal-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.terminal-button-red { background-color: #ff5f56; }
+.terminal-button-yellow { background-color: #ffbd2e; }
+.terminal-button-green { background-color: #27c93f; }
 
 .discord-profile-modal {
     max-width: 800px;
@@ -66,7 +95,43 @@
     background-color: var(--terminal-bg);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.2);
+    font-family: 'Consolas', 'Monaco', monospace;
+    border: 1px solid rgba(74, 158, 255, 0.3);
+    position: relative;
+}
+
+.discord-profile-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.discord-profile-modal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(74, 158, 255, 0.1) 0%,
+        rgba(0, 0, 0, 0) 70%
+    );
+    pointer-events: none;
 }
 
 .profile-banner {
@@ -109,9 +174,43 @@
 .profile-content {
     padding: 5px 30px 30px;
     color: var(--text-color);
-    background-color: var(--background-primary);
+    background-color: var(--terminal-bg);
     min-height: 300px;
     margin-top: 45px;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.profile-section {
+    background-color: rgba(74, 158, 255, 0.05);
+    border: 1px solid rgba(74, 158, 255, 0.1);
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.profile-section::before {
+    content: '>';
+    position: absolute;
+    left: -15px;
+    color: #4a9eff;
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.profile-section h3 {
+    color: #4a9eff;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-transform: lowercase;
+}
+
+.member-since {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 10px 0;
+    border-top: 1px solid rgba(74, 158, 255, 0.1);
+    margin-top: 20px;
 }
 
 .profile-avatar-container {
