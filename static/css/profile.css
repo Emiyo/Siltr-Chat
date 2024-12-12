@@ -538,11 +538,39 @@ input[type="file"]::file-selector-button:hover {
     cursor: default;
     max-width: 80%;
     box-shadow: var(--elevation-low);
+    font-family: 'Consolas', 'Monaco', monospace;
 }
 
 .preview-message:hover {
     transform: translateY(-1px);
     box-shadow: var(--elevation-stroke);
+}
+
+.preview-timestamp {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-right: 0.5rem;
+}
+
+.preview-username {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+.preview-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.preview-input .prompt {
+    color: var(--success-color);
+    font-weight: bold;
 }
 
 .preview-own {
