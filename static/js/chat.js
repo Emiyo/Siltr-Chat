@@ -128,28 +128,22 @@ function updateActiveConversations(message) {
             return;
           }
 
-          // Create and show progress indicator
-          const progressDiv = document.createElement('div');
-          progressDiv.className = 'upload-progress';
-          progressDiv.innerHTML = `
-            <div class="progress-text">Uploading file: ${file.name}</div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
-          `;
+          // Show upload progress
+          const progressDiv = createProgressIndicator(file.name);
           messageContainer.appendChild(progressDiv);
 
-          fetch('/api/upload_dm_file', {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => {
+          try {
+            const response = await fetch('/api/upload_dm_file', {
+              method: 'POST',
+              body: formData
+            });
+            
             if (!response.ok) {
               throw new Error(`Upload failed with status ${response.status}`);
             }
-            return response.json();
-          })
-          .then(data => {
+            
+            const data = await response.json();
+            
             // Remove progress indicator
             progressDiv.remove();
             
@@ -165,12 +159,11 @@ function updateActiveConversations(message) {
             if (fileInput) {
               fileInput.value = "";
             }
-          })
-          .catch(error => {
+          } catch (error) {
             console.error('Error uploading file:', error);
             progressDiv.innerHTML = `<div class="error-message">Failed to upload file: ${error.message}</div>`;
             setTimeout(() => progressDiv.remove(), 5000);
-          });
+          }
         } else {
           // If no file, send message directly
           socket.emit("direct_message", dmData);
@@ -227,29 +220,22 @@ function updateActiveConversations(message) {
             formData.append('parent_id', replyToId);
           }
           
-          // Create and show progress indicator
-          const progressDiv = document.createElement('div');
-          progressDiv.className = 'upload-progress';
-          progressDiv.innerHTML = `
-            <div class="progress-text">Uploading file: ${file.name}</div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
-          `;
+          // Show upload progress
+          const progressDiv = createProgressIndicator(file.name);
           messageContainer.appendChild(progressDiv);
           
-          // Send file via HTTP request
-          fetch('/api/upload_channel_file', {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => {
+          try {
+            const response = await fetch('/api/upload_channel_file', {
+              method: 'POST',
+              body: formData
+            });
+            
             if (!response.ok) {
               throw new Error(`Upload failed with status ${response.status}`);
             }
-            return response.json();
-          })
-          .then(data => {
+            
+            const data = await response.json();
+            
             // Remove progress indicator
             progressDiv.remove();
             
@@ -269,12 +255,11 @@ function updateActiveConversations(message) {
             if (fileInput) {
               fileInput.value = "";
             }
-          })
-          .catch(error => {
+          } catch (error) {
             console.error('Error uploading file:', error);
             progressDiv.innerHTML = `<div class="error-message">Failed to upload file: ${error.message}</div>`;
             setTimeout(() => progressDiv.remove(), 5000);
-          });
+          }
         } else {
           // Send regular message without file
           socket.emit("message", {
@@ -784,4 +769,18 @@ function scrollToBottom() {
   if (messageContainer) {
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
+}
+
+
+// Helper function to create progress indicator
+function createProgressIndicator(fileName) {
+  const progressDiv = document.createElement('div');
+  progressDiv.className = 'upload-progress';
+  progressDiv.innerHTML = `
+    <div class="progress-text">Uploading file: ${fileName}</div>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+  `;
+  return progressDiv;
 }
