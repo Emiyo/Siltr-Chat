@@ -91,51 +91,80 @@ class TerminalWindow {
       this.container.style.zIndex = '1000';
     });
 
-    const SNAP_THRESHOLD = 20; // px distance to trigger snapping
-    const SNAP_EDGE_THRESHOLD = 10; // px distance to trigger edge snapping
-
+    const SNAP_THRESHOLD = 30; // Increased snap distance threshold
+    const SNAP_EDGE_THRESHOLD = 20; // Increased edge snap threshold
+    
     document.addEventListener('mousemove', (e) => {
       if (!this.isDragging) return;
 
       e.preventDefault();
       
-      let x = e.clientX - this.dragOffset.x;
-      let y = e.clientY - this.dragOffset.y;
+      // Calculate position including scroll offset
+      let x = e.clientX - this.dragOffset.x + window.scrollX;
+      let y = e.clientY - this.dragOffset.y + window.scrollY;
 
       const rect = this.container.getBoundingClientRect();
       const maxX = window.innerWidth - rect.width;
       const maxY = window.innerHeight - rect.height;
 
-      // Snap to screen edges
-      if (x < SNAP_EDGE_THRESHOLD) x = 0;
-      if (y < SNAP_EDGE_THRESHOLD) y = 0;
-      if (x > maxX - SNAP_EDGE_THRESHOLD) x = maxX;
-      if (y > maxY - SNAP_EDGE_THRESHOLD) y = maxY;
+      let snapped = false;
 
-      // Snap to other panels
+      // Snap to screen edges with improved precision
+      if (x < SNAP_EDGE_THRESHOLD) {
+        x = 0;
+        snapped = true;
+      }
+      if (y < SNAP_EDGE_THRESHOLD) {
+        y = 0;
+        snapped = true;
+      }
+      if (x > maxX - SNAP_EDGE_THRESHOLD) {
+        x = maxX;
+        snapped = true;
+      }
+      if (y > maxY - SNAP_EDGE_THRESHOLD) {
+        y = maxY;
+        snapped = true;
+      }
+
+      // Enhanced panel snapping
       document.querySelectorAll('.terminal').forEach(panel => {
         if (panel === this.container) return;
         
         const panelRect = panel.getBoundingClientRect();
         
-        // Snap horizontally
-        if (Math.abs(x - panelRect.right) < SNAP_THRESHOLD) x = panelRect.right;
-        if (Math.abs(x + rect.width - panelRect.left) < SNAP_THRESHOLD) x = panelRect.left - rect.width;
+        // Horizontal snapping with improved detection
+        if (Math.abs(x - panelRect.right) < SNAP_THRESHOLD) {
+          x = panelRect.right;
+          snapped = true;
+        }
+        if (Math.abs(x + rect.width - panelRect.left) < SNAP_THRESHOLD) {
+          x = panelRect.left - rect.width;
+          snapped = true;
+        }
         
-        // Snap vertically
-        if (Math.abs(y - panelRect.bottom) < SNAP_THRESHOLD) y = panelRect.bottom;
-        if (Math.abs(y + rect.height - panelRect.top) < SNAP_THRESHOLD) y = panelRect.top - rect.height;
+        // Vertical snapping with improved detection
+        if (Math.abs(y - panelRect.bottom) < SNAP_THRESHOLD) {
+          y = panelRect.bottom;
+          snapped = true;
+        }
+        if (Math.abs(y + rect.height - panelRect.top) < SNAP_THRESHOLD) {
+          y = panelRect.top - rect.height;
+          snapped = true;
+        }
       });
 
-      // Apply position with smooth transition
-      this.container.style.transition = 'all 0.1s ease-out';
+      // Apply position with enhanced snap animation
+      if (snapped) {
+        this.container.style.transition = 'all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        this.container.classList.add('snapping');
+      } else {
+        this.container.style.transition = '';
+        this.container.classList.remove('snapping');
+      }
+
       this.container.style.left = Math.min(Math.max(0, x), maxX) + 'px';
       this.container.style.top = Math.min(Math.max(0, y), maxY) + 'px';
-      
-      // Remove transition after snap
-      setTimeout(() => {
-        this.container.style.transition = '';
-      }, 100);
     });
 
     document.addEventListener('mouseup', () => {

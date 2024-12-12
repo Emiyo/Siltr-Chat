@@ -299,6 +299,11 @@ body {
   contain: layout style size;
 }
 
+.terminal.snapping {
+  transform: scale(1.002);
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.3);
+}
+
 .terminal.minimized {
   height: 40px !important;
   overflow: hidden;
