@@ -45,6 +45,17 @@ function updateProfileBanner(color) {
 }
 
 // Initialize Bootstrap modal
+// Helper function to check if the profile being viewed belongs to the current user
+function isCurrentUserProfile(userId, userData) {
+  // Case 1: Explicitly viewing current user's profile
+  if (userId === 'current') return true;
+  
+  // Case 2: Check if the profile ID matches the current user's ID
+  if (!userData || !userData.id || !currentUserId) return false;
+  
+  return userData.id === currentUserId;
+}
+
 const modalElement = document.getElementById("userProfileModal");
 let profileModal = modalElement ? new bootstrap.Modal(modalElement, {
   backdrop: true,
@@ -160,7 +171,7 @@ async function displayUserProfile(userId) {
                 <p id="modalLocation" class="text-muted">${userData.location || "Location not set"}</p>
             </div>
 
-            ${(userId === 'current' || (currentUserId && userData && currentUserId === userData.id)) ? `
+            ${isCurrentUserProfile(userId, userData) ? `
             <div class="profile-section">
                 <h3>theme</h3>
                 <div class="theme-section">
