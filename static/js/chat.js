@@ -26,15 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("join", { username });
   });
 
-  // Create message input if it doesn't exist
-  const messageInput = document.getElementById("messageInput");
-  if (!messageInput) {
-    const input = document.createElement('textarea');
-    input.id = 'messageInput';
-    input.placeholder = 'Type a message...';
-    messageForm.appendChild(input);
-  }
-
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
@@ -46,18 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (recipientId) {
         socket.emit("direct_message", {
           text: message,
-          recipient_id: parseInt(recipientId)
+          recipient_id: parseInt(recipientId),
         });
         messageInput.removeAttribute("data-recipient-id");
       } else {
         socket.emit("message", {
           text: message,
           channel_id: currentChannel,
-          parent_id: replyToId || null
+          parent_id: replyToId || null,
         });
         messageInput.removeAttribute("data-reply-to");
       }
-      messageInput.value = '';
+      messageInput.value = "";
     }
   });
 
@@ -234,7 +225,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>`;
       // Display message content as plain text
       
-      messageDiv.innerHTML = `${messageHeader}<div class="message-content">${messageContent}</div>`;
+      messageDiv.innerHTML = `
+          ${messageHeader}
+          <div class="message-content">${messageContent}</div>
+      `;
 
       // Only add reply button for regular messages
       if (!message.type) {

@@ -132,7 +132,6 @@ class Message(db.Model):
     audio_duration = db.Column(db.Float, nullable=True)
     parent_id = db.Column(db.Integer, db.ForeignKey('message.id', ondelete='SET NULL'), nullable=True)
     type = db.Column(db.String(20), nullable=False, server_default='message')  # 'system', 'message', 'private'
-    is_rich_text = db.Column(db.Boolean, nullable=False, server_default='false')
     
     # Add relationships for User, Channel and threading
     user = db.relationship('User', backref=db.backref('messages', lazy=True, cascade='all, delete-orphan'))
@@ -153,8 +152,7 @@ class Message(db.Model):
             'audio_url': self.audio_url,
             'audio_duration': self.audio_duration,
             'type': self.type,
-            'parent_id': self.parent_id,
-            'is_rich_text': self.is_rich_text
+            'parent_id': self.parent_id
         }
         
         # Include user data for regular messages
