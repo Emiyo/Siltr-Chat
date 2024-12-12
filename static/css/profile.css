@@ -100,17 +100,18 @@
 }
 
 .modal-dialog.modal-lg {
-    max-width: 90%;
+    max-width: 1000px;
     min-width: 800px;
-    width: 90vw;
-    margin: 2rem auto;
+    width: 90%;
+    margin: 1.75rem auto;
 }
 
 .profile-content {
-    padding: 80px 40px 40px;
+    padding: 60px 30px 30px;
     color: var(--text-color);
     background-color: var(--background-primary);
-    min-height: 400px;
+    min-height: 300px;
+    margin-top: 20px;
 }
 
 .profile-avatar-container {

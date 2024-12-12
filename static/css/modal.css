@@ -16,8 +16,8 @@
     padding: 20px;
     border: 1px solid #333;
     border-radius: 8px;
-    width: 80%;
-    max-width: 600px;
+    width: 90%;
+    max-width: 800px;
     color: #ffffff;
     animation: modalFade 0.3s ease-in-out;
 }
