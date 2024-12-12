@@ -130,6 +130,52 @@
             </div>
         </div>
     </div>
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content terminal">
+                <div class="terminal-header">
+                    <div class="terminal-buttons">
+                        <span class="terminal-button terminal-button-red"></span>
+                        <span class="terminal-button terminal-button-yellow"></span>
+                        <span class="terminal-button terminal-button-green"></span>
+                    </div>
+                    <span>profile.sh</span>
+                    <button type="button" class="close" aria-label="Close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-banner" id="modalBanner">
+                        <div class="profile-header">
+                            <div class="profile-avatar-container">
+                                <img id="modalUserAvatar" src="" alt="User Avatar" class="profile-avatar">
+                                <span id="modalPresenceIndicator" class="presence-indicator"></span>
+                            </div>
+                            <div class="profile-username-container">
+                                <h2 id="modalUsername" class="profile-username"></h2>
+                                <p id="modalStatus" class="profile-status"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-content">
+                        <div class="profile-section">
+                            <h3>About Me</h3>
+                            <p id="modalBio"></p>
+                            <p id="modalLocation"></p>
+                        </div>
+                        <div class="profile-section">
+                            <h3>Member Info</h3>
+                            <p id="modalJoinDate"></p>
+                            <p id="modalLastSeen"></p>
+                            <div id="modalRoles"></div>
+                        </div>
+                        <div class="profile-actions">
+                            <button id="startDirectMessageBtn" class="btn btn-primary">Send Message</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

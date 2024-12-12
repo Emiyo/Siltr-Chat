@@ -998,6 +998,88 @@ body {
     padding-bottom: 70px;
 }
 
+/* User Profile Modal Styles */
+.modal.fade .modal-dialog {
+    transform: translate(0, -50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+.modal-dialog {
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.modal-content.terminal {
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--border-color);
+    color: var(--terminal-text);
+}
+
+.profile-banner {
+    height: 120px;
+    background-color: var(--primary-color);
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.profile-header {
+    position: absolute;
+    bottom: -50px;
+    left: 30px;
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.profile-avatar-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid var(--terminal-bg);
+    object-fit: cover;
+}
+
+.profile-username-container {
+    padding-bottom: 10px;
+}
+
+.profile-username {
+    color: var(--terminal-text);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.profile-status {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.profile-content {
+    padding: 60px 30px 30px;
+}
+
+.profile-section {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.profile-section h3 {
+    color: var(--terminal-text);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
 .user-status {
     color: #72767d;
     font-size: 0.9em;

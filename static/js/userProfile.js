@@ -11,14 +11,14 @@ function initializeProfileHandlers() {
     // Subscribe to store changes
     store.subscribe(() => {
         const state = store.getState().profile;
-        const modal = document.getElementById('userProfileModal');
+        const modal = new bootstrap.Modal(document.getElementById('userProfileModal'));
         
         if (state.isModalOpen && state.userData) {
             // Update UI with user data
             updateProfileUI(state.userData);
-            modal.style.display = "block";
+            modal.show();
         } else {
-            modal.style.display = "none";
+            modal.hide();
         }
     });
 
@@ -66,21 +66,22 @@ function initializeProfileHandlers() {
     }
 
     // Setup modal close handlers
-    const modal = document.getElementById('userProfileModal');
-    const closeBtn = modal.querySelector('.close');
+    const modalElement = document.getElementById('userProfileModal');
+    const closeBtn = modalElement.querySelector('.close');
+    const bootstrapModal = new bootstrap.Modal(modalElement);
 
+    // Handle close button click
     if (closeBtn) {
         closeBtn.onclick = () => {
             store.dispatch(clearProfile());
+            bootstrapModal.hide();
         };
     }
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            store.dispatch(clearProfile());
-        }
-    };
+    // Handle modal hidden event (includes clicking outside and ESC key)
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        store.dispatch(clearProfile());
+    });
 
     // Use event delegation for profile clicks
     document.addEventListener('click', function(e) {
