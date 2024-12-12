@@ -335,28 +335,31 @@ body {
   align-items: center;
   border-bottom: 1px solid #333;
   min-height: 32px;
+  position: relative;
 }
 
 .terminal-buttons {
-  grid-column: 1;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
-  align-items: center;
   width: fit-content;
+  z-index: 2;
 }
 
 .terminal-header span {
-  grid-column: 2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
-  padding: 0 1rem;
+  grid-column: 2;
 }
 
-.terminal-header > *:last-child {
-  grid-column: 3;
+.terminal-header span:first-of-type {
+  margin: 0;
 }
 
 .terminal-button {
