@@ -10,22 +10,45 @@ function initializeProfileHandlers() {
     
     // Initialize Bootstrap modal once
     const modalElement = document.getElementById('userProfileModal');
-    const profileModal = new bootstrap.Modal(modalElement, {
-        keyboard: true,
-        backdrop: true,
-        focus: true
-    });
+    if (!modalElement) {
+        console.error('Modal element not found');
+        return;
+    }
+
+    let profileModal;
+    try {
+        profileModal = new bootstrap.Modal(modalElement, {
+            keyboard: true,
+            backdrop: true,
+            focus: true
+        });
+        console.log('Bootstrap modal initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize Bootstrap modal:', error);
+        return;
+    }
     
     // Subscribe to store changes
     store.subscribe(() => {
         const state = store.getState().profile;
+        console.log('Profile state changed:', state);
         
         if (state.isModalOpen && state.userData) {
             // Update UI with user data
             updateProfileUI(state.userData);
-            profileModal.show();
-        } else {
-            profileModal.hide();
+            try {
+                profileModal.show();
+                console.log('Showing modal for user:', state.userData.username);
+            } catch (error) {
+                console.error('Error showing modal:', error);
+            }
+        } else if (!state.isModalOpen) {
+            try {
+                profileModal.hide();
+                console.log('Hiding modal');
+            } catch (error) {
+                console.error('Error hiding modal:', error);
+            }
         }
     });
 
