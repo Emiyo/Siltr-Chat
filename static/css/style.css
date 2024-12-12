@@ -334,14 +334,17 @@ body {
   align-items: center;
   border-bottom: 1px solid #333;
   min-height: 32px;
+  position: relative;
 }
 
 .terminal-buttons {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   gap: 0.5rem;
-  margin-right: 2rem;
   width: 70px;
-  flex-shrink: 0;
   justify-content: center;
   align-items: center;
 }
@@ -352,6 +355,7 @@ body {
   text-overflow: ellipsis;
   text-align: center;
   flex-grow: 1;
+  padding: 0 80px;
 }
 
 .terminal-button {
