@@ -38,6 +38,11 @@ function updateProfileBanner(color) {
     }
 }
 
+// Global variables
+let profileModal = null;
+let currentUserId = null;
+let colorPicker = null;
+
 // Define displayUserProfile as a global function
 window.displayUserProfile = async function(userId) {
     try {
@@ -81,15 +86,18 @@ window.displayUserProfile = async function(userId) {
             safeSetTextContent('profileJoinDate', formatDate(userData.created_at));
             safeSetTextContent('profileLastSeen', formatDate(userData.last_seen));
             
-            // Update theme color
-            if (userData.accent_color) {
-                if (colorPicker) colorPicker.value = userData.accent_color;
+            // Update theme color if colorPicker exists
+            if (userData.accent_color && colorPicker) {
+                colorPicker.value = userData.accent_color;
                 updateThemePreview(userData.accent_color);
                 updateProfileBanner(userData.accent_color);
             }
             
-            // Show the modal
-            profileModal.show();
+            // Show the modal if it exists
+            if (profileModal) {
+                profileModal.show();
+            }
+
             if (content) {
                 content.innerHTML = '';  // Clear loading state
             }
@@ -113,11 +121,10 @@ window.displayUserProfile = async function(userId) {
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Bootstrap modal
-    const profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'));
-    let currentUserId = null;
+    profileModal = new bootstrap.Modal(document.getElementById('userProfileModal'));
     
     // Initialize color picker
-    const colorPicker = document.getElementById('accentColorPicker');
+    colorPicker = document.getElementById('accentColorPicker');
     if (colorPicker) {
         colorPicker.addEventListener('input', function(e) {
             const color = e.target.value;
