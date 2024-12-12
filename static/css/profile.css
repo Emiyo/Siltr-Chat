@@ -431,36 +431,42 @@ input[type="file"]::file-selector-button:hover {
 }
 
 /* Theme Preview Styles */
-.theme-preview {
+.theme-section {
     margin-top: 1.5rem;
-    padding: 1.5rem;
+    padding: 1rem;
     background-color: var(--background-secondary);
     border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: var(--elevation-low);
-    position: relative;
 }
 
-.theme-preview::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 25px;
-    background-color: rgba(0, 0, 0, 0.2);
+.theme-preview {
+    margin-top: 1.5rem;
+    background-color: var(--background-tertiary);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--elevation-low);
+    border: 1px solid var(--border-color);
+}
+
+.terminal-decoration {
+    background-color: var(--background-secondary);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid var(--border-color);
-    border-radius: 8px 8px 0 0;
 }
 
-.theme-preview::after {
-    content: 'preview@terminal:~$';
-    position: absolute;
-    top: 5px;
-    left: 80px;
+.terminal-buttons {
+    display: flex;
+    gap: 6px;
+    margin-right: 1rem;
+}
+
+.terminal-title {
     color: var(--text-light);
     font-size: 12px;
     font-family: 'Consolas', 'Monaco', monospace;
+    opacity: 0.7;
 }
 
 .preview-container {
