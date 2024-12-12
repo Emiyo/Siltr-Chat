@@ -78,7 +78,7 @@ function updateActiveConversations(message) {
           recipient_id: parsedRecipientId
         };
         
-        // If there's a file, use FormData
+        // If there's a file, handle file upload first
         if (file) {
           const formData = new FormData();
           formData.append('text', message);
@@ -97,14 +97,28 @@ function updateActiveConversations(message) {
             dmData.file_type = data.file_type;
             dmData.file_name = data.file_name;
             socket.emit("direct_message", dmData);
+            
+            // Clear input after successful send
+            messageInput.value = "";
+            messageInput.removeAttribute("data-recipient-id");
+            if (fileInput) {
+              fileInput.value = "";
+            }
           })
-          .catch(error => console.error('Error uploading file:', error));
+          .catch(error => {
+            console.error('Error uploading file:', error);
+            alert('Failed to upload file. Please try again.');
+          });
         } else {
           // If no file, send message directly
           socket.emit("direct_message", dmData);
+          
+          // Clear input after sending
+          messageInput.value = "";
+          messageInput.removeAttribute("data-recipient-id");
         }
         
-        // Update active conversations before sending
+        // Update active conversations
         const recipient = activeConversations.find(u => u.id === parsedRecipientId);
         if (!recipient) {
           // If recipient not in active conversations, fetch user from user list
@@ -129,10 +143,6 @@ function updateActiveConversations(message) {
           recipient_id: parsedRecipientId,
           recipient: recipient || activeConversations.find(u => u.id === parsedRecipientId)
         });
-        
-        socket.emit("direct_message", dmData);
-        messageInput.removeAttribute("data-recipient-id");
-        messageInput.value = "";
         // Force update category list after sending DM
         updateActiveConversations({
           content: message,

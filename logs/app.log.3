@@ -1,23 +1,83 @@
-2024-12-12 06:32:44,881 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
-2024-12-12 06:32:44,883 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:429]
-2024-12-12 06:32:45,018 INFO: Socket connection attempt from 0pROEBm7F_5pd1p-AAAT [in /home/runner/TornadoChatRoom/app.py:378]
-2024-12-12 06:32:45,282 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
-2024-12-12 06:32:45,282 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
-2024-12-12 06:32:45,999 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
-2024-12-12 06:32:46,516 INFO: Socket connection attempt from BaMSophFvVudBozaAAAV [in /home/runner/TornadoChatRoom/app.py:378]
-2024-12-12 06:32:46,776 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
-2024-12-12 06:32:46,777 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
-2024-12-12 06:32:47,496 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
-2024-12-12 06:32:49,173 INFO: Socket connection attempt from zAGR2qkuD8krpAJDAAAX [in /home/runner/TornadoChatRoom/app.py:378]
-2024-12-12 06:32:49,435 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
-2024-12-12 06:32:49,435 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
-2024-12-12 06:32:50,152 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
-2024-12-12 06:52:10,415 INFO: User Hollow joined channel general [in /home/runner/TornadoChatRoom/app.py:747]
-2024-12-12 06:52:10,484 INFO: Found 50 messages for channel 1 [in /home/runner/TornadoChatRoom/app.py:751]
-2024-12-12 06:52:11,068 INFO: System message sent for user Hollow joining channel general [in /home/runner/TornadoChatRoom/app.py:771]
-2024-12-12 06:52:13,644 ERROR: No channel_id provided [in /home/runner/TornadoChatRoom/app.py:737]
-2024-12-12 06:52:17,185 ERROR: No channel_id provided [in /home/runner/TornadoChatRoom/app.py:737]
-2024-12-12 06:52:17,897 ERROR: No channel_id provided [in /home/runner/TornadoChatRoom/app.py:737]
-2024-12-12 06:52:22,165 ERROR: No channel_id provided [in /home/runner/TornadoChatRoom/app.py:737]
-2024-12-12 06:52:39,533 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
-2024-12-12 06:52:39,535 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:429]
+2024-12-12 07:41:46,272 ERROR: Error in handle_direct_message: (psycopg2.errors.UndefinedColumn) column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+[SQL: INSERT INTO direct_message (content, timestamp, sender_id, recipient_id, is_read, file_url, file_type, file_name) VALUES (%(content)s, %(timestamp)s, %(sender_id)s, %(recipient_id)s, %(is_read)s, %(file_url)s, %(file_type)s, %(file_name)s) RETURNING direct_message.id]
+[parameters: {'content': '@Apple hi pooks', 'timestamp': datetime.datetime(2024, 12, 12, 7, 41, 46, 145258), 'sender_id': 2, 'recipient_id': 1, 'is_read': False, 'file_url': None, 'file_type': None, 'file_name': None}]
+(Background on this error at: https://sqlalche.me/e/20/f405) [in /home/runner/TornadoChatRoom/app.py:640]
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 620, in handle_direct_message
+    db.session.commit()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2028, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4352, in flush
+    self._flush(objects)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4487, in _flush
+    with util.safe_reraise():
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4448, in _flush
+    flush_context.execute()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+[SQL: INSERT INTO direct_message (content, timestamp, sender_id, recipient_id, is_read, file_url, file_type, file_name) VALUES (%(content)s, %(timestamp)s, %(sender_id)s, %(recipient_id)s, %(is_read)s, %(file_url)s, %(file_type)s, %(file_name)s) RETURNING direct_message.id]
+[parameters: {'content': '@Apple hi pooks', 'timestamp': datetime.datetime(2024, 12, 12, 7, 41, 46, 145258), 'sender_id': 2, 'recipient_id': 1, 'is_read': False, 'file_url': None, 'file_type': None, 'file_name': None}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
