@@ -1,0 +1,283 @@
+2024-12-12 07:42:22,838 INFO: Flask app initialized [in /home/runner/TornadoChatRoom/app.py:35]
+2024-12-12 07:42:22,850 INFO: All extensions initialized successfully [in /home/runner/TornadoChatRoom/extensions.py:23]
+2024-12-12 07:42:24,495 INFO: Database tables created successfully [in /home/runner/TornadoChatRoom/app.py:89]
+2024-12-12 07:42:24,754 INFO: Available tables: ['alembic_version', 'category', 'channel', 'role', 'user_roles', 'user', 'message', 'direct_message'] [in /home/runner/TornadoChatRoom/app.py:93]
+2024-12-12 07:42:24,754 INFO: All required tables exist [in /home/runner/TornadoChatRoom/app.py:104]
+Server initialized for eventlet.
+2024-12-12 07:42:24,760 INFO: Server initialized for eventlet. [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:99]
+2024-12-12 07:42:24,760 INFO: SocketIO initialized with configuration: {'cors_allowed_origins': '*', 'async_mode': 'eventlet', 'ping_timeout': 5000, 'ping_interval': 25000} [in /home/runner/TornadoChatRoom/app.py:129]
+2024-12-12 07:42:24,760 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:137]
+2024-12-12 07:42:25,616 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:803]
+2024-12-12 07:42:25,680 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:810]
+(20539) wsgi starting up on http://0.0.0.0:5000
+(20539) accepted ('172.31.196.118', 58418)
+35.199.169.121,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET / HTTP/1.1" 302 547 0.001464
+35.199.169.121,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /login?next=%2F HTTP/1.1" 200 1225 0.007397
+35.199.169.121,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /static/css/style.css HTTP/1.1" 200 26892 0.006487
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /static/js/crypto.js HTTP/1.1" 304 184 0.001287
+(20539) accepted ('172.31.196.118', 58426)
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /static/js/settings.js HTTP/1.1" 304 185 0.000778
+mntxrtVHAtaLCe2JAAAA: Sending packet OPEN data {'sid': 'mntxrtVHAtaLCe2JAAAA', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000}
+2024-12-12 07:42:26,614 INFO: mntxrtVHAtaLCe2JAAAA: Sending packet OPEN data {'sid': 'mntxrtVHAtaLCe2JAAAA', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /socket.io/?EIO=4&transport=polling&t=PEvqQSD HTTP/1.1" 200 260 0.000631
+/home/runner/TornadoChatRoom/app.py:144: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  return User.query.get(int(id))
+2024-12-12 07:42:26,914 INFO: Rendering index page for user: Hollow [in /home/runner/TornadoChatRoom/app.py:150]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:26] "GET /?initialPath=%2F&id=%3Ar2un%3A HTTP/1.1" 200 17102 0.339093
+(20539) accepted ('172.31.196.118', 58466)
+Invalid session BcYX0t--YrFkuIyVAAAC (further occurrences of this error will be logged with level INFO)
+2024-12-12 07:42:27,564 ERROR: Invalid session BcYX0t--YrFkuIyVAAAC (further occurrences of this error will be logged with level INFO) [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:334]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:42:27] "GET /socket.io/?EIO=4&transport=websocket&sid=BcYX0t--YrFkuIyVAAAC HTTP/1.1" 400 277 0.000341
+(20539) accepted ('172.31.196.118', 58482)
+Invalid session rvQMDq9M9wlf64FTAAAE
+2024-12-12 07:42:28,470 INFO: Invalid session rvQMDq9M9wlf64FTAAAE [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:28] "GET /socket.io/?EIO=4&transport=polling&t=PEvqQv9.0&sid=rvQMDq9M9wlf64FTAAAE HTTP/1.1" 400 168 0.000356
+Invalid session rvQMDq9M9wlf64FTAAAE
+2024-12-12 07:42:28,538 INFO: Invalid session rvQMDq9M9wlf64FTAAAE [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:28] "POST /socket.io/?EIO=4&transport=polling&t=PEvqQwG&sid=rvQMDq9M9wlf64FTAAAE HTTP/1.1" 400 277 0.000304
+C9r0V38AHT_U1aWCAAAB: Sending packet OPEN data {'sid': 'C9r0V38AHT_U1aWCAAAB', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000}
+2024-12-12 07:42:29,435 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet OPEN data {'sid': 'C9r0V38AHT_U1aWCAAAB', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:29] "GET /socket.io/?EIO=4&transport=polling&t=PEvqR8H HTTP/1.1" 200 260 0.000502
+C9r0V38AHT_U1aWCAAAB: Received packet MESSAGE data 0
+2024-12-12 07:42:29,500 INFO: C9r0V38AHT_U1aWCAAAB: Received packet MESSAGE data 0 [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+2024-12-12 07:42:29,501 INFO: Socket connection attempt from MciEuCnpXP6v9cXgAAAC [in /home/runner/TornadoChatRoom/app.py:378]
+2024-12-12 07:42:29,759 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
+2024-12-12 07:42:29,759 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
+emitting event "user_connected" to MciEuCnpXP6v9cXgAAAC [/]
+2024-12-12 07:42:30,476 INFO: emitting event "user_connected" to MciEuCnpXP6v9cXgAAAC [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_connected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:42:29.759951","created_at":"2024-12-11T17:48:42.495047","roles":[]}]
+2024-12-12 07:42:30,476 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_connected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:42:29.759951","created_at":"2024-12-11T17:48:42.495047","roles":[]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+emitting event "user_list" to MciEuCnpXP6v9cXgAAAC [/]
+2024-12-12 07:42:30,476 INFO: emitting event "user_list" to MciEuCnpXP6v9cXgAAAC [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_list",{"users":[{"id":1,"username":"Apple","email":"etoiyoiky@gmail.com","is_verified":false,"is_moderator":false,"avatar":null,"display_name":"Apple","status":"","accent_color":"#5865F2","bio":"","location":"","last_seen":null,"created_at":"2024-12-11T17:27:06.530477","roles":[]},{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:42:29.759951","created_at":"2024-12-11T17:48:42.495047","roles":[]}]}]
+2024-12-12 07:42:30,476 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_list",{"users":[{"id":1,"username":"Apple","email":"etoiyoiky@gmail.com","is_verified":false,"is_moderator":false,"avatar":null,"display_name":"Apple","status":"","accent_color":"#5865F2","bio":"","location":"","last_seen":null,"created_at":"2024-12-11T17:27:06.530477","roles":[]},{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:42:29.759951","created_at":"2024-12-11T17:48:42.495047","roles":[]}]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+emitting event "categories_list" to MciEuCnpXP6v9cXgAAAC [/]
+2024-12-12 07:42:30,476 INFO: emitting event "categories_list" to MciEuCnpXP6v9cXgAAAC [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["categories_list",{"categories":[{"id":1,"name":"General","channels":[{"id":1,"name":"general","category_id":1,"is_private":false,"created_at":"2024-12-11T20:14:43.254140"}],"created_at":"2024-12-11T18:08:30.721629"}]}]
+2024-12-12 07:42:30,476 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["categories_list",{"categories":[{"id":1,"name":"General","channels":[{"id":1,"name":"general","category_id":1,"is_private":false,"created_at":"2024-12-11T20:14:43.254140"}],"created_at":"2024-12-11T18:08:30.721629"}]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+MciEuCnpXP6v9cXgAAAC is entering room user_2 [/]
+2024-12-12 07:42:30,477 INFO: MciEuCnpXP6v9cXgAAAC is entering room user_2 [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:284]
+2024-12-12 07:42:30,477 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
+C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 0{"sid":"MciEuCnpXP6v9cXgAAAC"}
+2024-12-12 07:42:30,541 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 0{"sid":"MciEuCnpXP6v9cXgAAAC"} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:30] "POST /socket.io/?EIO=4&transport=polling&t=PEvqR9J&sid=C9r0V38AHT_U1aWCAAAB HTTP/1.1" 200 252 1.040699
+C9r0V38AHT_U1aWCAAAB: Received request to upgrade to websocket
+2024-12-12 07:42:30,541 INFO: C9r0V38AHT_U1aWCAAAB: Received request to upgrade to websocket [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:88]
+(20539) accepted ('172.31.196.118', 58508)
+98.61.161.29,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:42:30] "GET /socket.io/?EIO=4&transport=polling&t=PEvqR9K&sid=C9r0V38AHT_U1aWCAAAB HTTP/1.1" 200 157 0.000119
+C9r0V38AHT_U1aWCAAAB: Failed websocket upgrade, expected UPGRADE packet, received None instead.
+2024-12-12 07:42:30,672 INFO: C9r0V38AHT_U1aWCAAAB: Failed websocket upgrade, expected UPGRADE packet, received None instead. [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:182]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:42:30] "GET /socket.io/?EIO=4&transport=websocket&sid=C9r0V38AHT_U1aWCAAAB HTTP/1.1" 200 0 0.130571
+(20539) accepted ('172.31.196.118', 58524)
+Invalid session AJ3usxJnIofaaVAHAAAG
+2024-12-12 07:42:31,627 INFO: Invalid session AJ3usxJnIofaaVAHAAAG [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.2.35,172.31.196.118 - - [12/Dec/2024 07:42:31] "GET /socket.io/?EIO=4&transport=websocket&sid=AJ3usxJnIofaaVAHAAAG HTTP/1.1" 400 277 0.000378
+(20539) accepted ('172.31.196.118', 50762)
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/css/modal.css HTTP/1.1" 304 184 0.001591
+98.61.161.29,10.82.0.11,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/store/profileSlice.js HTTP/1.1" 304 189 0.001029
+98.61.161.29,10.82.3.34,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/store/index.js HTTP/1.1" 304 181 0.001012
+98.61.161.29,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/crypto.js HTTP/1.1" 304 184 0.000952
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/userProfile.js HTTP/1.1" 304 188 0.001147
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/chat.js HTTP/1.1" 304 183 0.001007
+98.61.161.29,10.82.0.11,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /static/js/settings.js HTTP/1.1" 304 185 0.001031
+vZ0W4EbLS5_kfHRgAAAD: Sending packet OPEN data {'sid': 'vZ0W4EbLS5_kfHRgAAAD', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000}
+2024-12-12 07:45:30,874 INFO: vZ0W4EbLS5_kfHRgAAAD: Sending packet OPEN data {'sid': 'vZ0W4EbLS5_kfHRgAAAD', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.0.11,172.31.196.118 - - [12/Dec/2024 07:45:30] "GET /socket.io/?EIO=4&transport=polling&t=PEvr7RA HTTP/1.1" 200 260 0.000469
+(20539) accepted ('172.31.196.118', 50774)
+vZ0W4EbLS5_kfHRgAAAD: Received request to upgrade to websocket
+2024-12-12 07:45:31,186 INFO: vZ0W4EbLS5_kfHRgAAAD: Received request to upgrade to websocket [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:88]
+vZ0W4EbLS5_kfHRgAAAD: Failed websocket upgrade, no PING packet
+2024-12-12 07:45:31,251 INFO: vZ0W4EbLS5_kfHRgAAAD: Failed websocket upgrade, no PING packet [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:171]
+98.61.161.29,10.82.2.32,172.31.196.118 - - [12/Dec/2024 07:45:31] "GET /socket.io/?EIO=4&transport=websocket&sid=vZ0W4EbLS5_kfHRgAAAD HTTP/1.1" 200 0 0.065615
+(20539) accepted ('172.31.196.118', 50798)
+Invalid session DbzRz3K2UhpWA3wJAAAK
+2024-12-12 07:45:32,045 INFO: Invalid session DbzRz3K2UhpWA3wJAAAK [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:32] "GET /socket.io/?EIO=4&transport=websocket&sid=DbzRz3K2UhpWA3wJAAAK HTTP/1.1" 400 277 0.000323
+(20539) accepted ('172.31.196.118', 60954)
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/css/profile.css HTTP/1.1" 304 186 0.001020
+98.61.161.29,10.82.3.34,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/js/store/profileSlice.js HTTP/1.1" 304 189 0.001173
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/js/store/index.js HTTP/1.1" 304 181 0.000993
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/js/crypto.js HTTP/1.1" 304 184 0.001257
+98.61.161.29,10.82.3.34,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/js/settings.js HTTP/1.1" 304 185 0.000955
+98.61.161.29,10.82.3.34,172.31.196.118 - - [12/Dec/2024 07:45:53] "GET /static/js/chat.js HTTP/1.1" 304 183 0.001064
+Invalid session UtUQL1paNN_8S_GpAAAM
+2024-12-12 07:45:54,098 INFO: Invalid session UtUQL1paNN_8S_GpAAAM [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:54] "GET /socket.io/?EIO=4&transport=polling&t=PEvrD5_&sid=UtUQL1paNN_8S_GpAAAM HTTP/1.1" 400 168 0.000319
+Invalid session UtUQL1paNN_8S_GpAAAM
+2024-12-12 07:45:54,173 INFO: Invalid session UtUQL1paNN_8S_GpAAAM [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:54] "POST /socket.io/?EIO=4&transport=polling&t=PEvrD79&sid=UtUQL1paNN_8S_GpAAAM HTTP/1.1" 400 277 0.000344
+Invalid session UtUQL1paNN_8S_GpAAAM
+2024-12-12 07:45:54,328 INFO: Invalid session UtUQL1paNN_8S_GpAAAM [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/base_server.py:338]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:54] "GET /socket.io/?EIO=4&transport=websocket&sid=UtUQL1paNN_8S_GpAAAM HTTP/1.1" 400 277 0.000641
+0EJlKayMsURrskcnAAAE: Sending packet OPEN data {'sid': '0EJlKayMsURrskcnAAAE', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000}
+2024-12-12 07:45:54,731 INFO: 0EJlKayMsURrskcnAAAE: Sending packet OPEN data {'sid': '0EJlKayMsURrskcnAAAE', 'upgrades': ['websocket'], 'pingTimeout': 5000000, 'pingInterval': 25000000} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:54] "GET /socket.io/?EIO=4&transport=polling&t=PEvrDF_ HTTP/1.1" 200 260 0.000501
+(20539) accepted ('172.31.196.118', 60956)
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 0
+2024-12-12 07:45:54,833 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 0 [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+2024-12-12 07:45:54,834 INFO: Socket connection attempt from KSLmFOBPsjHyJbZFAAAF [in /home/runner/TornadoChatRoom/app.py:378]
+2024-12-12 07:45:55,090 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
+2024-12-12 07:45:55,090 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
+emitting event "user_connected" to KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:55,796 INFO: emitting event "user_connected" to KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_connected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}]
+2024-12-12 07:45:55,796 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_connected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+emitting event "user_list" to KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:55,796 INFO: emitting event "user_list" to KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_list",{"users":[{"id":1,"username":"Apple","email":"etoiyoiky@gmail.com","is_verified":false,"is_moderator":false,"avatar":null,"display_name":"Apple","status":"","accent_color":"#5865F2","bio":"","location":"","last_seen":null,"created_at":"2024-12-11T17:27:06.530477","roles":[]},{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}]}]
+2024-12-12 07:45:55,796 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_list",{"users":[{"id":1,"username":"Apple","email":"etoiyoiky@gmail.com","is_verified":false,"is_moderator":false,"avatar":null,"display_name":"Apple","status":"","accent_color":"#5865F2","bio":"","location":"","last_seen":null,"created_at":"2024-12-11T17:27:06.530477","roles":[]},{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+emitting event "categories_list" to KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:55,796 INFO: emitting event "categories_list" to KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["categories_list",{"categories":[{"id":1,"name":"General","channels":[{"id":1,"name":"general","category_id":1,"is_private":false,"created_at":"2024-12-11T20:14:43.254140"}],"created_at":"2024-12-11T18:08:30.721629"}]}]
+2024-12-12 07:45:55,797 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["categories_list",{"categories":[{"id":1,"name":"General","channels":[{"id":1,"name":"general","category_id":1,"is_private":false,"created_at":"2024-12-11T20:14:43.254140"}],"created_at":"2024-12-11T18:08:30.721629"}]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+KSLmFOBPsjHyJbZFAAAF is entering room user_2 [/]
+2024-12-12 07:45:55,797 INFO: KSLmFOBPsjHyJbZFAAAF is entering room user_2 [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:284]
+2024-12-12 07:45:55,797 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 0{"sid":"KSLmFOBPsjHyJbZFAAAF"}
+2024-12-12 07:45:55,861 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 0{"sid":"KSLmFOBPsjHyJbZFAAAF"} [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+98.61.161.29,10.82.6.11,172.31.196.118 - - [12/Dec/2024 07:45:55] "POST /socket.io/?EIO=4&transport=polling&t=PEvrDHW&sid=0EJlKayMsURrskcnAAAE HTTP/1.1" 200 252 1.028607
+0EJlKayMsURrskcnAAAE: Received request to upgrade to websocket
+2024-12-12 07:45:55,862 INFO: 0EJlKayMsURrskcnAAAE: Received request to upgrade to websocket [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:88]
+98.61.161.29,10.82.5.29,172.31.196.118 - - [12/Dec/2024 07:45:55] "GET /socket.io/?EIO=4&transport=polling&t=PEvrDHW.0&sid=0EJlKayMsURrskcnAAAE HTTP/1.1" 200 157 0.000172
+98.61.161.29,10.82.3.34,172.31.196.118 - - [12/Dec/2024 07:45:55] "GET /socket.io/?EIO=4&transport=polling&t=PEvrDYm&sid=0EJlKayMsURrskcnAAAE HTTP/1.1" 200 157 0.000174
+0EJlKayMsURrskcnAAAE: Upgrade to websocket successful
+2024-12-12 07:45:56,002 INFO: 0EJlKayMsURrskcnAAAE: Upgrade to websocket successful [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:214]
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["join",{}]
+2024-12-12 07:45:56,071 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["join",{}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+received event "join" from KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:56,072 INFO: received event "join" from KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:574]
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["get_dm_history",{"user_id":1}]
+2024-12-12 07:45:59,484 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["get_dm_history",{"user_id":1}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+received event "get_dm_history" from KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:59,484 INFO: received event "get_dm_history" from KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:574]
+2024-12-12 07:45:59,807 ERROR: Error fetching DM history: (psycopg2.errors.UndefinedColumn) column direct_message.file_url does not exist
+LINE 1: ...direct_message.is_read AS direct_message_is_read, direct_mes...
+                                                             ^
+
+[SQL: SELECT direct_message.id AS direct_message_id, direct_message.content AS direct_message_content, direct_message.timestamp AS direct_message_timestamp, direct_message.sender_id AS direct_message_sender_id, direct_message.recipient_id AS direct_message_recipient_id, direct_message.is_read AS direct_message_is_read, direct_message.file_url AS direct_message_file_url, direct_message.file_type AS direct_message_file_type, direct_message.file_name AS direct_message_file_name 
+FROM direct_message 
+WHERE direct_message.sender_id = %(sender_id_1)s AND direct_message.recipient_id = %(recipient_id_1)s OR direct_message.sender_id = %(sender_id_2)s AND direct_message.recipient_id = %(recipient_id_2)s ORDER BY direct_message.timestamp DESC 
+ LIMIT %(param_1)s]
+[parameters: {'sender_id_1': 2, 'recipient_id_1': 1, 'sender_id_2': 1, 'recipient_id_2': 2, 'param_1': 50}]
+(Background on this error at: https://sqlalche.me/e/20/f405) [in /home/runner/TornadoChatRoom/app.py:707]
+emitting event "error" to KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:45:59,808 INFO: emitting event "error" to KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["error",{"message":"Failed to fetch message history"}]
+2024-12-12 07:45:59,808 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["error",{"message":"Failed to fetch message history"}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["typing_indicator",{"recipient_id":"1","is_typing":true}]
+2024-12-12 07:46:01,487 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["typing_indicator",{"recipient_id":"1","is_typing":true}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+received event "typing_indicator" from KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:46:01,487 INFO: received event "typing_indicator" from KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:574]
+emitting event "user_typing" to user_1 [/]
+2024-12-12 07:46:01,745 INFO: emitting event "user_typing" to user_1 [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["typing_indicator",{"recipient_id":"1","is_typing":true}]
+2024-12-12 07:46:01,809 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["typing_indicator",{"recipient_id":"1","is_typing":true}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+received event "typing_indicator" from KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:46:01,809 INFO: received event "typing_indicator" from KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:574]
+emitting event "user_typing" to user_1 [/]
+2024-12-12 07:46:02,067 INFO: emitting event "user_typing" to user_1 [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["direct_message",{"text":"@Apple hi","recipient_id":1}]
+2024-12-12 07:46:02,131 INFO: 0EJlKayMsURrskcnAAAE: Received packet MESSAGE data 2["direct_message",{"text":"@Apple hi","recipient_id":1}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:39]
+received event "direct_message" from KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:46:02,131 INFO: received event "direct_message" from KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:574]
+/home/runner/TornadoChatRoom/app.py:607: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  recipient = User.query.get(recipient_id)
+2024-12-12 07:46:02,649 ERROR: Error in handle_direct_message: (psycopg2.errors.UndefinedColumn) column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+[SQL: INSERT INTO direct_message (content, timestamp, sender_id, recipient_id, is_read, file_url, file_type, file_name) VALUES (%(content)s, %(timestamp)s, %(sender_id)s, %(recipient_id)s, %(is_read)s, %(file_url)s, %(file_type)s, %(file_name)s) RETURNING direct_message.id]
+[parameters: {'content': '@Apple hi', 'timestamp': datetime.datetime(2024, 12, 12, 7, 46, 2, 522580), 'sender_id': 2, 'recipient_id': 1, 'is_read': False, 'file_url': None, 'file_type': None, 'file_name': None}]
+(Background on this error at: https://sqlalche.me/e/20/f405) [in /home/runner/TornadoChatRoom/app.py:640]
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 620, in handle_direct_message
+    db.session.commit()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2028, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4352, in flush
+    self._flush(objects)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4487, in _flush
+    with util.safe_reraise():
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4448, in _flush
+    flush_context.execute()
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column "file_url" of relation "direct_message" does not exist
+LINE 1: ...ent, timestamp, sender_id, recipient_id, is_read, file_url, ...
+                                                             ^
+
+[SQL: INSERT INTO direct_message (content, timestamp, sender_id, recipient_id, is_read, file_url, file_type, file_name) VALUES (%(content)s, %(timestamp)s, %(sender_id)s, %(recipient_id)s, %(is_read)s, %(file_url)s, %(file_type)s, %(file_name)s) RETURNING direct_message.id]
+[parameters: {'content': '@Apple hi', 'timestamp': datetime.datetime(2024, 12, 12, 7, 46, 2, 522580), 'sender_id': 2, 'recipient_id': 1, 'is_read': False, 'file_url': None, 'file_type': None, 'file_name': None}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+emitting event "error" to KSLmFOBPsjHyJbZFAAAF [/]
+2024-12-12 07:46:02,655 INFO: emitting event "error" to KSLmFOBPsjHyJbZFAAAF [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["error",{"message":"Failed to send direct message"}]
+2024-12-12 07:46:02,655 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["error",{"message":"Failed to send direct message"}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+^Cwsgi exiting
+2024-12-12 07:46:32,662 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
+KSLmFOBPsjHyJbZFAAAF is leaving room user_2 [/]
+2024-12-12 07:46:32,663 INFO: KSLmFOBPsjHyJbZFAAAF is leaving room user_2 [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:298]
+emitting event "user_disconnected" to all [/]
+2024-12-12 07:46:32,663 INFO: emitting event "user_disconnected" to all [/] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/socketio/server.py:164]
+C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_disconnected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}]
+2024-12-12 07:46:32,663 INFO: C9r0V38AHT_U1aWCAAAB: Sending packet MESSAGE data 2["user_disconnected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_disconnected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}]
+2024-12-12 07:46:32,663 INFO: 0EJlKayMsURrskcnAAAE: Sending packet MESSAGE data 2["user_disconnected",{"id":2,"username":"Hollow","email":"etoiyoiki@gmail.com","is_verified":false,"is_moderator":false,"avatar":"/static/uploads/avatar_2_1733977988.gif","display_name":"Hollow","status":"Hi","accent_color":"#4d0000","bio":"","location":"","last_seen":"2024-12-12T07:45:55.091024","created_at":"2024-12-11T17:48:42.495047","roles":[]}] [in /home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py:76]
+2024-12-12 07:46:32,663 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:429]
+98.61.161.29,10.82.0.11,172.31.196.118 - - [12/Dec/2024 07:46:32] "GET /socket.io/?EIO=4&transport=websocket&sid=0EJlKayMsURrskcnAAAE HTTP/1.1" 200 0 36.864618
