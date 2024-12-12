@@ -22,7 +22,10 @@ def init_extensions(app):
         login_manager.login_view = 'login'
         login_manager.login_message = 'Please log in to access this page'
         login_manager.login_message_category = 'info'
-        login_manager.session_protection = 'strong'
+        login_manager.session_protection = None  # Disable strict session protection temporarily
+        login_manager.refresh_view = 'login'
+        login_manager.needs_refresh_message = 'Please login again to confirm your identity'
+        login_manager.needs_refresh_message_category = 'info'
         
         bcrypt.init_app(app)
         mail.init_app(app)

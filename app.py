@@ -33,13 +33,15 @@ app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Session configuration
-app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for now
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_NAME'] = 'session'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
-app.config['REMEMBER_COOKIE_SECURE'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP for now
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_NAME'] = 'remember_token'
 
 # Initialize extensions
 init_extensions(app)
