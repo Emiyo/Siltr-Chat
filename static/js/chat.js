@@ -26,13 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("join", { username });
   });
 
-  // Create message input if it doesn't exist
-  let messageInput = document.getElementById("messageInput");
-  if (!messageInput) {
-    messageInput = document.createElement('textarea');
-    messageInput.id = 'messageInput';
-    messageInput.placeholder = 'Type a message...';
-    messageForm.appendChild(messageInput);
+  // Create message form container if it doesn't exist
+  const messageFormContainer = document.getElementById("messageFormContainer");
+  if (!messageFormContainer) {
+    const container = document.createElement('div');
+    container.id = 'messageFormContainer';
+    messageForm.appendChild(container);
   }
 
   // Initialize TinyMCE
@@ -45,14 +44,22 @@ document.addEventListener("DOMContentLoaded", () => {
     placeholder: 'Type a message...',
     skin: 'oxide-dark',
     content_css: 'dark',
+    setup: function(editor) {
+      editor.on('init', function() {
+        editor.getContainer().style.border = '1px solid #30363d';
+      });
+    }
   });
 
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const message = tinymce.get('messageInput').getContent().trim();
+    const editor = tinymce.get('messageInput');
+    if (!editor) return;
+
+    const message = editor.getContent().trim();
     if (message) {
-      const replyToId = editor.getAttribute("data-reply-to");
-      const recipientId = editor.getAttribute("data-recipient-id");
+      const replyToId = messageInput.getAttribute("data-reply-to");
+      const recipientId = messageInput.getAttribute("data-recipient-id");
       
       // Check if it's a direct message
       if (recipientId) {
@@ -61,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
           recipient_id: parseInt(recipientId),
           is_rich_text: true
         });
-        editor.removeAttribute("data-recipient-id");
+        messageInput.removeAttribute("data-recipient-id");
       } else {
         socket.emit("message", {
           text: message,
@@ -69,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
           parent_id: replyToId || null,
           is_rich_text: true
         });
-        editor.removeAttribute("data-reply-to");
+        messageInput.removeAttribute("data-reply-to");
       }
       editor.setContent('');
     }
