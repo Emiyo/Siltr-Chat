@@ -71,12 +71,37 @@ function updateActiveConversations(message) {
       // Check if it's a direct message
       if (recipientId) {
         const parsedRecipientId = parseInt(recipientId);
-        const dmData = new FormData();
-        dmData.append('text', message);
-        dmData.append('recipient_id', parsedRecipientId);
         
+        // Create message data object
+        const dmData = {
+          text: message,
+          recipient_id: parsedRecipientId
+        };
+        
+        // If there's a file, use FormData
         if (file) {
-          dmData.append('file', file);
+          const formData = new FormData();
+          formData.append('text', message);
+          formData.append('recipient_id', parsedRecipientId);
+          formData.append('file', file);
+          
+          // Send file via HTTP request
+          fetch('/api/upload_dm_file', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            // After file upload, send message with file info
+            dmData.file_url = data.file_url;
+            dmData.file_type = data.file_type;
+            dmData.file_name = data.file_name;
+            socket.emit("direct_message", dmData);
+          })
+          .catch(error => console.error('Error uploading file:', error));
+        } else {
+          // If no file, send message directly
+          socket.emit("direct_message", dmData);
         }
         
         // Update active conversations before sending
