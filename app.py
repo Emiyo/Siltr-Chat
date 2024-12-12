@@ -40,25 +40,31 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # File upload configuration
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'mp3', 'mp4', 'zip', 'rar'}
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
-# Create upload directories
+# Create upload directories if they don't exist
 os.makedirs(os.path.join('static', 'uploads', 'dm_files'), exist_ok=True)
 
 def allowed_file(filename):
+    """Check if the file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/api/upload_dm_file', methods=['POST'])
 @login_required
 def upload_dm_file():
+    """Handle file uploads for direct messages"""
     try:
         if 'file' not in request.files:
+            logger.warning("No file part in request")
             return jsonify({'error': 'No file uploaded'}), 400
             
         file = request.files['file']
         if not file or not file.filename:
+            logger.warning("No file selected")
             return jsonify({'error': 'Invalid file'}), 400
             
         if not allowed_file(file.filename):
+            logger.warning(f"File type not allowed: {file.filename}")
             return jsonify({'error': 'File type not allowed'}), 400
             
         # Secure filename and generate unique name
@@ -72,17 +78,20 @@ def upload_dm_file():
         # Save file
         filepath = os.path.join(upload_dir, filename)
         file.save(filepath)
+        logger.info(f"File saved successfully: {filepath}")
         
         # Return file information
         file_url = f"/static/uploads/dm_files/{filename}"
-        return jsonify({
+        response_data = {
             'file_url': file_url,
             'file_type': file_type,
             'file_name': file.filename
-        })
+        }
+        logger.info(f"File upload successful: {response_data}")
+        return jsonify(response_data)
         
     except Exception as e:
-        logger.error(f"File upload error: {str(e)}")
+        logger.error(f"File upload error: {str(e)}", exc_info=True)
         return jsonify({'error': 'Failed to upload file'}), 500
 
 @socketio.on('connect')
