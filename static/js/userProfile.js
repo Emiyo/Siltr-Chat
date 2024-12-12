@@ -118,30 +118,40 @@ function initializeProfileHandlers() {
 
     // Use event delegation for all profile-related clicks
     document.addEventListener('click', function(e) {
+        console.log('Click event detected on:', e.target);
+        
         // Handle both profile buttons and user items
         const profileElement = e.target.closest('.profile-btn, .user-item');
         if (profileElement) {
+            console.log('Profile element clicked:', profileElement);
             e.preventDefault();
             e.stopPropagation();
             
             // Get userId from either data attribute or user-item
-            let userId;
-            if (profileElement.classList.contains('profile-btn')) {
-                userId = profileElement.getAttribute('data-user-id');
-            } else {
-                userId = profileElement.getAttribute('data-user-id');
+            const userId = profileElement.dataset.userId || profileElement.getAttribute('data-user-id');
+            console.log('User ID extracted:', userId);
+
+            if (!userId) {
+                console.error('No user ID found on element:', profileElement);
+                return;
             }
 
-            console.log('Profile click detected:', { userId, element: profileElement });
+            if (!window.store) {
+                console.error('Redux store not initialized');
+                return;
+            }
 
-            if (userId && window.store && window.displayUserProfile) {
+            if (!window.displayUserProfile) {
+                console.error('displayUserProfile function not available');
+                return;
+            }
+
+            console.log('Dispatching displayUserProfile with userId:', userId);
+            try {
                 window.store.dispatch(window.displayUserProfile(userId));
-            } else {
-                console.error('Missing required data:', {
-                    userId,
-                    store: !!window.store,
-                    displayUserProfile: !!window.displayUserProfile
-                });
+                console.log('Successfully dispatched displayUserProfile');
+            } catch (error) {
+                console.error('Error dispatching displayUserProfile:', error);
             }
         }
     });

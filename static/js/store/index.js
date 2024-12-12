@@ -18,17 +18,33 @@ const initializeStore = () => {
 
     // Create the async action creator
     const displayUserProfile = (userId) => async (dispatch) => {
+        console.log('displayUserProfile called with userId:', userId);
         dispatch(window.profileActions.setLoading(true));
         try {
+            console.log('Setting current user ID:', userId);
             dispatch(window.profileActions.setCurrentUserId(userId));
+            
             const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
+            console.log('Fetching user data from endpoint:', endpoint);
+            
             const response = await fetch(endpoint);
-            if (!response.ok) throw new Error('Failed to fetch user profile');
+            console.log('API response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user profile: ${response.status}`);
+            }
+            
             const userData = await response.json();
+            console.log('Received user data:', userData);
+            
             dispatch(window.profileActions.setUserData(userData));
+            console.log('User data set in store');
+            
             dispatch(window.profileActions.openModal());
+            console.log('Modal open action dispatched');
+            
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            console.error('Error in displayUserProfile:', error);
             dispatch(window.profileActions.setError(error.message));
         } finally {
             dispatch(window.profileActions.setLoading(false));
