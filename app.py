@@ -39,7 +39,10 @@ init_extensions(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # File upload configuration
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'mp3', 'mp4', 'zip', 'rar'}
+
+# Create upload directories
+os.makedirs(os.path.join('static', 'uploads', 'dm_files'), exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -588,9 +591,16 @@ def handle_direct_message(data):
     try:
         content = data.get('text', '').strip()
         recipient_id = data.get('recipient_id')
+        file_url = data.get('file_url')
+        file_type = data.get('file_type')
+        file_name = data.get('file_name')
         
-        if not content or not recipient_id:
-            logger.warning("Missing content or recipient_id in direct message")
+        if not content and not file_url:
+            logger.warning("Missing content and file in direct message")
+            return False
+            
+        if not recipient_id:
+            logger.warning("Missing recipient_id in direct message")
             return False
             
         # Check if recipient exists
@@ -603,7 +613,10 @@ def handle_direct_message(data):
         message = DirectMessage(
             content=content,
             sender_id=current_user.id,
-            recipient_id=recipient_id
+            recipient_id=recipient_id,
+            file_url=file_url,
+            file_type=file_type,
+            file_name=file_name
         )
         
         db.session.add(message)
