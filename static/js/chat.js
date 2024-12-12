@@ -26,21 +26,30 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("join", { username });
   });
 
+  // Create message input if it doesn't exist
+  let messageInput = document.getElementById("messageInput");
+  if (!messageInput) {
+    messageInput = document.createElement('textarea');
+    messageInput.id = 'messageInput';
+    messageInput.placeholder = 'Type a message...';
+    messageForm.appendChild(messageInput);
+  }
+
   // Initialize TinyMCE
-  const editor = document.createElement('tinymce-editor');
-  editor.setAttribute('api-key', 'no-api-key');
-  editor.setAttribute('height', '100');
-  editor.setAttribute('menubar', 'false');
-  editor.setAttribute('plugins', 'link lists emoticons');
-  editor.setAttribute('toolbar', 'bold italic | bullist numlist | link emoticons');
-  editor.setAttribute('placeholder', 'Type a message...');
-  
-  // Replace input with editor
-  messageInput.parentNode.replaceChild(editor, messageInput);
+  tinymce.init({
+    selector: '#messageInput',
+    height: 100,
+    menubar: false,
+    plugins: 'link lists emoticons',
+    toolbar: 'bold italic | bullist numlist | link emoticons',
+    placeholder: 'Type a message...',
+    skin: 'oxide-dark',
+    content_css: 'dark',
+  });
 
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const message = editor.getContent().trim();
+    const message = tinymce.get('messageInput').getContent().trim();
     if (message) {
       const replyToId = editor.getAttribute("data-reply-to");
       const recipientId = editor.getAttribute("data-recipient-id");
