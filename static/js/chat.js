@@ -7,10 +7,12 @@ let user_id;
 let username;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize DOM elements
   messageContainer = document.getElementById("messageContainer");
-  
-  // Initialize file upload elements
   const messageForm = document.getElementById("messageForm");
+  const messageInput = document.getElementById("messageInput");
+
+  // Initialize file upload elements
   if (messageForm) {
     // Create file input wrapper
     const fileInputWrapper = document.createElement("div");
@@ -39,9 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     fileInputWrapper.appendChild(fileInputButton);
     messageForm.insertBefore(fileInputWrapper, messageForm.firstChild);
   }
-  
-  messageContainer = document.getElementById("messageContainer");
-// Track active conversations
+
+  // Track active conversations
 let activeConversations = [];
 
 // Update active conversations when receiving or sending a DM
@@ -73,9 +74,6 @@ function updateActiveConversations(message) {
   // Always update the category list to refresh UI
   updateCategoryList();
 }
-  const messageForm = document.getElementById("messageForm");
-  const messageInput = document.getElementById("messageInput");
-
   // Get user info from data attributes
   const userElement = document.getElementById("user-info");
   if (userElement) {
