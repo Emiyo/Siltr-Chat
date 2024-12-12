@@ -53,3 +53,6 @@
 2024-12-12 06:04:59,220 INFO: Socket connection authenticated for user: Hollow [in /home/runner/TornadoChatRoom/app.py:384]
 2024-12-12 06:04:59,220 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:386]
 2024-12-12 06:04:59,918 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:413]
+2024-12-12 06:05:20,997 INFO: User Hollow joined channel general [in /home/runner/TornadoChatRoom/app.py:722]
+2024-12-12 06:05:21,064 INFO: Found 50 messages for channel 1 [in /home/runner/TornadoChatRoom/app.py:726]
+2024-12-12 06:05:21,582 INFO: System message sent for user Hollow joining channel general [in /home/runner/TornadoChatRoom/app.py:746]
