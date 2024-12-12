@@ -340,14 +340,17 @@ body {
 
 .terminal-buttons {
   position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 8px;
+  top: 0;
+  bottom: 0;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
+  align-items: center;
   width: fit-content;
   z-index: 2;
+  height: 100%;
+  padding: 0 2px;
 }
 
 .terminal-header span {
