@@ -7,7 +7,7 @@ let user_id;
 let username;
 
 document.addEventListener('DOMContentLoaded', () => {
-    messageContainer = document.getElementById('chat-messages');
+    messageContainer = document.getElementById('messageContainer');
     const messageForm = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
     
