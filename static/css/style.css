@@ -349,6 +349,7 @@ body {
   width: fit-content;
   z-index: 2;
   height: 32px;
+  width: 32px;
   padding: 0 2px;
 }
 
@@ -366,7 +367,7 @@ body {
 }
 
 .terminal-button {
-  width: 6px;
+  width: 3px;
   height: 6px;
   border-radius: 50%;
   display: inline-block;

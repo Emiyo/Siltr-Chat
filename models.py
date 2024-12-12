@@ -34,8 +34,8 @@ class User(UserMixin, db.Model):
     github_username = db.Column(db.String(100), nullable=True)
     spotify_id = db.Column(db.String(100), nullable=True, unique=True)
     spotify_display_name = db.Column(db.String(100), nullable=True)
-    discord_id = db.Column(db.String(100), nullable=True, unique=True)
-    discord_username = db.Column(db.String(100), nullable=True)
+    siltr_id = db.Column(db.String(100), nullable=True, unique=True)
+    siltr_username = db.Column(db.String(100), nullable=True)
     
     roles = db.relationship('Role', secondary=user_roles, lazy='subquery',
                           backref=db.backref('users', lazy=True))
