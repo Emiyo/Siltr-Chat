@@ -26,29 +26,43 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("join", { username });
   });
 
+  // Initialize TinyMCE
+  const editor = document.createElement('tinymce-editor');
+  editor.setAttribute('api-key', 'no-api-key');
+  editor.setAttribute('height', '100');
+  editor.setAttribute('menubar', 'false');
+  editor.setAttribute('plugins', 'link lists emoticons');
+  editor.setAttribute('toolbar', 'bold italic | bullist numlist | link emoticons');
+  editor.setAttribute('placeholder', 'Type a message...');
+  
+  // Replace input with editor
+  messageInput.parentNode.replaceChild(editor, messageInput);
+
   messageForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const message = messageInput.value.trim();
+    const message = editor.getContent().trim();
     if (message) {
-      const replyToId = messageInput.getAttribute("data-reply-to");
-      const recipientId = messageInput.getAttribute("data-recipient-id");
+      const replyToId = editor.getAttribute("data-reply-to");
+      const recipientId = editor.getAttribute("data-recipient-id");
       
       // Check if it's a direct message
       if (recipientId) {
         socket.emit("direct_message", {
           text: message,
           recipient_id: parseInt(recipientId),
+          is_rich_text: true
         });
-        messageInput.removeAttribute("data-recipient-id");
+        editor.removeAttribute("data-recipient-id");
       } else {
         socket.emit("message", {
           text: message,
           channel_id: currentChannel,
           parent_id: replyToId || null,
+          is_rich_text: true
         });
-        messageInput.removeAttribute("data-reply-to");
+        editor.removeAttribute("data-reply-to");
       }
-      messageInput.value = "";
+      editor.setContent('');
     }
   });
 
@@ -225,9 +239,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>`;
       // Display message content as plain text
       
-      // Create text content and escape HTML
+      // Handle rich text content
       const contentDiv = document.createElement('div');
-      contentDiv.textContent = messageContent;
+      if (message.is_rich_text) {
+        contentDiv.innerHTML = messageContent;
+      } else {
+        contentDiv.textContent = messageContent;
+      }
       contentDiv.className = 'message-content';
       messageDiv.innerHTML = messageHeader;
       messageDiv.appendChild(contentDiv);
