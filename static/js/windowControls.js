@@ -14,7 +14,10 @@ class TerminalWindow {
     };
     this.isMinimized = false;
     this.isMaximized = false;
+    this.isDragging = false;
+    this.dragOffset = { x: 0, y: 0 };
     this.setupControls();
+    this.setupDragging();
     this.saveInitialContent();
   }
 
@@ -57,6 +60,61 @@ class TerminalWindow {
         this.maximize();
       });
     }
+  }
+
+  setupDragging() {
+    const header = this.container.querySelector('.terminal-header');
+    if (!header) return;
+
+    header.addEventListener('mousedown', (e) => {
+      // Don't start dragging if clicking buttons or if window is maximized
+      if (e.target.closest('.terminal-buttons') || this.isMaximized) return;
+
+      this.isDragging = true;
+      const rect = this.container.getBoundingClientRect();
+      this.dragOffset = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+
+      // Set container to absolute positioning if it isn't already
+      if (this.container.style.position !== 'absolute') {
+        const rect = this.container.getBoundingClientRect();
+        this.container.style.position = 'absolute';
+        this.container.style.left = rect.left + 'px';
+        this.container.style.top = rect.top + 'px';
+        this.container.style.width = rect.width + 'px';
+        this.container.style.height = rect.height + 'px';
+      }
+
+      // Increase z-index when dragging starts
+      this.container.style.zIndex = '1000';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!this.isDragging) return;
+
+      e.preventDefault();
+      
+      const x = e.clientX - this.dragOffset.x;
+      const y = e.clientY - this.dragOffset.y;
+
+      // Ensure the window stays within viewport bounds
+      const rect = this.container.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+
+      this.container.style.left = Math.min(Math.max(0, x), maxX) + 'px';
+      this.container.style.top = Math.min(Math.max(0, y), maxY) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (this.isDragging) {
+        this.isDragging = false;
+        // Store new position in originalDimensions
+        this.saveCurrentDimensions();
+      }
+    });
   }
 
   saveInitialContent() {
