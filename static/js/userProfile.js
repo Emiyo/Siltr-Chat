@@ -17,11 +17,7 @@ function initializeProfileHandlers() {
 
     let profileModal;
     try {
-        profileModal = new bootstrap.Modal(modalElement, {
-            keyboard: true,
-            backdrop: true,
-            focus: true
-        });
+        profileModal = new bootstrap.Modal(modalElement);
         console.log('Bootstrap modal initialized successfully');
     } catch (error) {
         console.error('Failed to initialize Bootstrap modal:', error);
@@ -36,13 +32,17 @@ function initializeProfileHandlers() {
         if (state.isModalOpen && state.userData) {
             // Update UI with user data
             updateProfileUI(state.userData);
+            if (modalElement.classList.contains('show')) {
+                console.log('Modal already shown');
+                return;
+            }
             try {
                 profileModal.show();
                 console.log('Showing modal for user:', state.userData.username);
             } catch (error) {
                 console.error('Error showing modal:', error);
             }
-        } else if (!state.isModalOpen) {
+        } else if (!state.isModalOpen && modalElement.classList.contains('show')) {
             try {
                 profileModal.hide();
                 console.log('Hiding modal');
