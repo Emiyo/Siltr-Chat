@@ -313,6 +313,49 @@ class TerminalWindow {
       bottom: style.bottom,
       zIndex: style.zIndex
     };
+    
+    // Save state to localStorage
+    this.savePanelState();
+  }
+
+  savePanelState() {
+    if (!this.container.id) return; // Only save state for panels with IDs
+    
+    const state = {
+      dimensions: this.originalDimensions,
+      isMinimized: this.isMinimized,
+      isMaximized: this.isMaximized
+    };
+    
+    localStorage.setItem(`panel_state_${this.container.id}`, JSON.stringify(state));
+  }
+
+  loadPanelState() {
+    if (!this.container.id) return;
+    
+    const savedState = localStorage.getItem(`panel_state_${this.container.id}`);
+    if (!savedState) return;
+
+    try {
+      const state = JSON.parse(savedState);
+      
+      // Restore dimensions
+      if (state.dimensions) {
+        Object.keys(state.dimensions).forEach(prop => {
+          this.container.style[prop] = state.dimensions[prop];
+        });
+        this.originalDimensions = state.dimensions;
+      }
+
+      // Restore minimized/maximized state
+      if (state.isMinimized) {
+        this.minimize();
+      } else if (state.isMaximized) {
+        this.maximize();
+      }
+    } catch (error) {
+      console.error('Error loading panel state:', error);
+    }
   }
 }
 
@@ -320,8 +363,11 @@ class TerminalWindow {
 document.addEventListener('DOMContentLoaded', () => {
   const initializeTerminal = (element) => {
     if (!element.dataset.terminalInitialized) {
-      new TerminalWindow(element);
+      const terminal = new TerminalWindow(element);
       element.dataset.terminalInitialized = 'true';
+      
+      // Load saved state if available
+      terminal.loadPanelState();
     }
   };
 
