@@ -102,6 +102,17 @@ function updateActiveConversations(message) {
         socket.emit("direct_message", dmData);
         messageInput.removeAttribute("data-recipient-id");
         messageInput.value = "";
+        // Force update category list after sending DM
+        updateActiveConversations({
+          content: message,
+          sender_id: user_id,
+          recipient_id: parsedRecipientId,
+          sender: {
+            id: user_id,
+            username: username
+          },
+          recipient: recipient || { id: parsedRecipientId }
+        });
       } else {
         socket.emit("message", {
           text: message,
