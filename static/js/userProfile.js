@@ -163,8 +163,8 @@ window.displayUserProfile = async function (userId) {
             </div>
 
             <div class="profile-actions">
-                <button id="messageUserBtn" class="btn btn-primary">Send Message</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="messageUserBtn" class="btn btn-terminal">Send Message</button>
+                <button type="button" class="btn btn-terminal" data-bs-dismiss="modal">Close</button>
             </div>
         `;
 
@@ -178,6 +178,27 @@ window.displayUserProfile = async function (userId) {
         const color = e.target.value;
         updateThemePreview(color);
         updateProfileBanner(color);
+        
+        // Save the color change to the server
+        if (currentUserId) {
+          fetch('/api/user/update_theme', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: currentUserId,
+              accent_color: color
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Theme updated successfully:', data);
+          })
+          .catch(error => {
+            console.error('Error updating theme:', error);
+          });
+        }
       });
 
       // Set initial theme
@@ -256,10 +277,29 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize message button handler
   const messageUserBtn = document.getElementById("messageUserBtn");
   if (messageUserBtn) {
-    messageUserBtn.addEventListener("click", function () {
+    messageUserBtn.addEventListener("click", async function () {
       if (currentUserId && typeof socket !== "undefined") {
         console.log("Starting DM with user:", currentUserId);
+        
+        // Emit socket event to start a direct message
         socket.emit("start_direct_message", { target_user_id: currentUserId });
+        
+        // Get the username for the target user
+        try {
+          const response = await fetch(`/api/user/by_id/${currentUserId}`);
+          const userData = await response.json();
+          
+          // Add @ prefix to username in message input
+          const messageInput = document.getElementById("messageInput");
+          if (messageInput) {
+            messageInput.value = `@${userData.username} `;
+            messageInput.focus();
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+        
+        // Close the modal
         profileModal.hide();
       } else {
         console.warn("Cannot start DM - missing userId or socket");
