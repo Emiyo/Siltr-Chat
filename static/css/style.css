@@ -331,7 +331,7 @@ body {
   background-color: #2d2d2d;
   padding: 0.5rem 1rem;
   display: grid;
-  grid-template-columns: 80px 1fr 80px;
+  grid-template-columns: 70px 1fr 70px;
   align-items: center;
   border-bottom: 1px solid #333;
   min-height: 32px;
@@ -341,7 +341,18 @@ body {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
-  width: 100%;
+  width: fit-content;
+}
+
+.terminal-header span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.terminal-header span:first-of-type {
+  margin-left: 1rem;
 }
 
 .terminal-button {
