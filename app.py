@@ -248,10 +248,7 @@ def register():
 @login_required
 def profile():
     if request.method == 'GET' and request.headers.get('Accept') == 'application/json':
-        return jsonify({
-            'theme': current_user.theme,
-            'accent_color': current_user.accent_color
-        })
+        return jsonify(current_user.to_dict())
     elif request.method == 'POST':
         try:
             # Update basic profile information
@@ -276,6 +273,29 @@ def profile():
             logger.error(f"Error updating profile: {str(e)}")
             return jsonify({'success': False, 'message': 'An error occurred while updating your profile'}), 500
     return render_template('profile.html')
+
+@app.route('/api/user/profile')
+@login_required
+def get_current_user_profile():
+    """Get the current user's profile data"""
+    try:
+        return jsonify(current_user.to_dict())
+    except Exception as e:
+        logger.error(f"Error fetching current user profile: {str(e)}")
+        return jsonify({'error': 'Failed to fetch profile'}), 500
+
+@app.route('/api/user/by_id/<int:user_id>')
+@login_required
+def get_user_profile(user_id):
+    """Get a specific user's profile data by ID"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify(user.to_dict())
+    except Exception as e:
+        logger.error(f"Error fetching user profile {user_id}: {str(e)}")
+        return jsonify({'error': 'Failed to fetch profile'}), 500
 
 @app.route('/update_status', methods=['POST'])
 @app.route('/update_theme', methods=['POST'])
