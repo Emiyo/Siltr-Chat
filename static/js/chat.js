@@ -228,6 +228,11 @@ document.addEventListener("DOMContentLoaded", () => {
           messageContent = marked.parse(messageContent);
       }
       
+      // Parse markdown if it's not a system message
+      if (!message.type) {
+          messageContent = marked.parse(messageContent);
+      }
+      
       messageDiv.innerHTML = `
           ${messageHeader}
           <div class="message-content">${messageContent}</div>
