@@ -1,11 +1,12 @@
-2024-12-11 20:10:39,708 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 20:10:40,293 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 20:10:56,444 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:425]
-2024-12-11 20:10:57,027 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:445]
-2024-12-11 20:12:23,853 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
-2024-12-11 20:12:25,363 ERROR: Database initialization error: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]' [in /home/runner/TornadoChatRoom/app.py:583]
-2024-12-11 20:12:25,363 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:588]
-2024-12-11 20:12:27,756 ERROR: Error in handle_connect: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Channel(channel)]'. Original exception was: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]' [in /home/runner/TornadoChatRoom/app.py:458]
+2024-12-11 20:12:25,482 ERROR: Error in handle_connect: (psycopg2.errors.UndefinedColumn) column user.custom_status does not exist
+LINE 1: ...cation, "user".banner_color AS user_banner_color, "user".cus...
+                                                             ^
+
+[SQL: SELECT "user".id AS user_id, "user".username AS user_username, "user".email AS user_email, "user".password_hash AS user_password_hash, "user".is_verified AS user_is_verified, "user".is_moderator AS user_is_moderator, "user".avatar AS user_avatar, "user".display_name AS user_display_name, "user".status AS user_status, "user".accent_color AS user_accent_color, "user".theme AS user_theme, "user".bio AS user_bio, "user".location AS user_location, "user".banner_color AS user_banner_color, "user".custom_status AS user_custom_status, "user".status_emoji AS user_status_emoji, "user".last_seen AS user_last_seen, "user".created_at AS user_created_at, "user".github_id AS user_github_id, "user".github_username AS user_github_username, "user".spotify_id AS user_spotify_id, "user".spotify_display_name AS user_spotify_display_name, "user".discord_id AS user_discord_id, "user".discord_username AS user_discord_username 
+FROM "user" 
+WHERE "user".id = %(pk_1)s]
+[parameters: {'pk_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405) [in /home/runner/TornadoChatRoom/app.py:449]
 Traceback (most recent call last):
   File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 834, in _handle_event
     ret = handler(auth)
@@ -15,9 +16,21 @@ TypeError: handle_connect() takes 0 positional arguments but 1 was given
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/TornadoChatRoom/app.py", line 423, in handle_connect
-    if not current_user.is_authenticated:
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column user.custom_status does not exist
+LINE 1: ...cation, "user".banner_color AS user_banner_color, "user".cus...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/TornadoChatRoom/app.py", line 421, in handle_connect
+    """Handle client connection"""
+               ^^^^^^^^^^^^^^^^^^^^
   File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/werkzeug/local.py", line 318, in __get__
     obj = instance._get_current_object()
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -32,30 +45,76 @@ Traceback (most recent call last):
   File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_login/login_manager.py", line 364, in _load_user
     user = self._user_callback(user_id)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/TornadoChatRoom/app.py", line 229, in load_user
-    return User.query.get(int(id))
-           ^^^^^^^^^^
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/flask_sqlalchemy/model.py", line 22, in __get__
-    return cls.query_class(
-           ^^^^^^^^^^^^^^^^
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 275, in __init__
-    self._set_entities(entities)
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 287, in _set_entities
-    self._raw_columns = [
-                        ^
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 288, in <listcomp>
-    coercions.expect(
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/coercions.py", line 388, in expect
-    insp._post_inspect
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 1253, in __get__
-    obj.__dict__[self.__name__] = result = self.fget(obj)
-                                           ^^^^^^^^^^^^^^
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2722, in _post_inspect
-    self._check_configure()
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 2399, in _check_configure
-    _configure_registries({self.registry}, cascade=True)
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4215, in _configure_registries
-    _do_configure_registries(registries, cascade)
-  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/mapper.py", line 4252, in _do_configure_registries
-    raise e
-sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Channel(channel)]'. Original exception was: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]'
+  File "/home/runner/TornadoChatRoom/app.py", line 227, in load_user
+    @login_manager.user_loader
+               ^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in get
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/util/deprecations.py", line 386, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 1127, in get
+    return self._get_impl(ident, loading.load_on_pk_identity)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 1136, in _get_impl
+    return self.session._get_impl(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 3873, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 694, in load_on_pk_identity
+    session.execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 305, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/TornadoChatRoom/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column user.custom_status does not exist
+LINE 1: ...cation, "user".banner_color AS user_banner_color, "user".cus...
+                                                             ^
+
+[SQL: SELECT "user".id AS user_id, "user".username AS user_username, "user".email AS user_email, "user".password_hash AS user_password_hash, "user".is_verified AS user_is_verified, "user".is_moderator AS user_is_moderator, "user".avatar AS user_avatar, "user".display_name AS user_display_name, "user".status AS user_status, "user".accent_color AS user_accent_color, "user".theme AS user_theme, "user".bio AS user_bio, "user".location AS user_location, "user".banner_color AS user_banner_color, "user".custom_status AS user_custom_status, "user".status_emoji AS user_status_emoji, "user".last_seen AS user_last_seen, "user".created_at AS user_created_at, "user".github_id AS user_github_id, "user".github_username AS user_github_username, "user".spotify_id AS user_spotify_id, "user".spotify_display_name AS user_spotify_display_name, "user".discord_id AS user_discord_id, "user".discord_username AS user_discord_username 
+FROM "user" 
+WHERE "user".id = %(pk_1)s]
+[parameters: {'pk_1': 2}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2024-12-11 20:12:26,283 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 20:12:27,804 ERROR: Database initialization error: Error creating backref 'channel' on relationship 'Channel.messages': property of that name exists on mapper 'Mapper[Message(message)]' [in /home/runner/TornadoChatRoom/app.py:583]
+2024-12-11 20:12:27,805 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:588]
+2024-12-11 20:12:52,560 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 20:12:54,216 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:580]
+2024-12-11 20:12:54,280 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:587]
+2024-12-11 20:12:55,264 INFO: Application startup [in /home/runner/TornadoChatRoom/app.py:80]
+2024-12-11 20:12:56,102 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
+2024-12-11 20:12:56,775 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:453]
+2024-12-11 20:12:56,911 INFO: Database initialized successfully [in /home/runner/TornadoChatRoom/app.py:580]
+2024-12-11 20:12:56,976 INFO: Starting SocketIO server... [in /home/runner/TornadoChatRoom/app.py:587]
+2024-12-11 20:12:57,429 INFO: User disconnecting: Hollow [in /home/runner/TornadoChatRoom/app.py:466]
+2024-12-11 20:12:57,430 INFO: User disconnected: Hollow [in /home/runner/TornadoChatRoom/app.py:469]
+2024-12-11 20:12:59,536 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
+2024-12-11 20:13:00,185 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:453]
+2024-12-11 20:13:20,084 INFO: Authenticated user connecting: Hollow [in /home/runner/TornadoChatRoom/app.py:426]
+2024-12-11 20:13:20,742 INFO: Client connected successfully: Hollow [in /home/runner/TornadoChatRoom/app.py:453]

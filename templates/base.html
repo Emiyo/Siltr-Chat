@@ -84,13 +84,13 @@
         </div>
     </div>
 
-    <!-- Load stylesheets -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <!-- Load Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     
     <!-- Load stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     
-    <!-- Load JavaScript -->
+    <!-- Load JavaScript in correct order -->
     <script src="{{ url_for('static', filename='js/userProfile.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>

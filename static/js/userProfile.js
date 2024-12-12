@@ -1,8 +1,67 @@
-// User Profile Management
+// Global variables
+let currentModal = null;
+let currentUserId = null;
+
+// Global profile display functionality
+window.displayUserProfile = async function(userId) {
+    try {
+        currentUserId = userId;
+        const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Failed to fetch user profile');
+        const userData = await response.json();
+        
+        // Get modal
+        const modal = document.getElementById('userProfileModal');
+        if (!modal) {
+            console.error('Modal element not found');
+            return;
+        }
+        currentModal = modal;
+        
+        // Update avatar and presence
+        const avatarSrc = userData.avatar || '/static/images/default-avatar.png';
+        document.getElementById('modalUserAvatar').src = avatarSrc;
+        updateUserPresence(userData.presence_state || 'online');
+
+        // Update username and status
+        document.getElementById('modalUsername').textContent = userData.display_name || userData.username;
+        document.getElementById('modalStatus').textContent = userData.status || 'No status set';
+
+        // Update bio and location
+        document.getElementById('modalBio').textContent = userData.bio || 'No bio provided';
+        document.getElementById('modalLocation').textContent = userData.location ? `📍 ${userData.location}` : '';
+
+        // Update member info
+        document.getElementById('modalJoinDate').textContent = `Joined: ${new Date(userData.created_at).toLocaleDateString()}`;
+        document.getElementById('modalLastSeen').textContent = userData.last_seen ? 
+            `Last seen: ${new Date(userData.last_seen).toLocaleString()}` : 'Last seen: Never';
+
+        // Update roles
+        const rolesDiv = document.getElementById('modalRoles');
+        rolesDiv.innerHTML = userData.roles ? 
+            userData.roles.map(role => `<span class="role-badge">${role}</span>`).join('') : '';
+
+        // Configure direct message button
+        const messageBtn = document.getElementById('startDirectMessageBtn');
+        if (userId === 'current') {
+            messageBtn.style.display = 'none';
+        } else {
+            messageBtn.style.display = 'block';
+            messageBtn.onclick = () => startDirectMessage(userId);
+        }
+
+        // Show modal
+        modal.style.display = "block";
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
+};
+
+// Initialize event handlers when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('userProfileModal');
     const closeBtn = modal.querySelector('.close');
-    let currentUserId = null;
 
     // Initialize Socket.IO event handlers for real-time updates
     if (typeof io !== 'undefined') {
@@ -21,9 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUserList(data.users);
         });
     }
-
-    // Profile display functionality
-    window.displayUserProfile = async function(userId) {
         try {
             currentUserId = userId;
             const endpoint = userId === 'current' ? '/api/user/profile' : `/api/user/by_id/${userId}`;
