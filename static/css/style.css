@@ -998,6 +998,51 @@ body {
   height: 60px;
   padding: 0.5rem 1rem;
   display: flex;
+/* Settings Modal Styles */
+.settings-section {
+  margin-bottom: 1.5rem;
+}
+
+.settings-section h3 {
+  color: var(--terminal-text);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.form-select {
+  background-color: var(--terminal-bg);
+  color: var(--terminal-text);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+}
+
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(74, 158, 255, 0.25);
+}
+
+.form-check-input {
+  background-color: var(--terminal-bg);
+  border-color: var(--border-color);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.form-check-label {
+  color: var(--terminal-text);
+}
+
+#settingsModal .modal-content {
+  background-color: var(--terminal-bg);
+  border: 1px solid var(--border-color);
+}
+
+#settingsModal .modal-footer {
+  border-top: 1px solid var(--border-color);
+}
   justify-content: space-between;
   align-items: center;
   background-color: var(--background-secondary);
