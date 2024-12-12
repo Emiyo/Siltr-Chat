@@ -315,6 +315,31 @@ body {
   height: 12px;
   border-radius: 50%;
   display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.terminal-button:hover {
+  transform: scale(1.1);
+}
+
+.terminal-button:active {
+  transform: scale(0.9);
+}
+
+.terminal-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.2s ease;
 }
 
 .terminal-button-red {
